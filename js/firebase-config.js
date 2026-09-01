@@ -6,7 +6,7 @@ import {
   persistentMultipleTabManager 
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// Your Firebase configuration
+// Your exact Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyDBUW3lgkFWvDygfgBD4kSBRh4wx9d4h0Q",
   authDomain: "hiam-khder.firebaseapp.com",
@@ -20,7 +20,7 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize Firestore with OFFLINE persistence (works even during power/internet cuts)
+// Initialize Firestore with Offline Cache
 export const db = initializeFirestore(app, {
   localCache: persistentLocalCache({
     tabManager: persistentMultipleTabManager()
