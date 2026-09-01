@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0f766e">
+  <title>عيادة النسائية والتوليد</title>
+  <link rel="manifest" href="./manifest.json">
+  <link rel="stylesheet" href="./css/styles.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-slate-100 text-slate-800 font-['Cairo']">
+
+  <!-- Header -->
+  <header class="bg-teal-700 text-white p-4 shadow-md sticky top-0 z-20">
+    <div class="max-w-5xl mx-auto flex justify-between items-center">
+      <div class="flex items-center gap-2">
+        <span class="text-2xl">🩺</span>
+        <h1 class="text-lg md:text-xl font-bold">سجل العيادة النسائية</h1>
+      </div>
+      <div class="flex gap-2">
+        <button id="installBtn" class="hidden bg-emerald-600 hover:bg-emerald-700 text-xs px-3 py-2 rounded-lg font-bold">📱 تثبيت التطبيق</button>
+        <button id="exportBtn" class="bg-teal-800 hover:bg-teal-900 text-xs px-3 py-2 rounded-lg">💾 نسخ احتياطي</button>
+        <button id="openModalBtn" class="bg-white text-teal-800 font-bold px-3 py-2 rounded-lg text-xs shadow">+ مريضة جديدة</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main View -->
+  <main class="max-w-5xl mx-auto p-4">
+    <div class="mb-4">
+      <input type="text" id="searchInput" placeholder="🔍 ابحثي عن مريضة بالاسم أو الهاتف..." 
+             class="w-full p-3 rounded-xl border border-slate-300 shadow-sm focus:outline-teal-600 bg-white">
+    </div>
+
+    <div class="flex justify-between items-center text-sm text-slate-500 mb-3 px-1">
+      <span id="patientCount">إجمالي المريضات: 0</span>
+    </div>
+
+    <div id="patientList" class="space-y-4"></div>
+  </main>
+
+  <!-- Modal Component -->
+  <div id="patientModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-3 z-30">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-5 max-h-[92vh] overflow-y-auto shadow-2xl">
+      <div class="flex justify-between items-center mb-4 pb-2 border-b">
+        <h2 class="text-lg font-bold text-teal-800">📋 إدخال ملف مريضة جديدة</h2>
+        <button id="closeModalBtn" class="text-gray-400 hover:text-red-500 text-2xl font-bold">&times;</button>
+      </div>
+
+      <form id="patientForm" class="space-y-4 text-sm">
+        <div class="bg-slate-50 p-3 rounded-xl border grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div><label class="block text-xs font-semibold mb-1">الاسم الثلاثي *</label><input type="text" id="pName" required class="w-full p-2 border rounded-lg"></div>
+          <div><label class="block text-xs font-semibold mb-1">الهاتف</label><input type="tel" id="pPhone" class="w-full p-2 border rounded-lg" dir="ltr"></div>
+          <div>
+            <label class="block text-xs font-semibold mb-1">العمر والزمرة</label>
+            <div class="flex gap-1">
+              <input type="number" id="pAge" placeholder="العمر" class="w-1/2 p-2 border rounded-lg">
+              <select id="pBlood" class="w-1/2 p-2 border rounded-lg">
+                <option value="غير محدد">الزمرة</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>O+</option><option>O-</option><option>AB+</option><option>AB-</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- السوابق التوليدية -->
+        <div class="bg-rose-50 p-3 rounded-xl border border-rose-100">
+          <h3 class="font-bold text-rose-900 mb-2">السوابق التوليدية (GPA):</h3>
+          <div class="grid grid-cols-4 gap-2 mb-2 text-center">
+            <div><label class="block text-xs text-rose-800">حمول (G)</label><input type="number" id="pG" value="0" class="w-full p-1.5 border rounded text-center font-bold"></div>
+            <div><label class="block text-xs text-rose-800">طبيعي (VD)</label><input type="number" id="pVD" value="0" class="w-full p-1.5 border rounded text-center font-bold"></div>
+            <div><label class="block text-xs text-rose-800">قيصري (CS)</label><input type="number" id="pCS" value="0" class="w-full p-1.5 border rounded text-center font-bold"></div>
+            <div><label class="block text-xs text-rose-800">إجهاض (A)</label><input type="number" id="pA" value="0" class="w-full p-1.5 border rounded text-center font-bold"></div>
+          </div>
+          <input type="text" id="pObsNotes" placeholder="تفاصيل الولادات السابقة والمضاعفات..." class="w-full p-2 border rounded-lg text-xs">
+        </div>
+
+        <!-- الحمل الحالي -->
+        <div class="bg-teal-50 p-3 rounded-xl border border-teal-100">
+          <label class="block text-xs font-semibold mb-1 text-teal-900">تاريخ أول يوم من آخر دورة طمثية (LMP)</label>
+          <input type="date" id="pLMP" class="w-full p-2 border rounded-lg">
+        </div>
+
+        <!-- السوابق والتحسس -->
+        <div class="bg-slate-50 p-3 rounded-xl border grid grid-cols-1 md:grid-cols-2 gap-2">
+          <input type="text" id="pMedicalHistory" placeholder="أمراض مزمنة / سوابق جراحية..." class="w-full p-2 border rounded-lg text-xs">
+          <input type="text" id="pAllergies" placeholder="تحسس دوائي..." class="w-full p-2 border rounded-lg text-xs text-red-600 font-bold">
+        </div>
+
+        <!-- الفحص والإيكو -->
+        <div class="bg-slate-50 p-3 rounded-xl border space-y-2">
+          <div class="grid grid-cols-2 gap-2">
+            <input type="text" id="pBP" placeholder="الضغط (120/80)" class="w-full p-2 border rounded-lg text-xs">
+            <input type="text" id="pWeight" placeholder="الوزن (كغ)" class="w-full p-2 border rounded-lg text-xs">
+          </div>
+          <textarea id="pUltrasound" rows="2" placeholder="تقرير الإيكو..." class="w-full p-2 border rounded-lg text-xs"></textarea>
+          <textarea id="pRx" rows="2" placeholder="الوصفة الطبية..." class="w-full p-2 border rounded-lg text-xs bg-yellow-50"></textarea>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2 border-t">
+          <button type="submit" class="px-5 py-2 bg-teal-700 hover:bg-teal-800 text-white rounded-lg font-bold">حفظ الملف</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Scripts Loaded as ES Modules -->
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
