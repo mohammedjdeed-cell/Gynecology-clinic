@@ -1,12 +1,7 @@
 // js/firebase-config.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { 
-  initializeFirestore, 
-  persistentLocalCache, 
-  persistentMultipleTabManager 
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// Your exact Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyDBUW3lgkFWvDygfgBD4kSBRh4wx9d4h0Q",
   authDomain: "hiam-khder.firebaseapp.com",
@@ -17,12 +12,6 @@ const firebaseConfig = {
   measurementId: "G-7Y5WLJWL6H"
 };
 
-// Initialize Firebase
+// Initialize App & Firestore safely
 const app = initializeApp(firebaseConfig);
-
-// Initialize Firestore with Offline Cache
-export const db = initializeFirestore(app, {
-  localCache: persistentLocalCache({
-    tabManager: persistentMultipleTabManager()
-  })
-});
+export const db = getFirestore(app);
