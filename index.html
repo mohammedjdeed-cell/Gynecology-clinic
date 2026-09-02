@@ -200,7 +200,7 @@
         <div class="bg-teal-50 p-3 rounded-xl border border-teal-100 space-y-2">
           <label class="block font-semibold text-teal-900">تاريخ أول يوم من آخر دورة طمثية (LMP)</label>
           <input type="date" id="pLMP" oninput="updateModalPregnancyPreview()" onchange="updateModalPregnancyPreview()" 
-                 class="w-full p-2 border rounded-lg font-bold bg-white text-sm">
+                 class="w-full p-2.5 border rounded-lg font-bold bg-white text-sm focus:ring-2 focus:ring-teal-500">
           
           <!-- الصندوق المباشر لتقدير الحمل -->
           <div id="modalPregnancyPreview" class="hidden"></div>
@@ -401,7 +401,11 @@
     }
 
     function getTodayDateString() {
-      return new Date().toISOString().slice(0, 10);
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const d = String(now.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
     }
 
     function setDateToToday() {
@@ -427,7 +431,7 @@
       const nextQueueNumber = todayPatients.length + 1;
 
       const newPatient = {
-        id: 'pat_' + Date.now(),
+        id: 'pat_' + Date.now() + '_' + Math.floor(Math.random()*1000),
         visitDate: today,
         queueNumber: nextQueueNumber,
         status: 'waiting',
@@ -451,7 +455,7 @@
 
       patients.unshift(newPatient);
       saveDataLocally();
-      syncPatientToCloud(newPatient);
+      await syncPatientToCloud(newPatient);
 
       document.getElementById('secName').value = '';
       document.getElementById('secAge').value = '';
@@ -474,7 +478,7 @@
       if (!patient) {
         const datePatients = patients.filter(p => p.visitDate === selectedDate);
         patient = {
-          id: 'pat_' + Date.now(),
+          id: 'pat_' + Date.now() + '_' + Math.floor(Math.random()*1000),
           visitDate: selectedDate,
           queueNumber: datePatients.length + 1,
           timestamp: Date.now(),
@@ -502,7 +506,7 @@
       patient.status = 'completed';
 
       saveDataLocally();
-      syncPatientToCloud(patient);
+      await syncPatientToCloud(patient);
 
       closeDoctorModal();
       renderApp();
@@ -544,20 +548,40 @@
       document.getElementById('doctorModal').classList.remove('hidden');
     }
 
-    // --- PREGNANCY CALCULATIONS & DUE REMINDER ---
+    // --- ACCURATE PREGNANCY CALCULATIONS & DUE REMINDER ---
     function calculatePregnancy(lmpStr) {
       if (!lmpStr) return null;
-      const lmp = new Date(lmpStr);
+      
+      // Parse YYYY-MM-DD locally without UTC shift
+      const parts = lmpStr.split('-');
+      if (parts.length !== 3) return null;
+      const lmp = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
       if (isNaN(lmp.getTime())) return null;
 
-      const today = new Date();
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+      // Naegele's rule: EDD = LMP + 280 days
       const edd = new Date(lmp.getTime() + 280 * 24 * 60 * 60 * 1000);
-      const diffDays = Math.floor((today - lmp) / (1000 * 60 * 60 * 24));
-      if (diffDays < 0 || diffDays > 310) return null;
+      
+      const diffMs = today.getTime() - lmp.getTime();
+      const totalDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-      const weeks = Math.floor(diffDays / 7);
-      const days = diffDays % 7;
+      if (totalDays < 0) {
+        return {
+          isFuture: true,
+          weeks: "تاريخ في المستقبل",
+          monthName: "غير صالح",
+          edd: edd.toLocaleDateString('ar-SY', { year: 'numeric', month: 'long', day: 'numeric' }),
+          daysUntilDelivery: 0,
+          isDueWithinMonth: false
+        };
+      }
 
+      const weeks = Math.floor(totalDays / 7);
+      const days = totalDays % 7;
+
+      // Clinical Month Mapping
       let monthName = "الشهر الأول";
       if (weeks >= 36) monthName = "الشهر التاسع";
       else if (weeks >= 31) monthName = "الشهر الثامن";
@@ -568,10 +592,11 @@
       else if (weeks >= 8) monthName = "الشهر الثالث";
       else if (weeks >= 4) monthName = "الشهر الثاني";
 
-      const daysUntilDelivery = Math.ceil((edd - today) / (1000 * 60 * 60 * 24));
+      const daysUntilDelivery = Math.ceil((edd.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
       const isDueWithinMonth = (daysUntilDelivery >= 0 && daysUntilDelivery <= 30);
 
       return {
+        isFuture: false,
         weeks: `${weeks} أسبوع و ${days} يوم`,
         monthName: monthName,
         edd: edd.toLocaleDateString('ar-SY', { year: 'numeric', month: 'long', day: 'numeric' }),
@@ -584,6 +609,7 @@
     function updateModalPregnancyPreview() {
       const lmpVal = document.getElementById('pLMP').value;
       const previewEl = document.getElementById('modalPregnancyPreview');
+      
       if (!lmpVal) {
         previewEl.classList.add('hidden');
         previewEl.innerHTML = '';
@@ -597,17 +623,27 @@
         return;
       }
 
-      previewEl.innerHTML = `
-        <div class="bg-emerald-100 border border-emerald-300 p-2.5 rounded-xl text-xs text-emerald-950 space-y-1 shadow-sm mt-2">
-          <div class="flex justify-between items-center font-bold">
-            <span>🤰 مرحلة الحمل: <span class="bg-emerald-700 text-white px-2 py-0.5 rounded text-[11px]">${preg.monthName}</span></span>
-            <span>📅 الولادة المتوقعة (EDD): <strong class="text-teal-900">${preg.edd}</strong></span>
+      if (preg.isFuture) {
+        previewEl.innerHTML = `
+          <div class="bg-amber-100 border border-amber-300 p-2.5 rounded-xl text-xs text-amber-900 font-bold">
+            ⚠️ تنبيه: التاريخ المحدد يقع في المستقبل بالنسبة لتاريخ اليوم.
           </div>
-          <div class="flex justify-between items-center text-slate-700 font-semibold border-t border-emerald-200/60 pt-1">
-            <span>عمر الحمل: <strong>${preg.weeks}</strong></span>
+        `;
+        previewEl.classList.remove('hidden');
+        return;
+      }
+
+      previewEl.innerHTML = `
+        <div class="bg-emerald-100 border-2 border-emerald-400 p-3 rounded-xl text-xs text-emerald-950 space-y-2 shadow-sm">
+          <div class="flex justify-between items-center font-bold">
+            <span class="text-sm">🤰 مرحلة الحمل: <span class="bg-emerald-700 text-white px-2 py-0.5 rounded-lg text-xs">${preg.monthName}</span></span>
+            <span class="text-xs">📅 تاريخ الولادة المتوقع (EDD): <strong class="text-teal-900 underline">${preg.edd}</strong></span>
+          </div>
+          <div class="flex justify-between items-center text-slate-800 font-semibold border-t border-emerald-200 pt-1.5">
+            <span>عمر الحمل الحالي: <strong>${preg.weeks}</strong></span>
             ${preg.isDueWithinMonth ? 
-              `<span class="text-rose-700 font-bold animate-pulse">🔔 تنبيه: متبقي ${preg.daysUntilDelivery} يوم على الولادة!</span>` : 
-              `<span>متبقي للولادة: ${preg.daysUntilDelivery} يوم</span>`}
+              `<span class="text-rose-700 font-bold bg-rose-100 px-2 py-0.5 rounded-md animate-pulse">🔔 متبقي ${preg.daysUntilDelivery} يوم على الولادة!</span>` : 
+              `<span>متبقي لموعد الولادة: <strong>${preg.daysUntilDelivery} يوم</strong></span>`}
           </div>
         </div>
       `;
@@ -691,7 +727,7 @@
               </div>
 
               <!-- Comprehensive Pregnancy Status -->
-              ${preg ? `
+              ${preg && !preg.isFuture ? `
                 <div class="bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl text-xs text-emerald-900 space-y-1">
                   <div class="flex justify-between items-center font-bold">
                     <span>🤰 مرحلة الحمل: <span class="bg-emerald-700 text-white px-2 py-0.5 rounded text-[11px]">${preg.monthName}</span> (${preg.weeks})</span>
@@ -730,7 +766,7 @@
       });
     }
 
-    // --- SECURE DELETION WITH PIN CONFIRMATION ---
+    // --- SECURE DELETION WITH PERMANENT CLOUD REMOVAL ---
     function requestDeletePatient(id, name) {
       patientToDeleteId = id;
       document.getElementById('deleteModalPatientName').innerText = `المريضة: ${name}`;
@@ -756,20 +792,24 @@
       if (!patientToDeleteId) return;
 
       const targetId = patientToDeleteId;
+      
+      // 1. Delete locally
       patients = patients.filter(p => p.id !== targetId);
       saveDataLocally();
       renderApp();
       closeDeleteModal();
 
-      if (db && !targetId.startsWith('pat_')) {
+      // 2. Delete permanently from Cloud Firestore
+      if (db) {
         try {
           await db.collection('patients').doc(targetId).delete();
+          console.log("✅ Permanently deleted from Firestore Cloud:", targetId);
         } catch (e) {
-          console.warn('Cloud delete error:', e);
+          console.warn("Cloud delete error:", e);
         }
       }
 
-      alert('🗑️ تم حذف ملف المريضة نهائياً بنجاح.');
+      alert('🗑️ تم حذف ملف المريضة نهائياً من الجهاز والسحابة.');
     }
 
     // --- FIREBASE SYNC & CLOUD ---
@@ -789,12 +829,11 @@
         db = firebase.firestore();
 
         db.collection('patients').orderBy('timestamp', 'desc').onSnapshot((snapshot) => {
+          // Always mirror cloud state (even if empty or deleted)
           const cloudData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          if (cloudData.length > 0) {
-            patients = cloudData;
-            saveDataLocally();
-            renderApp();
-          }
+          patients = cloudData;
+          saveDataLocally();
+          renderApp();
           document.getElementById('syncStatus').innerText = '🟢 متصل بالسحابة';
         }, (err) => {
           console.warn('Firestore offline/restricted:', err);
@@ -815,13 +854,7 @@
     async function syncPatientToCloud(patient) {
       if (db) {
         try {
-          if (patient.id && !patient.id.startsWith('pat_')) {
-            await db.collection('patients').doc(patient.id).set(patient, { merge: true });
-          } else {
-            const docRef = await db.collection('patients').add(patient);
-            patient.id = docRef.id;
-            saveDataLocally();
-          }
+          await db.collection('patients').doc(patient.id).set(patient, { merge: true });
         } catch (err) {
           console.warn('Synced locally, cloud pending:', err);
         }
