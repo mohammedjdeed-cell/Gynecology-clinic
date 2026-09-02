@@ -1,3 +1,4 @@
+// js/pwa-register.js
 let deferredPrompt;
 
 if ('serviceWorker' in navigator) {
@@ -22,9 +23,3 @@ export function promptPwaInstall() {
   deferredPrompt.userChoice.then((choiceResult) => {
     if (choiceResult.outcome === 'accepted') {
       console.log('User installed the PWA');
-    }
-    deferredPrompt = null;
-    const installBtn = document.getElementById('installBtn');
-    if (installBtn) installBtn.classList.add('hidden');
-  });
-}pwa-register.js (
