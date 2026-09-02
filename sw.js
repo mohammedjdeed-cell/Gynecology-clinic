@@ -1,30 +1,30 @@
-// sw.js
-const CACHE_NAME = 'obgyn-clinic-v3';
+// sw.js - Offline Cache Engine
+const CACHE_NAME = 'obgyn-secure-v1';
 
-self.addEventListener('install', (event) => {
+self.addEventListener('install', (e) => {
   self.skipWaiting();
 });
 
-self.addEventListener('activate', (event) => {
-  event.waitUntil(
+self.addEventListener('activate', (e) => {
+  e.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
-        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
+        keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
       );
     })
   );
   self.clients.claim();
 });
 
-self.addEventListener('fetch', (event) => {
-  // لا تعترض اتصالات Firebase السحابية
-  if (event.request.url.includes('firestore') || 
-      event.request.url.includes('googleapis') || 
-      event.request.url.includes('gstatic')) {
+self.addEventListener('fetch', (e) => {
+  // Let Firebase cloud sync communicate dynamically
+  if (e.request.url.includes('firestore') || 
+      e.request.url.includes('googleapis') || 
+      e.request.url.includes('gstatic')) {
     return;
   }
 
-  event.respondWith(
-    fetch(event.request).catch(() => caches.match(event.request))
+  e.respondWith(
+    fetch(e.request).catch(() => caches.match(e.request))
   );
 });
