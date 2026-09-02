@@ -1,6 +1,6 @@
 {
   "name": "عيادة النسائية والتوليد",
-  "short_name": "عيادتي",
+  "short_name": "العيادة",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0f766e",
@@ -11,12 +11,14 @@
     {
       "src": "https://cdn-icons-png.flaticon.com/512/3774/3774299.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "https://cdn-icons-png.flaticon.com/512/3774/3774299.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
