@@ -5,17 +5,51 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#0f766e">
   <title>عيادة النسائية والتوليد</title>
+  
   <link rel="manifest" href="./manifest.json">
   <link rel="stylesheet" href="./css/styles.css">
+  
+  <!-- Tailwind CSS & Fonts -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-
-  <!-- Firebase Compat Scripts (Safe from ES Module Network Blockers) -->
+  
+  <!-- Firebase Compat Scripts -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-</head>
-<body class="bg-slate-100 text-slate-800 font-['Cairo']">
 
+  <style>
+    body { font-family: 'Cairo', sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800">
+
+  <!-- ==================== 1. SECURITY LOCK SCREEN ==================== -->
+  <div id="lockScreen" class="fixed inset-0 bg-teal-900 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl space-y-5">
+      <div class="w-16 h-16 bg-teal-100 text-teal-700 rounded-full flex items-center justify-center mx-auto text-3xl">
+        🩺
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-slate-900">سجل عيادة النسائية</h2>
+        <p class="text-xs text-slate-500 mt-1">الرجاء إدخال رمز الأمان لتسجيل الدخول</p>
+      </div>
+
+      <!-- PIN Input -->
+      <div>
+        <input type="password" id="pinInput" maxlength="8" placeholder="••••" 
+               class="w-full text-center text-2xl tracking-[0.4em] py-3 border-2 border-teal-200 rounded-xl focus:outline-teal-600 font-bold bg-slate-50">
+        <p id="pinError" class="text-xs text-red-500 font-bold mt-2 hidden">⚠️ رمز الدخول غير صحيح</p>
+      </div>
+
+      <button onclick="checkPin()" class="w-full bg-teal-700 hover:bg-teal-800 text-white font-bold py-3 rounded-xl shadow-lg transition">
+        دخول إلى العيادة
+      </button>
+
+      <p class="text-[11px] text-gray-400">الرمز الافتراضي المبدئي: <span class="font-bold text-teal-700">1234</span></p>
+    </div>
+  </div>
+
+  <!-- ==================== 2. MAIN APPLICATION ==================== -->
   <!-- Header -->
   <header class="bg-teal-700 text-white p-4 shadow-md sticky top-0 z-20">
     <div class="max-w-5xl mx-auto flex justify-between items-center">
@@ -24,75 +58,89 @@
         <h1 class="text-lg md:text-xl font-bold">سجل العيادة النسائية</h1>
       </div>
       <div class="flex gap-2">
-        <button id="installBtn" class="hidden bg-emerald-600 hover:bg-emerald-700 text-xs px-3 py-2 rounded-lg font-bold">📱 تثبيت التطبيق</button>
-        <button id="exportBtn" class="bg-teal-800 hover:bg-teal-900 text-xs px-3 py-2 rounded-lg">💾 نسخ احتياطي</button>
-        <button id="openModalBtn" class="bg-white text-teal-800 font-bold px-3 py-2 rounded-lg text-xs shadow hover:bg-gray-100">+ مريضة جديدة</button>
+        <button onclick="lockApp()" title="قفل السجل" class="bg-teal-900 hover:bg-black/30 text-xs md:text-sm px-3 py-2 rounded-lg">🔒 قفل</button>
+        <button onclick="exportData()" class="bg-teal-800 hover:bg-teal-900 text-xs md:text-sm px-3 py-2 rounded-lg">💾 نسخ احتياطي</button>
+        <button onclick="openModal()" class="bg-white text-teal-800 font-bold px-3 py-2 rounded-lg text-xs md:text-sm shadow hover:bg-gray-100">+ مريضة جديدة</button>
       </div>
     </div>
   </header>
 
   <!-- Main View -->
   <main class="max-w-5xl mx-auto p-4">
+    <!-- Search Bar -->
     <div class="mb-4">
-      <input type="text" id="searchInput" placeholder="🔍 ابحثي عن مريضة بالاسم أو الهاتف..." 
+      <input type="text" id="searchInput" oninput="renderPatients()" placeholder="🔍 ابحثي عن مريضة بالاسم أو الهاتف..." 
              class="w-full p-3 rounded-xl border border-slate-300 shadow-sm focus:outline-teal-600 bg-white">
     </div>
 
+    <!-- Status & Count -->
     <div class="flex justify-between items-center text-sm text-slate-500 mb-3 px-1">
       <span id="patientCount">إجمالي المريضات: 0</span>
+      <span id="syncStatus" class="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">🟢 متصل بالسحابة</span>
     </div>
 
+    <!-- Patient Cards List -->
     <div id="patientList" class="space-y-4"></div>
   </main>
 
-  <!-- Modal Component -->
+  <!-- ==================== 3. ADD PATIENT MODAL ==================== -->
   <div id="patientModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-3 z-30">
     <div class="bg-white rounded-2xl max-w-2xl w-full p-5 max-h-[92vh] overflow-y-auto shadow-2xl">
       <div class="flex justify-between items-center mb-4 pb-2 border-b">
         <h2 class="text-lg font-bold text-teal-800">📋 إدخال ملف مريضة جديدة</h2>
-        <button id="closeModalBtn" class="text-gray-400 hover:text-red-500 text-2xl font-bold">&times;</button>
+        <button type="button" onclick="closeModal()" class="text-gray-400 hover:text-red-500 text-2xl font-bold">&times;</button>
       </div>
 
-      <form id="patientForm" class="space-y-4 text-sm">
+      <form id="patientForm" onsubmit="handleSavePatient(event)" class="space-y-4 text-sm">
+        
+        <!-- 1. الأساسيات -->
         <div class="bg-slate-50 p-3 rounded-xl border grid grid-cols-1 md:grid-cols-3 gap-3">
-          <div><label class="block text-xs font-semibold mb-1">الاسم الثلاثي *</label><input type="text" id="pName" required class="w-full p-2 border rounded-lg"></div>
-          <div><label class="block text-xs font-semibold mb-1">الهاتف</label><input type="tel" id="pPhone" class="w-full p-2 border rounded-lg" dir="ltr"></div>
+          <div>
+            <label class="block text-xs font-semibold mb-1">الاسم الثلاثي *</label>
+            <input type="text" id="pName" required class="w-full p-2 border rounded-lg">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold mb-1">الهاتف</label>
+            <input type="tel" id="pPhone" class="w-full p-2 border rounded-lg" dir="ltr">
+          </div>
           <div>
             <label class="block text-xs font-semibold mb-1">العمر والزمرة</label>
             <div class="flex gap-1">
               <input type="number" id="pAge" placeholder="العمر" class="w-1/2 p-2 border rounded-lg">
               <select id="pBlood" class="w-1/2 p-2 border rounded-lg">
-                <option value="غير محدد">الزمرة</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>O+</option><option>O-</option><option>AB+</option><option>AB-</option>
+                <option value="غير محدد">الزمرة</option>
+                <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+                <option>O+</option><option>O-</option><option>AB+</option><option>AB-</option>
               </select>
             </div>
           </div>
         </div>
 
-        <!-- السوابق التوليدية -->
+        <!-- 2. السوابق التوليدية -->
         <div class="bg-rose-50 p-3 rounded-xl border border-rose-100">
           <h3 class="font-bold text-rose-900 mb-2">السوابق التوليدية (GPA):</h3>
           <div class="grid grid-cols-4 gap-2 mb-2 text-center">
-            <div><label class="block text-xs text-rose-800">حمول (G)</label><input type="number" id="pG" value="0" class="w-full p-1.5 border rounded text-center font-bold"></div>
-            <div><label class="block text-xs text-rose-800">طبيعي (VD)</label><input type="number" id="pVD" value="0" class="w-full p-1.5 border rounded text-center font-bold"></div>
-            <div><label class="block text-xs text-rose-800">قيصري (CS)</label><input type="number" id="pCS" value="0" class="w-full p-1.5 border rounded text-center font-bold"></div>
-            <div><label class="block text-xs text-rose-800">إجهاض (A)</label><input type="number" id="pA" value="0" class="w-full p-1.5 border rounded text-center font-bold"></div>
+            <div><label class="block text-xs text-rose-800">حمول (G)</label><input type="number" id="pG" value="0" min="0" class="w-full p-1.5 border rounded text-center font-bold"></div>
+            <div><label class="block text-xs text-rose-800">طبيعي (VD)</label><input type="number" id="pVD" value="0" min="0" class="w-full p-1.5 border rounded text-center font-bold"></div>
+            <div><label class="block text-xs text-rose-800">قيصري (CS)</label><input type="number" id="pCS" value="0" min="0" class="w-full p-1.5 border rounded text-center font-bold"></div>
+            <div><label class="block text-xs text-rose-800">إجهاض (A)</label><input type="number" id="pA" value="0" min="0" class="w-full p-1.5 border rounded text-center font-bold"></div>
           </div>
           <input type="text" id="pObsNotes" placeholder="تفاصيل الولادات السابقة والمضاعفات..." class="w-full p-2 border rounded-lg text-xs">
         </div>
 
-        <!-- الحمل الحالي -->
+        <!-- 3. الحمل الحالي -->
         <div class="bg-teal-50 p-3 rounded-xl border border-teal-100">
           <label class="block text-xs font-semibold mb-1 text-teal-900">تاريخ أول يوم من آخر دورة طمثية (LMP)</label>
           <input type="date" id="pLMP" class="w-full p-2 border rounded-lg">
         </div>
 
-        <!-- السوابق والتحسس -->
+        <!-- 4. السوابق والتحسس -->
         <div class="bg-slate-50 p-3 rounded-xl border grid grid-cols-1 md:grid-cols-2 gap-2">
           <input type="text" id="pMedicalHistory" placeholder="أمراض مزمنة / سوابق جراحية..." class="w-full p-2 border rounded-lg text-xs">
           <input type="text" id="pAllergies" placeholder="تحسس دوائي..." class="w-full p-2 border rounded-lg text-xs text-red-600 font-bold">
         </div>
 
-        <!-- الفحص والإيكو -->
+        <!-- 5. الفحص والإيكو -->
         <div class="bg-slate-50 p-3 rounded-xl border space-y-2">
           <div class="grid grid-cols-2 gap-2">
             <input type="text" id="pBP" placeholder="الضغط (120/80)" class="w-full p-2 border rounded-lg text-xs">
@@ -103,13 +151,280 @@
         </div>
 
         <div class="flex justify-end gap-2 pt-2 border-t">
-          <button type="submit" class="px-5 py-2 bg-teal-700 hover:bg-teal-800 text-white rounded-lg font-bold">حفظ الملف</button>
+          <button type="button" onclick="closeModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg">إلغاء</button>
+          <button type="submit" id="saveBtn" class="px-5 py-2 bg-teal-700 hover:bg-teal-800 text-white rounded-lg font-bold">حفظ الملف</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- App bootstrap -->
-  <script type="module" src="./js/app.js"></script>
+  <!-- ==================== JAVASCRIPT LOGIC ==================== -->
+  <script>
+    // --- PIN SECURITY LOGIC ---
+    const DEFAULT_PIN = "1234"; // You or she can change this PIN
+    const PIN_KEY = "clinic_doctor_pin";
+    const SESSION_KEY = "clinic_is_unlocked";
+
+    function checkPin() {
+      const enteredPin = document.getElementById('pinInput').value;
+      const currentPin = localStorage.getItem(PIN_KEY) || DEFAULT_PIN;
+
+      if (enteredPin === currentPin) {
+        sessionStorage.setItem(SESSION_KEY, "true");
+        document.getElementById('lockScreen').classList.add('hidden');
+        document.getElementById('pinError').classList.add('hidden');
+        document.getElementById('pinInput').value = "";
+      } else {
+        document.getElementById('pinError').classList.remove('hidden');
+      }
+    }
+
+    function lockApp() {
+      sessionStorage.removeItem(SESSION_KEY);
+      document.getElementById('lockScreen').classList.remove('hidden');
+    }
+
+    // Auto-check on load
+    if (sessionStorage.getItem(SESSION_KEY) === "true") {
+      document.getElementById('lockScreen').classList.add('hidden');
+    }
+
+    // Enter key submits PIN
+    document.getElementById('pinInput').addEventListener('keyup', (e) => {
+      if (e.key === 'Enter') checkPin();
+    });
+
+    // --- FIREBASE & DATA ENGINE ---
+    const LOCAL_KEY = 'syria_obgyn_patients_data';
+    let patients = JSON.parse(localStorage.getItem(LOCAL_KEY) || '[]');
+    let db = null;
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDBUW3lgkFWvDygfgBD4kSBRh4wx9d4h0Q",
+      authDomain: "hiam-khder.firebaseapp.com",
+      projectId: "hiam-khder",
+      storageBucket: "hiam-khder.firebasestorage.app",
+      messagingSenderId: "731921655421",
+      appId: "1:731921655421:web:e3e867d33c8df4ed48f314",
+      measurementId: "G-7Y5WLJWL6H"
+    };
+
+    try {
+      if (typeof firebase !== 'undefined') {
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        db = firebase.firestore();
+        
+        db.collection('patients').orderBy('timestamp', 'desc').onSnapshot((snapshot) => {
+          const cloudData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          if (cloudData.length > 0) {
+            patients = cloudData;
+            localStorage.setItem(LOCAL_KEY, JSON.stringify(patients));
+            renderPatients();
+          }
+          document.getElementById('syncStatus').innerText = '🟢 متصل بالسحابة';
+        }, (err) => {
+          console.warn('Firestore offline/restricted:', err);
+          document.getElementById('syncStatus').innerText = '🟡 وضع محلي (بدون إنترنت)';
+        });
+      }
+    } catch (e) {
+      console.warn('Running in local offline mode:', e);
+      document.getElementById('syncStatus').innerText = '🟡 وضع محلي (بدون إنترنت)';
+    }
+
+    // --- OBSTETRIC CALCULATIONS ---
+    function calculatePregnancy(lmpStr) {
+      if (!lmpStr) return null;
+      const lmp = new Date(lmpStr);
+      if (isNaN(lmp.getTime())) return null;
+
+      const today = new Date();
+      const edd = new Date(lmp.getTime() + 280 * 24 * 60 * 60 * 1000);
+      const diffDays = Math.floor((today - lmp) / (1000 * 60 * 60 * 24));
+
+      if (diffDays < 0 || diffDays > 310) return null;
+
+      const weeks = Math.floor(diffDays / 7);
+      const days = diffDays % 7;
+
+      return {
+        weeks: `${weeks} أسبوع و ${days} يوم`,
+        edd: edd.toLocaleDateString('ar-SY', { year: 'numeric', month: 'long', day: 'numeric' })
+      };
+    }
+
+    // --- RENDER PATIENTS ---
+    function renderPatients() {
+      const q = document.getElementById('searchInput').value.trim().toLowerCase();
+      const list = document.getElementById('patientList');
+      list.innerHTML = '';
+
+      const filtered = patients.filter(p => 
+        (p.name && p.name.toLowerCase().includes(q)) || 
+        (p.phone && p.phone.includes(q))
+      );
+
+      document.getElementById('patientCount').innerText = `إجمالي المريضات: ${filtered.length}`;
+
+      if (filtered.length === 0) {
+        list.innerHTML = `<div class="text-center py-16 text-slate-400 font-semibold">لا يوجد سجلات مريضات مطابقة</div>`;
+        return;
+      }
+
+      filtered.forEach((p, idx) => {
+        const preg = calculatePregnancy(p.lmp);
+        const totalP = (parseInt(p.vd) || 0) + (parseInt(p.cs) || 0);
+
+        list.innerHTML += `
+          <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-3">
+            <div class="flex justify-between items-start border-b pb-2">
+              <div>
+                <h3 class="text-lg font-bold text-slate-900">${p.name}</h3>
+                <p class="text-xs text-slate-500">📞 ${p.phone || 'بدون هاتف'} | العمر: ${p.age || '-'} سنة | زمرة: <span class="font-bold text-red-600">${p.blood || 'غير محدد'}</span></p>
+              </div>
+              <div class="text-left">
+                <span class="bg-teal-100 text-teal-900 text-xs px-2.5 py-1 rounded-full font-bold">
+                  G${p.g || 0} P${totalP} A${p.a || 0}
+                </span>
+                <p class="text-[10px] text-gray-400 mt-1">${p.createdAt || ''}</p>
+              </div>
+            </div>
+
+            <!-- السوابق التوليدية -->
+            <div class="bg-rose-50/60 p-2.5 rounded-xl text-xs text-rose-950 border border-rose-100 flex flex-wrap gap-x-4 gap-y-1">
+              <span><strong>طبيعي:</strong> ${p.vd || 0}</span>
+              <span><strong>قيصري:</strong> ${p.cs || 0}</span>
+              <span><strong>إجهاض:</strong> ${p.a || 0}</span>
+              ${p.obsNotes ? `<span class="w-full text-slate-600 mt-1">📝 ${p.obsNotes}</span>` : ''}
+            </div>
+
+            <!-- الحمل الحالي -->
+            ${preg ? `
+              <div class="bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl text-xs text-emerald-900 flex justify-between items-center font-semibold">
+                <span>🤰 عمر الحمل: <strong>${preg.weeks}</strong></span>
+                <span>الولادة المتوقعة: <strong>${preg.edd}</strong></span>
+              </div>
+            ` : ''}
+
+            <!-- السوابق والتحسس -->
+            ${(p.medHistory || p.allergies) ? `
+              <div class="text-xs text-slate-600 flex gap-2 flex-wrap">
+                ${p.medHistory ? `<span class="bg-gray-100 px-2 py-1 rounded">⚠️ سوابق: ${p.medHistory}</span>` : ''}
+                ${p.allergies ? `<span class="bg-red-50 text-red-700 px-2 py-1 rounded font-bold">⛔ تحسس: ${p.allergies}</span>` : ''}
+              </div>
+            ` : ''}
+
+            <!-- الفحص والوصفة -->
+            <div class="bg-slate-50 p-2.5 rounded-xl text-xs border space-y-1">
+              <div class="flex gap-4 text-slate-500 font-semibold">
+                <span>الضغط: ${p.bp || '-'}</span>
+                <span>الوزن: ${p.weight ? p.weight + ' كغ' : '-'}</span>
+              </div>
+              <p><strong>الإيكو:</strong> ${p.ultrasound || 'لا يوجد تقرير'}</p>
+              ${p.rx ? `<p class="text-teal-800 font-semibold"><strong>الوصفة:</strong> ${p.rx}</p>` : ''}
+            </div>
+
+            <div class="flex justify-end pt-1">
+              <button onclick="handleDeletePatient('${p.id || idx}')" class="text-xs text-red-400 hover:text-red-700 font-semibold">حذف الملف</button>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    // --- SAVE PATIENT ---
+    async function handleSavePatient(e) {
+      e.preventDefault();
+      const saveBtn = document.getElementById('saveBtn');
+      saveBtn.disabled = true;
+      saveBtn.innerText = 'جاري الحفظ...';
+
+      const newRecord = {
+        name: document.getElementById('pName').value,
+        phone: document.getElementById('pPhone').value,
+        age: document.getElementById('pAge').value,
+        blood: document.getElementById('pBlood').value,
+        g: document.getElementById('pG').value,
+        vd: document.getElementById('pVD').value,
+        cs: document.getElementById('pCS').value,
+        a: document.getElementById('pA').value,
+        obsNotes: document.getElementById('pObsNotes').value,
+        lmp: document.getElementById('pLMP').value,
+        medHistory: document.getElementById('pMedicalHistory').value,
+        allergies: document.getElementById('pAllergies').value,
+        bp: document.getElementById('pBP').value,
+        weight: document.getElementById('pWeight').value,
+        ultrasound: document.getElementById('pUltrasound').value,
+        rx: document.getElementById('pRx').value,
+        timestamp: Date.now(),
+        createdAt: new Date().toLocaleDateString('ar-SY')
+      };
+
+      const tempId = 'loc_' + Date.now();
+      newRecord.id = tempId;
+      patients.unshift(newRecord);
+      localStorage.setItem(LOCAL_KEY, JSON.stringify(patients));
+      renderPatients();
+      closeModal();
+      document.getElementById('patientForm').reset();
+
+      if (db) {
+        try {
+          const docRef = await db.collection('patients').add(newRecord);
+          newRecord.id = docRef.id;
+          localStorage.setItem(LOCAL_KEY, JSON.stringify(patients));
+        } catch (err) {
+          console.warn('Saved locally, pending cloud sync:', err);
+        }
+      }
+
+      saveBtn.disabled = false;
+      saveBtn.innerText = 'حفظ الملف';
+    }
+
+    // --- DELETE PATIENT ---
+    async function handleDeletePatient(idOrIndex) {
+      if (!confirm('هل أنتِ متأكدة من حذف هذا الملف نهائياً؟')) return;
+
+      const idx = patients.findIndex(p => (p.id === idOrIndex || String(patients.indexOf(p)) === String(idOrIndex)));
+      if (idx !== -1) {
+        const patientToDelete = patients[idx];
+        patients.splice(idx, 1);
+        localStorage.setItem(LOCAL_KEY, JSON.stringify(patients));
+        renderPatients();
+
+        if (db && patientToDelete.id && !patientToDelete.id.startsWith('loc_')) {
+          try {
+            await db.collection('patients').doc(patientToDelete.id).delete();
+          } catch (e) {
+            console.warn('Cloud delete error:', e);
+          }
+        }
+      }
+    }
+
+    // --- EXPORT DATA ---
+    function exportData() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(patients));
+      const a = document.createElement('a');
+      a.href = dataStr;
+      a.download = `نسخة_عيادة_النسائية_${new Date().toISOString().slice(0,10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
+    function openModal() { document.getElementById('patientModal').classList.remove('hidden'); }
+    function closeModal() { document.getElementById('patientModal').classList.add('hidden'); }
+
+    // Service Worker Registration for Offline Use
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW registration skipped', err));
+      });
+    }
+
+    renderPatients();
+  </script>
 </body>
 </html>
