@@ -12,6 +12,13 @@ const firebaseConfig = {
   measurementId: "G-7Y5WLJWL6H"
 };
 
-// Initialize App & Firestore safely
-const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
+let dbInstance = null;
+
+try {
+  const app = initializeApp(firebaseConfig);
+  dbInstance = getFirestore(app);
+} catch (error) {
+  console.warn("Firebase initialization skipped/failed. Running offline mode:", error);
+}
+
+export const db = dbInstance;
