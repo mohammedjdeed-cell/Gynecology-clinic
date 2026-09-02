@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#0f766e">
-  <title>عيادة النسائية والتوليد - السجل الطبي المتكامل</title>
+  <title>عيادة النسائية والتوليد - السجل الطبي والصيدلية</title>
   
   <link rel="manifest" href="./manifest.json">
   <link rel="stylesheet" href="./css/styles.css">
@@ -68,6 +68,7 @@
       
       <!-- Doctor Actions -->
       <div id="doctorNav" class="flex gap-1.5 flex-wrap items-center">
+        <button onclick="openDrugsModal()" title="إدارة صيدلية الأدوية" class="bg-teal-800 hover:bg-teal-900 text-xs px-2.5 py-1.5 rounded-lg font-semibold flex items-center gap-1">💊 الأدوية</button>
         <button onclick="triggerImport()" title="استيراد" class="bg-teal-800 hover:bg-teal-900 text-xs px-2.5 py-1.5 rounded-lg">📥 استيراد</button>
         <button onclick="exportData(false)" title="تصدير" class="bg-teal-800 hover:bg-teal-900 text-xs px-2.5 py-1.5 rounded-lg">💾 تصدير</button>
         <button onclick="openChangePinModal()" title="إدارة الرموز" class="bg-teal-800 hover:bg-teal-900 text-xs px-2.5 py-1.5 rounded-lg">🔑 الرموز</button>
@@ -91,7 +92,7 @@
   <!-- ==================== 3. MAIN DASHBOARD ==================== -->
   <main class="max-w-5xl mx-auto p-4 space-y-3.5">
     
-    <!-- Top Navigation Tabs (Daily Log vs Due This Month vs All) -->
+    <!-- Tabs -->
     <div class="flex gap-2 border-b pb-2 overflow-x-auto">
       <button onclick="setActiveTab('daily')" id="tabDaily" class="px-3 py-2 rounded-xl text-xs font-bold bg-teal-700 text-white shadow">
         📅 سجل اليوميات
@@ -104,7 +105,7 @@
       </button>
     </div>
 
-    <!-- Date Filter & Search Bar -->
+    <!-- Date Filter & Search -->
     <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row gap-3 justify-between items-center">
       <div id="dateControlGroup" class="flex items-center gap-2 w-full md:w-auto">
         <span class="text-xs font-bold text-slate-600">📅 التاريخ:</span>
@@ -119,7 +120,7 @@
       </div>
     </div>
 
-    <!-- Stats & Financial Summary Bar -->
+    <!-- Stats & Financial Bar -->
     <div class="bg-slate-800 text-white p-3 rounded-2xl shadow-sm flex justify-between items-center flex-wrap gap-2 text-xs font-bold">
       <div id="queueStats" class="text-slate-200"></div>
       <div class="flex items-center gap-3">
@@ -136,7 +137,7 @@
     <div id="patientList" class="space-y-3"></div>
   </main>
 
-  <!-- ==================== 4. SECRETARY QUICK INTAKE MODAL ==================== -->
+  <!-- ==================== 4. SECRETARY INTAKE MODAL ==================== -->
   <div id="secretaryModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-3 z-30">
     <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl">
       <div class="flex justify-between items-center border-b pb-2 mb-3">
@@ -195,7 +196,7 @@
       <form id="doctorForm" onsubmit="handleDoctorSubmit(event)" class="space-y-3.5 text-xs">
         <input type="hidden" id="editingPatientId">
 
-        <!-- 1. Basic Info -->
+        <!-- Basic Info -->
         <div class="bg-slate-50 p-3 rounded-xl border grid grid-cols-1 md:grid-cols-4 gap-2.5">
           <div class="md:col-span-2">
             <label class="block font-semibold mb-1">الاسم الثلاثي *</label>
@@ -218,7 +219,7 @@
           </div>
         </div>
 
-        <!-- 2. Obstetric History (GPA) -->
+        <!-- Obstetric History (GPA) -->
         <div class="bg-rose-50 p-3 rounded-xl border border-rose-100">
           <h3 class="font-bold text-rose-900 mb-1.5">السوابق التوليدية الثابتة (GPA):</h3>
           <div class="grid grid-cols-4 gap-2 mb-2 text-center">
@@ -230,7 +231,7 @@
           <input type="text" id="pObsNotes" placeholder="تفاصيل الولادات السابقة والمضاعفات السابقة..." class="w-full p-2 border rounded-lg bg-white">
         </div>
 
-        <!-- 3. Current Pregnancy & Live Calculator -->
+        <!-- Current Pregnancy & Live Calculator -->
         <div class="bg-teal-50 p-3 rounded-xl border border-teal-100 space-y-2">
           <label class="block font-semibold text-teal-900">تاريخ أول يوم من آخر دورة طمثية للحمل الحالي (LMP)</label>
           <input type="date" id="pLMP" oninput="updateModalPregnancyPreview()" onchange="updateModalPregnancyPreview()" 
@@ -238,13 +239,13 @@
           <div id="modalPregnancyPreview" class="hidden"></div>
         </div>
 
-        <!-- 4. Medical History & Allergies -->
+        <!-- Medical History & Allergies -->
         <div class="bg-slate-50 p-3 rounded-xl border grid grid-cols-1 md:grid-cols-2 gap-2">
           <input type="text" id="pMedicalHistory" placeholder="أمراض مزمنة / سوابق جراحية..." class="w-full p-2 border rounded-lg bg-white">
           <input type="text" id="pAllergies" placeholder="تحسس دوائي..." class="w-full p-2 border rounded-lg text-red-600 font-bold bg-white">
         </div>
 
-        <!-- 5. Today's Visit Vitals & Examination -->
+        <!-- Vitals & Examination -->
         <div class="bg-slate-50 p-3 rounded-xl border space-y-2.5">
           <h3 class="font-bold text-slate-800">فحص الزيارة الحالية:</h3>
           <div class="grid grid-cols-3 gap-2">
@@ -255,38 +256,31 @@
           <textarea id="pUltrasound" rows="2" placeholder="تقرير الفحص السريري والإيكو..." class="w-full p-2 border rounded-lg text-sm bg-white"></textarea>
         </div>
 
-        <!-- 6. Ultrasound Photo Attachments -->
+        <!-- Photos Attachment -->
         <div class="bg-slate-50 p-3 rounded-xl border space-y-2">
           <div class="flex justify-between items-center">
             <h3 class="font-bold text-slate-800">📸 إرفاق صور الإيكو والتحاليل:</h3>
             <label class="bg-teal-700 hover:bg-teal-800 text-white px-3 py-1 rounded-lg cursor-pointer text-xs font-bold">
-              📷 التقاط أو إضافة صورة
+              📷 إضافة صورة
               <input type="file" accept="image/*" class="hidden" onchange="handlePhotoUpload(event)">
             </label>
           </div>
           <div id="photosPreviewContainer" class="flex gap-2 flex-wrap min-h-[40px] p-1 bg-white rounded-lg border border-dashed border-slate-300">
-            <span class="text-slate-400 text-[11px] self-center pr-2" id="noPhotosText">لا توجد صور مرفقة لهذه الزيارة</span>
+            <span class="text-slate-400 text-[11px] self-center pr-2" id="noPhotosText">لا توجد صور مرفقة</span>
           </div>
         </div>
 
-        <!-- 7. Prescription with Quick Medication Chips -->
+        <!-- Prescription with Custom Drugs Chips -->
         <div class="bg-slate-50 p-3 rounded-xl border space-y-2">
           <div class="flex justify-between items-center flex-wrap gap-1">
             <h3 class="font-bold text-slate-800">💊 الوصفة الطبية والعلاج (Rx):</h3>
-            <span class="text-[11px] text-slate-500 font-semibold">انقري لإضافة الدواء تلقائياً ⬇️</span>
+            <button type="button" onclick="openDrugsModal()" class="text-[11px] text-teal-800 hover:text-teal-950 font-bold underline flex items-center gap-1">
+              ⚙️ إدارة وتعديل الأدوية والشركات
+            </button>
           </div>
 
-          <!-- Quick Medication Chips (Feature 3) -->
-          <div class="flex gap-1.5 flex-wrap py-1">
-            <button type="button" onclick="insertMedication('حديد + فوليك أسيد حبة يومياً')" class="chip-btn bg-teal-100 hover:bg-teal-200 text-teal-900 px-2.5 py-1 rounded-lg text-[11px] font-bold border border-teal-300">+ حديد وفوليك</button>
-            <button type="button" onclick="insertMedication('دوفاستون (Duphaston) حبة مرتين يومياً')" class="chip-btn bg-rose-100 hover:bg-rose-200 text-rose-900 px-2.5 py-1 rounded-lg text-[11px] font-bold border border-rose-300">+ دوفاستون مثبت</button>
-            <button type="button" onclick="insertMedication('بروجستيرون 200 تحميلة مهبلية مساءً')" class="chip-btn bg-rose-100 hover:bg-rose-200 text-rose-900 px-2.5 py-1 rounded-lg text-[11px] font-bold border border-rose-300">+ بروجستيرون 200</button>
-            <button type="button" onclick="insertMedication('كالسيوم + فيتامين د3 حبة بعد الغداء')" class="chip-btn bg-amber-100 hover:bg-amber-200 text-amber-900 px-2.5 py-1 rounded-lg text-[11px] font-bold border border-amber-300">+ كالسيوم ود3</button>
-            <button type="button" onclick="insertMedication('سيتامول 500 مغ عند اللزوم')" class="chip-btn bg-sky-100 hover:bg-sky-200 text-sky-900 px-2.5 py-1 rounded-lg text-[11px] font-bold border border-sky-300">+ سيتامول</button>
-            <button type="button" onclick="insertMedication('أوغمنتين 1 غرام حبة كل 12 ساعة بعد الطعام')" class="chip-btn bg-purple-100 hover:bg-purple-200 text-purple-900 px-2.5 py-1 rounded-lg text-[11px] font-bold border border-purple-300">+ أوغمنتين 1غ</button>
-            <button type="button" onclick="insertMedication('أسبرين أطفال 81 مغ حبة يومياً بعد الغداء')" class="chip-btn bg-emerald-100 hover:bg-emerald-200 text-emerald-900 px-2.5 py-1 rounded-lg text-[11px] font-bold border border-emerald-300">+ أسبرين أطفال</button>
-            <button type="button" onclick="insertMedication('فيتامينات متعددة للحمل (Pregnacare) حبة يومياً')" class="chip-btn bg-indigo-100 hover:bg-indigo-200 text-indigo-900 px-2.5 py-1 rounded-lg text-[11px] font-bold border border-indigo-300">+ فيتامينات حمل</button>
-          </div>
+          <!-- Dynamic Drug Chips Container -->
+          <div id="quickDrugsContainer" class="flex gap-1.5 flex-wrap py-1"></div>
 
           <textarea id="pRx" rows="3" placeholder="العلاج والتعليمات الطبية..." class="w-full p-2.5 border rounded-lg text-sm bg-yellow-50/70 font-sans"></textarea>
         </div>
@@ -302,7 +296,45 @@
     </div>
   </div>
 
-  <!-- ==================== 6. FULLSCREEN IMAGE LIGHTBOX ==================== -->
+  <!-- ==================== 6. DRUG MANAGEMENT MODAL ==================== -->
+  <div id="drugsModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center p-3 z-50">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-5 shadow-2xl space-y-3.5 text-xs max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b pb-2">
+        <h2 class="text-base font-bold text-teal-800">💊 صيدلية الأدوية والشركات</h2>
+        <button type="button" onclick="closeDrugsModal()" class="text-gray-400 hover:text-red-500 text-2xl font-bold">&times;</button>
+      </div>
+
+      <!-- Add New Drug Form -->
+      <form onsubmit="handleAddNewDrug(event)" class="bg-slate-50 p-3 rounded-xl border space-y-2">
+        <h3 class="font-bold text-slate-800">➕ إضافة دواء جديد للقائمة السريعة:</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+          <div>
+            <label class="block mb-0.5 text-slate-600 font-semibold">اسم الدواء والعيار *</label>
+            <input type="text" id="newDrugName" required placeholder="مثال: لوتوفوليك أو بروجستيرون 200" class="w-full p-2 border rounded-lg bg-white">
+          </div>
+          <div>
+            <label class="block mb-0.5 text-slate-600 font-semibold">الشركة المصنعة (اختياري)</label>
+            <input type="text" id="newDrugCompany" placeholder="مثال: ابن حيان، آسيا، Abbott" class="w-full p-2 border rounded-lg bg-white">
+          </div>
+        </div>
+        <div>
+          <label class="block mb-0.5 text-slate-600 font-semibold">طريقة الاستعمال والجرعة المعتادة</label>
+          <input type="text" id="newDrugDose" placeholder="مثال: حبة يومياً بعد الغداء" class="w-full p-2 border rounded-lg bg-white">
+        </div>
+        <button type="submit" class="w-full py-2 bg-teal-700 hover:bg-teal-800 text-white rounded-lg font-bold shadow">
+          ➕ حفظ وإضافة الدواء للقائمة
+        </button>
+      </form>
+
+      <!-- Existing Drugs List -->
+      <div class="space-y-2">
+        <h3 class="font-bold text-slate-800">قائمة الأدوية المتوفرة حالياً:</h3>
+        <div id="drugsListTable" class="space-y-1.5 max-h-60 overflow-y-auto"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 7. FULLSCREEN IMAGE LIGHTBOX ==================== -->
   <div id="imageLightbox" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center p-4 z-50" onclick="closeLightbox()">
     <div class="relative max-w-3xl max-h-[90vh]">
       <img id="lightboxImg" src="" class="max-w-full max-h-[85vh] rounded-xl shadow-2xl object-contain">
@@ -310,11 +342,11 @@
     </div>
   </div>
 
-  <!-- ==================== 7. PIN SETTINGS MODAL ==================== -->
+  <!-- ==================== 8. PIN SETTINGS & CLEANUP MODAL ==================== -->
   <div id="changePinModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-3 z-40">
-    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4 text-xs">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4 text-xs max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b pb-2">
-        <h2 class="text-base font-bold text-teal-800">🔑 إدارة رموز الأمان (خاص بالطبيبة)</h2>
+        <h2 class="text-base font-bold text-teal-800">🔑 إدارة الرموز والإعدادات</h2>
         <button type="button" onclick="closeChangePinModal()" class="text-gray-400 hover:text-red-500 text-2xl font-bold">&times;</button>
       </div>
 
@@ -329,10 +361,16 @@
         <input type="password" id="newSecPin" required minlength="4" maxlength="8" placeholder="رمز السكرتيرة الجديد" class="w-full p-2 border rounded-lg text-center font-bold">
         <button type="submit" class="w-full py-1.5 bg-indigo-700 hover:bg-indigo-800 text-white rounded-lg font-bold">تحديث رمز السكرتيرة ومزامنته</button>
       </form>
+
+      <div class="bg-red-50 p-3 rounded-xl border border-red-200 space-y-1.5 text-center">
+        <h3 class="font-bold text-red-800">🧹 تنظيف السجلات التجريبية القديمة</h3>
+        <p class="text-[10px] text-red-600">لحذف كل الأسماء التجريبية القديمة المسجلة مسبقاً وتصفير السجلات تماماً:</p>
+        <button type="button" onclick="purgeAllOldTestPatients()" class="w-full py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold">مسح جميع السجلات القديمة نهائياً</button>
+      </div>
     </div>
   </div>
 
-  <!-- ==================== 8. PIN-PROTECTED DELETE MODAL ==================== -->
+  <!-- ==================== 9. PIN-PROTECTED DELETE MODAL ==================== -->
   <div id="deleteModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center p-3 z-50">
     <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl space-y-4">
       <div class="w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto text-2xl">
@@ -341,7 +379,7 @@
       <div>
         <h3 class="text-base font-bold text-slate-900">تأكيد حذف ملف المريضة</h3>
         <p id="deleteModalPatientName" class="text-xs text-red-600 font-bold mt-1"></p>
-        <p class="text-[11px] text-slate-500 mt-1">لحماية البيانات، أدخلي رمز أمان الطبيبة لتأكيد الحذف:</p>
+        <p class="text-[11px] text-slate-500 mt-1">لحذف هذا الملف من السيرفر نهائياً، أدخلي رمز أمان الطبيبة:</p>
       </div>
 
       <div>
@@ -359,18 +397,32 @@
 
   <!-- ==================== JAVASCRIPT ENGINE ==================== -->
   <script>
-    // --- ROLES, PINS & STATE ---
+    // --- STATE & KEYS ---
     const DEFAULT_DOC_PIN = "1234";
     const DEFAULT_SEC_PIN = "0000";
     const DOC_PIN_KEY = "clinic_doc_pin";
     const SEC_PIN_KEY = "clinic_sec_pin";
     const CURRENT_ROLE_KEY = "clinic_user_role";
-    const LOCAL_KEY = "syria_obgyn_patients_v3";
-    const LAST_BACKUP_KEY = "clinic_last_weekly_backup_v3";
+    const LOCAL_KEY = "syria_obgyn_patients_v4";
+    const DRUGS_KEY = "clinic_custom_drugs_v1";
+    const LAST_BACKUP_KEY = "clinic_last_weekly_backup_v4";
+
+    // Default Popular Syrian OB/GYN Medications
+    const DEFAULT_DRUGS = [
+      { id: "d_1", name: "حديد + فوليك أسيد", company: "لوتوفوليك / ابن حيان", dose: "حبة يومياً بعد الغداء" },
+      { id: "d_2", name: "دوفاستون 10 مغ", company: "Abbott / آسيا", dose: "حبة مرتين يومياً" },
+      { id: "d_3", name: "بروجستيرون 200", company: "يونيفارما", dose: "تحميلة مهبلية مساءً" },
+      { id: "d_4", name: "كالسيوم + فيتامين د3", company: "ألفا", dose: "حبة بعد الغداء" },
+      { id: "d_5", name: "أسبرين أطفال 81 مغ", company: "ميديكو", dose: "حبة يومياً بعد الغداء" },
+      { id: "d_6", name: "سيتامول 500 مغ", company: "تاميكو", dose: "عند اللزوم لتسكين الألم" },
+      { id: "d_7", name: "أوغمنتين 1 غرام", company: "ميديكو", dose: "حبة كل 12 ساعة بعد الطعام" },
+      { id: "d_8", name: "فيتامينات حمل (Pregnacare)", company: "مستورد", dose: "حبة يومياً" }
+    ];
 
     let patients = JSON.parse(localStorage.getItem(LOCAL_KEY) || '[]');
+    let drugs = JSON.parse(localStorage.getItem(DRUGS_KEY) || JSON.stringify(DEFAULT_DRUGS));
     let currentRole = sessionStorage.getItem(CURRENT_ROLE_KEY) || null;
-    let activeTab = 'daily'; // 'daily' | 'dueMonth' | 'all'
+    let activeTab = 'daily';
     let currentAttachedPhotos = [];
     let patientToDeleteId = null;
     let db = null;
@@ -378,8 +430,7 @@
     function getDocPin() { return localStorage.getItem(DOC_PIN_KEY) || DEFAULT_DOC_PIN; }
     function getSecPin() { return localStorage.getItem(SEC_PIN_KEY) || DEFAULT_SEC_PIN; }
 
-    // Cloud Listener for PIN sync across devices
-    function listenToPinChanges() {
+    function listenToPinAndDrugsChanges() {
       if (!db) return;
       try {
         db.collection('settings').doc('security').onSnapshot((doc) => {
@@ -389,8 +440,17 @@
             if (data.secPin) localStorage.setItem(SEC_PIN_KEY, data.secPin);
           }
         });
+
+        db.collection('settings').doc('drugs').onSnapshot((doc) => {
+          if (doc.exists && doc.data().list) {
+            drugs = doc.data().list;
+            localStorage.setItem(DRUGS_KEY, JSON.stringify(drugs));
+            renderDrugChips();
+            renderDrugsTable();
+          }
+        });
       } catch (e) {
-        console.warn("Could not sync PINs:", e);
+        console.warn("Cloud sync note:", e);
       }
     }
 
@@ -406,9 +466,123 @@
             updatedAt: Date.now()
           }, { merge: true });
         } catch (err) {
-          console.warn("Saved PIN locally, cloud pending:", err);
+          console.warn("Cloud PIN update pending:", err);
         }
       }
+    }
+
+    async function syncDrugsToCloud() {
+      localStorage.setItem(DRUGS_KEY, JSON.stringify(drugs));
+      renderDrugChips();
+      renderDrugsTable();
+
+      if (db) {
+        try {
+          await db.collection('settings').doc('drugs').set({
+            list: drugs,
+            updatedAt: Date.now()
+          });
+        } catch (e) {
+          console.warn("Drugs cloud sync error:", e);
+        }
+      }
+    }
+
+    // --- DRUG MANAGEMENT (NEW FEATURE) ---
+    function renderDrugChips() {
+      const container = document.getElementById('quickDrugsContainer');
+      if (!container) return;
+      container.innerHTML = '';
+
+      drugs.forEach((d) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'chip-btn bg-teal-50 hover:bg-teal-100 text-teal-950 px-2.5 py-1 rounded-lg text-[11px] font-bold border border-teal-200 flex items-center gap-1 shadow-sm';
+        btn.innerHTML = `<span>+ ${d.name}</span> ${d.company ? `<span class="bg-teal-700 text-white text-[9px] px-1.5 py-0.2 rounded font-normal">${d.company}</span>` : ''}`;
+        btn.onclick = () => insertDrugToPrescription(d);
+        container.appendChild(btn);
+      });
+    }
+
+    function insertDrugToPrescription(drug) {
+      const rxBox = document.getElementById('pRx');
+      const companyPart = drug.company ? ` (${drug.company})` : '';
+      const dosePart = drug.dose ? ` - ${drug.dose}` : '';
+      const textToAppend = `+ ${drug.name}${companyPart}${dosePart}`;
+
+      if (rxBox.value.trim().length === 0) {
+        rxBox.value = textToAppend;
+      } else {
+        rxBox.value = rxBox.value.trim() + '\n' + textToAppend;
+      }
+      rxBox.focus();
+    }
+
+    function renderDrugsTable() {
+      const table = document.getElementById('drugsListTable');
+      if (!table) return;
+      table.innerHTML = '';
+
+      if (drugs.length === 0) {
+        table.innerHTML = `<div class="text-center py-4 text-slate-400">لا توجد أدوية مضافة حالياً.</div>`;
+        return;
+      }
+
+      drugs.forEach((d, idx) => {
+        const item = document.createElement('div');
+        item.className = 'flex justify-between items-center bg-slate-50 p-2 rounded-lg border text-xs';
+        item.innerHTML = `
+          <div>
+            <div class="flex items-center gap-1.5 font-bold text-slate-900">
+              <span>${d.name}</span>
+              ${d.company ? `<span class="bg-teal-100 text-teal-800 text-[10px] px-1.5 py-0.2 rounded">${d.company}</span>` : ''}
+            </div>
+            <p class="text-[11px] text-slate-500 mt-0.5">${d.dose || 'بدون تعليمات جرعة'}</p>
+          </div>
+          <button type="button" onclick="deleteDrug(${idx})" class="text-red-500 hover:text-red-700 font-bold p-1">&times; حذف</button>
+        `;
+        table.appendChild(item);
+      });
+    }
+
+    async function handleAddNewDrug(e) {
+      e.preventDefault();
+      const name = document.getElementById('newDrugName').value.trim();
+      const company = document.getElementById('newDrugCompany').value.trim();
+      const dose = document.getElementById('newDrugDose').value.trim();
+
+      if (!name) return;
+
+      const newDrug = {
+        id: 'drug_' + Date.now(),
+        name: name,
+        company: company || '',
+        dose: dose || ''
+      };
+
+      drugs.unshift(newDrug);
+      await syncDrugsToCloud();
+
+      document.getElementById('newDrugName').value = '';
+      document.getElementById('newDrugCompany').value = '';
+      document.getElementById('newDrugDose').value = '';
+
+      alert(`✅ تم إضافة دواء (${name}) إلى الصيدلية السريعة بنجاح!`);
+    }
+
+    async function deleteDrug(index) {
+      if (confirm(`هل أنتِ متأكدة من حذف هذا الدواء من القائمة؟`)) {
+        drugs.splice(index, 1);
+        await syncDrugsToCloud();
+      }
+    }
+
+    function openDrugsModal() {
+      renderDrugsTable();
+      document.getElementById('drugsModal').classList.remove('hidden');
+    }
+    function closeDrugsModal() {
+      document.getElementById('drugsModal').classList.add('hidden');
     }
 
     function checkPin() {
@@ -459,9 +633,9 @@
         secNav.classList.remove('hidden');
       }
       renderApp();
+      renderDrugChips();
     }
 
-    // --- TABS CONTROLLER (Feature 5) ---
     function setActiveTab(tab) {
       activeTab = tab;
       const tabDaily = document.getElementById('tabDaily');
@@ -513,18 +687,6 @@
       renderApp();
     }
 
-    // --- QUICK MEDICATION CHIP INSERTER (Feature 3) ---
-    function insertMedication(medText) {
-      const rxBox = document.getElementById('pRx');
-      if (rxBox.value.trim().length === 0) {
-        rxBox.value = medText;
-      } else {
-        rxBox.value = rxBox.value.trim() + '\n+ ' + medText;
-      }
-      rxBox.focus();
-    }
-
-    // --- IMAGE COMPRESSION & ATTACHMENT (Feature 7) ---
     function handlePhotoUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -534,7 +696,7 @@
         const img = new Image();
         img.onload = () => {
           const canvas = document.createElement('canvas');
-          const maxDim = 800; // Resize to max 800px for lightweight cloud storage
+          const maxDim = 800;
           let width = img.width;
           let height = img.height;
           if (width > height) {
@@ -576,7 +738,7 @@
 
       currentAttachedPhotos.forEach((src, idx) => {
         const wrap = document.createElement('div');
-        wrap.className = 'relative w-14 h-14 rounded-lg overflow-hidden border border-slate-300 shadow-sm group';
+        wrap.className = 'relative w-14 h-14 rounded-lg overflow-hidden border border-slate-300 shadow-sm';
         wrap.innerHTML = `
           <img src="${src}" class="w-full h-full object-cover cursor-pointer" onclick="openLightbox('${src}')">
           <button type="button" onclick="removePhoto(${idx})" class="absolute top-0 right-0 bg-red-600 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-bl">&times;</button>
@@ -594,9 +756,7 @@
       document.getElementById('lightboxImg').src = src;
       document.getElementById('imageLightbox').classList.remove('hidden');
     }
-    function closeLightbox() {
-      document.getElementById('imageLightbox').classList.add('hidden');
-    }
+    function closeLightbox() { document.getElementById('imageLightbox').classList.add('hidden'); }
 
     // --- SECRETARY SUBMIT ---
     async function handleSecretarySubmit(e) {
@@ -616,8 +776,10 @@
       const todayPatients = patients.filter(p => p.visitDate === today);
       const nextQueueNumber = todayPatients.length + 1;
 
+      const newDocId = db ? db.collection('patients').doc().id : ('pat_' + Date.now());
+
       const newPatient = {
-        id: 'pat_' + Date.now() + '_' + Math.floor(Math.random()*1000),
+        id: newDocId,
         visitDate: today,
         queueNumber: nextQueueNumber,
         status: 'waiting',
@@ -657,7 +819,7 @@
       alert(`✅ تم إعطاء الدور بنجاح!\n\nرقم الدور اليومي: [ ${nextQueueNumber} ]\nالمريضة: ${name}\nالكشفية: ${fee.toLocaleString()} ل.س`);
     }
 
-    // --- DOCTOR SUBMIT (Multi-Visit History & Timeline - Feature 4) ---
+    // --- DOCTOR SUBMIT ---
     async function handleDoctorSubmit(e) {
       e.preventDefault();
       const id = document.getElementById('editingPatientId').value;
@@ -666,9 +828,10 @@
       let patient = patients.find(p => p.id === id);
 
       if (!patient) {
+        const newDocId = db ? db.collection('patients').doc().id : ('pat_' + Date.now());
         const datePatients = patients.filter(p => p.visitDate === selectedDate);
         patient = {
-          id: 'pat_' + Date.now() + '_' + Math.floor(Math.random()*1000),
+          id: newDocId,
           visitDate: selectedDate,
           queueNumber: datePatients.length + 1,
           timestamp: Date.now(),
@@ -678,7 +841,6 @@
         patients.unshift(patient);
       }
 
-      // Fixed Profile Info
       patient.name = document.getElementById('pName').value.trim();
       patient.phone = document.getElementById('pPhone').value.trim();
       patient.age = document.getElementById('pAge').value.trim();
@@ -692,7 +854,6 @@
       patient.medHistory = document.getElementById('pMedicalHistory').value;
       patient.allergies = document.getElementById('pAllergies').value;
 
-      // Current Visit Details
       patient.bp = document.getElementById('pBP').value;
       patient.weight = document.getElementById('pWeight').value;
       patient.fee = parseInt(document.getElementById('pFee').value) || patient.fee || 0;
@@ -701,7 +862,6 @@
       patient.photos = [...currentAttachedPhotos];
       patient.status = 'completed';
 
-      // Push into Multi-Visit History Timeline (Feature 4)
       patient.visits = patient.visits || [];
       const currentVisitRecord = {
         date: patient.visitDate || selectedDate,
@@ -711,11 +871,9 @@
         fee: patient.fee,
         ultrasound: patient.ultrasound,
         rx: patient.rx,
-        photos: [...currentAttachedPhotos],
-        recordedAt: new Date().toLocaleTimeString('ar-SY', { hour: '2-digit', minute: '2-digit' })
+        photos: [...currentAttachedPhotos]
       };
 
-      // Replace today's visit if exists or append
       const existingVisitIdx = patient.visits.findIndex(v => v.date === currentVisitRecord.date);
       if (existingVisitIdx >= 0) {
         patient.visits[existingVisitIdx] = currentVisitRecord;
@@ -757,6 +915,7 @@
 
       currentAttachedPhotos = p.photos ? [...p.photos] : [];
       renderPhotosPreview();
+      renderDrugChips();
 
       updateModalPregnancyPreview();
       document.getElementById('doctorModal').classList.remove('hidden');
@@ -768,11 +927,12 @@
       document.getElementById('doctorForm').reset();
       currentAttachedPhotos = [];
       renderPhotosPreview();
+      renderDrugChips();
       updateModalPregnancyPreview();
       document.getElementById('doctorModal').classList.remove('hidden');
     }
 
-    // --- ACCURATE PREGNANCY CALCULATIONS (LMP -> EDD) ---
+    // --- ACCURATE PREGNANCY CALCULATIONS ---
     function calculatePregnancy(lmpStr) {
       if (!lmpStr) return null;
       const parts = lmpStr.split('-');
@@ -783,7 +943,6 @@
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-      // Naegele's rule: EDD = LMP + 280 days
       const edd = new Date(lmp.getTime() + 280 * 24 * 60 * 60 * 1000);
       const diffMs = today.getTime() - lmp.getTime();
       const totalDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
@@ -838,10 +997,7 @@
       }
 
       const preg = calculatePregnancy(lmpVal);
-      if (!preg) {
-        previewEl.classList.add('hidden');
-        return;
-      }
+      if (!preg) { previewEl.classList.add('hidden'); return; }
 
       if (preg.isFuture) {
         previewEl.innerHTML = `<div class="bg-amber-100 border border-amber-300 p-2 rounded-xl text-xs text-amber-900 font-bold">⚠️ تنبيه: التاريخ المحدد يقع في المستقبل.</div>`;
@@ -866,14 +1022,13 @@
       previewEl.classList.remove('hidden');
     }
 
-    // --- MAIN RENDER (Tabs, Financial Tally & History) ---
+    // --- MAIN RENDER ---
     function renderApp() {
       const selectedDate = document.getElementById('dateFilterInput').value || getTodayDateString();
       const q = document.getElementById('searchInput').value.trim().toLowerCase();
       const list = document.getElementById('patientList');
       list.innerHTML = '';
 
-      // 1. Calculate Due This Month Count Badge (Feature 5)
       const dueMonthPatients = patients.filter(p => {
         const preg = calculatePregnancy(p.lmp);
         return preg && !preg.isFuture && (preg.isDueWithinMonth || preg.isDueInCurrentMonth);
@@ -886,7 +1041,6 @@
         dueBadge.classList.add('hidden');
       }
 
-      // 2. Filter Patients by Tab
       let displayList = [];
       if (activeTab === 'daily') {
         displayList = patients.filter(p => {
@@ -906,19 +1060,17 @@
         displayList = patients.filter(p => !q || (p.name && p.name.toLowerCase().includes(q)) || (p.phone && p.phone.includes(q)));
       }
 
-      // 3. Financial Calculation for Selected Date (Feature 6)
       const dailyPatientsForDate = patients.filter(p => p.visitDate === selectedDate);
       const totalDailyIncome = dailyPatientsForDate.reduce((sum, p) => sum + (parseInt(p.fee) || 0), 0);
       document.getElementById('dailyTotalIncome').innerText = totalDailyIncome.toLocaleString('en-US');
 
-      // 4. Stats Text
       const waitingCount = displayList.filter(p => p.status === 'waiting').length;
       const completedCount = displayList.filter(p => p.status === 'completed').length;
       
       if (activeTab === 'daily') {
         document.getElementById('queueStats').innerText = `يوميات: ${selectedDate} | الإجمالي: ${displayList.length} (بانتظار: ${waitingCount} | تم: ${completedCount})`;
       } else if (activeTab === 'dueMonth') {
-        document.getElementById('queueStats').innerText = `🤰 قائمة الحوامل المقربات على الولادة هذا الشهر (${displayList.length} مريضة)`;
+        document.getElementById('queueStats').innerText = `🤰 قائمة الحوامل المقربات على الولادة (${displayList.length} مريضة)`;
       } else {
         document.getElementById('queueStats').innerText = `📋 إجمالي أرشيف العيادة: ${displayList.length} ملف مريضة`;
       }
@@ -932,12 +1084,10 @@
         const preg = calculatePregnancy(p.lmp);
         const isDoctor = (currentRole === 'doctor');
         const isWaiting = (p.status === 'waiting');
-        const visitsCount = (p.visits && p.visits.length) ? p.visits.length : 1;
 
         list.innerHTML += `
           <div class="bg-white rounded-2xl p-4 shadow-sm border ${preg && preg.isDueWithinMonth ? 'border-rose-400 ring-2 ring-rose-200' : (isWaiting ? 'border-amber-300 bg-amber-50/20' : 'border-slate-200')} space-y-3">
             
-            <!-- Card Header -->
             <div class="flex justify-between items-start border-b pb-2">
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl ${isWaiting ? 'bg-amber-500 text-white animate-pulse' : 'bg-teal-700 text-white'} flex flex-col items-center justify-center font-bold shadow">
@@ -979,7 +1129,6 @@
             ` : ''}
 
             ${isDoctor ? `
-              <!-- Obstetric Info -->
               <div class="bg-rose-50/60 p-2 rounded-xl text-xs text-rose-950 border border-rose-100 flex flex-wrap gap-x-3 gap-y-1">
                 <span><strong>حمول (G):</strong> ${p.g || 0}</span>
                 <span><strong>طبيعي (VD):</strong> ${p.vd || 0}</span>
@@ -988,7 +1137,6 @@
                 ${p.obsNotes ? `<span class="w-full text-slate-600 mt-0.5">📝 ${p.obsNotes}</span>` : ''}
               </div>
 
-              <!-- Pregnancy Summary -->
               ${preg && !preg.isFuture ? `
                 <div class="bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl text-xs text-emerald-900 space-y-1">
                   <div class="flex justify-between items-center font-bold">
@@ -998,7 +1146,6 @@
                 </div>
               ` : ''}
 
-              <!-- Clinical Details -->
               ${(p.bp || p.weight || p.ultrasound || p.rx || (p.photos && p.photos.length > 0)) ? `
                 <div class="bg-slate-50 p-2.5 rounded-xl text-xs border space-y-1.5">
                   <div class="flex gap-4 text-slate-500 font-semibold">
@@ -1008,7 +1155,6 @@
                   ${p.ultrasound ? `<p><strong>تقرير الإيكو:</strong> ${p.ultrasound}</p>` : ''}
                   ${p.rx ? `<p class="text-teal-800 font-semibold"><strong>الوصفة (Rx):</strong><br><span class="text-slate-800 whitespace-pre-line">${p.rx}</span></p>` : ''}
                   
-                  <!-- Photo Thumbnails (Feature 7) -->
                   ${p.photos && p.photos.length > 0 ? `
                     <div class="pt-1">
                       <span class="text-[11px] text-slate-500 font-bold block mb-1">📸 صور الإيكو والتحاليل المرفقة:</span>
@@ -1022,12 +1168,11 @@
                 </div>
               ` : ''}
 
-              <!-- Expandable Multi-Visit History Timeline (Feature 4) -->
               ${p.visits && p.visits.length > 1 ? `
                 <details class="text-xs bg-slate-50 rounded-xl p-2 border border-slate-200">
                   <summary class="font-bold text-teal-800 cursor-pointer select-none">📜 استعراض أرشيف الزيارات السابقة للمريضة (${p.visits.length} زيارات)</summary>
                   <div class="space-y-2 mt-2 pt-2 border-t divide-y">
-                    ${p.visits.map((v, vIdx) => `
+                    ${p.visits.map((v) => `
                       <div class="pt-1.5 space-y-1">
                         <div class="flex justify-between font-bold text-slate-700">
                           <span>📅 زيارة تاريخ: ${v.date}</span>
@@ -1060,7 +1205,7 @@
       });
     }
 
-    // --- SECURE DELETION WITH PIN CONFIRMATION ---
+    // --- SECURE DELETION ---
     function requestDeletePatient(id, name) {
       patientToDeleteId = id;
       document.getElementById('deleteModalPatientName').innerText = `المريضة: ${name}`;
@@ -1094,14 +1239,47 @@
       if (db) {
         try {
           await db.collection('patients').doc(targetId).delete();
+          console.log("✅ Permanently deleted from Firestore:", targetId);
         } catch (e) {
           console.warn("Cloud delete error:", e);
         }
       }
-      alert('🗑️ تم حذف ملف المريضة نهائياً.');
+      alert('🗑️ تم حذف ملف المريضة نهائياً من الجهاز والسحابة.');
     }
 
-    // --- FIREBASE SYNC & CLOUD ---
+    async function purgeAllOldTestPatients() {
+      const pin = prompt('أدخلي رمز أمان الطبيبة لتأكيد مسح جميع السجلات القديمة:');
+      if (pin !== getDocPin()) {
+        alert('❌ رمز الأمان غير صحيح!');
+        return;
+      }
+
+      if (!confirm('⚠️ تحذير: سيتم مسح وحذف جميع المريضات المسجلات حالياً نهائياً من السحابة والجهاز. هل أنتِ متأكدة؟')) {
+        return;
+      }
+
+      if (db) {
+        try {
+          const snap = await db.collection('patients').get();
+          const batch = db.batch();
+          snap.docs.forEach((doc) => {
+            batch.delete(doc.ref);
+          });
+          await batch.commit();
+          console.log("🧹 Cloud collection wiped clean.");
+        } catch (e) {
+          console.warn("Cloud purge error:", e);
+        }
+      }
+
+      patients = [];
+      saveDataLocally();
+      closeChangePinModal();
+      renderApp();
+      alert('✨ تم تصفير وحذف جميع السجلات القديمة بنجاح! السجل الآن نظيف تماماً.');
+    }
+
+    // --- FIREBASE SYNC ENGINE ---
     const firebaseConfig = {
       apiKey: "AIzaSyDBUW3lgkFWvDygfgBD4kSBRh4wx9d4h0Q",
       authDomain: "hiam-khder.firebaseapp.com",
@@ -1118,7 +1296,13 @@
         db = firebase.firestore();
 
         db.collection('patients').orderBy('timestamp', 'desc').onSnapshot((snapshot) => {
-          const cloudData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          const cloudData = snapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+              ...data,
+              id: doc.id
+            };
+          });
           patients = cloudData;
           saveDataLocally();
           renderApp();
@@ -1128,7 +1312,7 @@
           document.getElementById('syncStatus').innerText = '🟡 محلي';
         });
 
-        listenToPinChanges();
+        listenToPinAndDrugsChanges();
       }
     } catch (e) {
       console.warn('Local offline mode:', e);
@@ -1266,6 +1450,8 @@
         navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW skipped', err));
       });
     }
+
+    renderDrugChips();
   </script>
 </body>
 </html>
