@@ -68,7 +68,7 @@
       <div id="doctorNav" class="flex gap-2 flex-wrap items-center">
         <button onclick="triggerImport()" title="استيراد" class="bg-teal-800 hover:bg-teal-900 text-xs px-2.5 py-1.5 rounded-lg">📥 استيراد</button>
         <button onclick="exportData(false)" title="تصدير" class="bg-teal-800 hover:bg-teal-900 text-xs px-2.5 py-1.5 rounded-lg">💾 تصدير</button>
-        <button onclick="openChangePinModal()" class="bg-teal-800 hover:bg-teal-900 text-xs px-2.5 py-1.5 rounded-lg">🔑 الرموز</button>
+        <button onclick="openChangePinModal()" title="إدارة رموز الأمان" class="bg-teal-800 hover:bg-teal-900 text-xs px-2.5 py-1.5 rounded-lg">🔑 الرموز</button>
         <button onclick="lockApp()" class="bg-teal-900 hover:bg-black/30 text-xs px-2.5 py-1.5 rounded-lg">🔒 قفل</button>
         <button onclick="openDoctorNewPatientModal()" class="bg-white text-teal-800 font-bold px-3 py-1.5 rounded-lg text-xs shadow hover:bg-gray-100">+ مريضة جديدة</button>
       </div>
@@ -130,12 +130,12 @@
 
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="block font-semibold mb-1 text-slate-700">العمر</label>
+            <label class="block font-semibold mb-1 text-slate-700">العمر (اختياري)</label>
             <input type="number" id="secAge" placeholder="العمر" class="w-full p-2.5 border rounded-xl text-sm">
           </div>
           <div>
-            <label class="block font-semibold mb-1 text-slate-700">موبايل سوري (09xxxxxxxx) *</label>
-            <input type="tel" id="secPhone" required maxlength="10" placeholder="0933123456" 
+            <label class="block font-semibold mb-1 text-slate-700">رقم الهاتف (اختياري)</label>
+            <input type="tel" id="secPhone" maxlength="10" placeholder="09xxxxxxxx" 
                    class="w-full p-2.5 border rounded-xl text-sm font-mono" dir="ltr" oninput="formatSyrianPhone(this)">
           </div>
         </div>
@@ -170,7 +170,7 @@
         <!-- 1. الأساسيات -->
         <div class="bg-slate-50 p-3 rounded-xl border grid grid-cols-1 md:grid-cols-3 gap-3">
           <div><label class="block font-semibold mb-1">الاسم الثلاثي *</label><input type="text" id="pName" required class="w-full p-2 border rounded-lg text-sm"></div>
-          <div><label class="block font-semibold mb-1">الهاتف السوري</label><input type="tel" id="pPhone" maxlength="10" class="w-full p-2 border rounded-lg font-mono text-sm" dir="ltr" oninput="formatSyrianPhone(this)"></div>
+          <div><label class="block font-semibold mb-1">الهاتف السوري</label><input type="tel" id="pPhone" maxlength="10" placeholder="09xxxxxxxx" class="w-full p-2 border rounded-lg font-mono text-sm" dir="ltr" oninput="formatSyrianPhone(this)"></div>
           <div>
             <label class="block font-semibold mb-1">العمر والزمرة</label>
             <div class="flex gap-1">
@@ -229,24 +229,26 @@
     </div>
   </div>
 
-  <!-- ==================== 6. PIN SETTINGS MODAL ==================== -->
+  <!-- ==================== 6. PIN SETTINGS MODAL (DOCTOR ONLY) ==================== -->
   <div id="changePinModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-3 z-40">
-    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-3 text-xs">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4 text-xs">
       <div class="flex justify-between items-center border-b pb-2">
-        <h2 class="text-base font-bold text-teal-800">🔑 إدارة رموز الأمان</h2>
+        <h2 class="text-base font-bold text-teal-800">🔑 إدارة رموز الأمان (خاص بالطبيبة)</h2>
         <button type="button" onclick="closeChangePinModal()" class="text-gray-400 hover:text-red-500 text-2xl font-bold">&times;</button>
       </div>
 
+      <!-- Change Doctor PIN -->
       <form onsubmit="handleDoctorPinUpdate(event)" class="space-y-2 bg-slate-50 p-3 rounded-xl border">
-        <h3 class="font-bold text-slate-700">تغيير رمز الطبيبة (الحالي: <span id="currentDocPinDisplay"></span>)</h3>
+        <h3 class="font-bold text-slate-700">1. تغيير رمز الطبيبة (الحالي: <span id="currentDocPinDisplay" class="font-mono text-teal-800 font-bold"></span>)</h3>
         <input type="password" id="newDocPin" required minlength="4" maxlength="8" placeholder="رمز الطبيبة الجديد" class="w-full p-2 border rounded-lg text-center font-bold">
-        <button type="submit" class="w-full py-1.5 bg-teal-700 text-white rounded-lg font-bold">تحديث رمز الطبيبة</button>
+        <button type="submit" class="w-full py-1.5 bg-teal-700 hover:bg-teal-800 text-white rounded-lg font-bold">تحديث رمز الطبيبة ومزامنته</button>
       </form>
 
+      <!-- Change Secretary PIN -->
       <form onsubmit="handleSecPinUpdate(event)" class="space-y-2 bg-slate-50 p-3 rounded-xl border">
-        <h3 class="font-bold text-slate-700">تغيير رمز السكرتيرة (الحالي: <span id="currentSecPinDisplay"></span>)</h3>
+        <h3 class="font-bold text-slate-700">2. تغيير رمز السكرتيرة (الحالي: <span id="currentSecPinDisplay" class="font-mono text-indigo-800 font-bold"></span>)</h3>
         <input type="password" id="newSecPin" required minlength="4" maxlength="8" placeholder="رمز السكرتيرة الجديد" class="w-full p-2 border rounded-lg text-center font-bold">
-        <button type="submit" class="w-full py-1.5 bg-indigo-700 text-white rounded-lg font-bold">تحديث رمز السكرتيرة</button>
+        <button type="submit" class="w-full py-1.5 bg-indigo-700 hover:bg-indigo-800 text-white rounded-lg font-bold">تحديث رمز السكرتيرة ومزامنته</button>
       </form>
     </div>
   </div>
@@ -258,7 +260,7 @@
     const DEFAULT_SEC_PIN = "0000";
     const DOC_PIN_KEY = "clinic_doc_pin";
     const SEC_PIN_KEY = "clinic_sec_pin";
-    const CURRENT_ROLE_KEY = "clinic_user_role"; // "doctor" or "secretary"
+    const CURRENT_ROLE_KEY = "clinic_user_role";
     const LOCAL_KEY = "syria_obgyn_patients_v2";
     const LAST_BACKUP_KEY = "clinic_last_weekly_backup_v2";
 
@@ -268,6 +270,42 @@
 
     function getDocPin() { return localStorage.getItem(DOC_PIN_KEY) || DEFAULT_DOC_PIN; }
     function getSecPin() { return localStorage.getItem(SEC_PIN_KEY) || DEFAULT_SEC_PIN; }
+
+    // Cloud Listener for PIN sync across devices
+    function listenToPinChanges() {
+      if (!db) return;
+      try {
+        db.collection('settings').doc('security').onSnapshot((doc) => {
+          if (doc.exists) {
+            const data = doc.data();
+            if (data.docPin) localStorage.setItem(DOC_PIN_KEY, data.docPin);
+            if (data.secPin) localStorage.setItem(SEC_PIN_KEY, data.secPin);
+          }
+        });
+      } catch (e) {
+        console.warn("Could not sync PINs:", e);
+      }
+    }
+
+    async function savePinToCloud(type, newPin) {
+      if (type === 'doctor') {
+        localStorage.setItem(DOC_PIN_KEY, newPin);
+      } else {
+        localStorage.setItem(SEC_PIN_KEY, newPin);
+      }
+
+      if (db) {
+        try {
+          await db.collection('settings').doc('security').set({
+            docPin: getDocPin(),
+            secPin: getSecPin(),
+            updatedAt: Date.now()
+          }, { merge: true });
+        } catch (err) {
+          console.warn("Saved PIN locally, cloud update pending:", err);
+        }
+      }
+    }
 
     function checkPin() {
       const pin = document.getElementById('pinInput').value.trim();
@@ -321,7 +359,7 @@
 
     // --- SYRIAN PHONE FORMATTER ---
     function formatSyrianPhone(input) {
-      let val = input.value.replace(/\D/g, ''); // keep only numbers
+      let val = input.value.replace(/\D/g, '');
       if (val.length > 0 && !val.startsWith('09')) {
         if (val.startsWith('9')) val = '0' + val;
         else if (val.startsWith('0') && val.length > 1 && val[1] !== '9') val = '09' + val.slice(2);
@@ -330,10 +368,10 @@
     }
 
     function isValidSyrianPhone(phone) {
+      if (!phone) return true; // Optional phone allowed!
       return /^09[3-9]\d{7}$/.test(phone);
     }
 
-    // --- DATE HELPERS ---
     function getTodayDateString() {
       return new Date().toISOString().slice(0, 10);
     }
@@ -343,7 +381,7 @@
       renderApp();
     }
 
-    // --- SECRETARY SUBMIT ---
+    // --- SECRETARY SUBMIT (PHONE IS OPTIONAL) ---
     async function handleSecretarySubmit(e) {
       e.preventDefault();
       const name = document.getElementById('secName').value.trim();
@@ -351,14 +389,12 @@
       const phone = document.getElementById('secPhone').value.trim();
       const complaint = document.getElementById('secComplaint').value.trim();
 
-      if (!isValidSyrianPhone(phone)) {
-        alert('⚠️ يرجى إدخال رقم موبايل سوري صالح مؤلف من 10 أرقام يبدأ بـ 09 (مثال: 0933123456)');
+      if (phone && !isValidSyrianPhone(phone)) {
+        alert('⚠️ إذا أردتِ إدخال رقم الهاتف، يرجى كتابة رقم موبايل سوري مؤلف من 10 أرقام يبدأ بـ 09 (مثال: 0933123456)');
         return;
       }
 
       const today = getTodayDateString();
-      
-      // Calculate daily queue number
       const todayPatients = patients.filter(p => p.visitDate === today);
       const nextQueueNumber = todayPatients.length + 1;
 
@@ -366,11 +402,11 @@
         id: 'pat_' + Date.now(),
         visitDate: today,
         queueNumber: nextQueueNumber,
-        status: 'waiting', // waiting vs completed
+        status: 'waiting',
         name: name,
-        age: age,
-        phone: phone,
-        complaint: complaint,
+        age: age || '',
+        phone: phone || '',
+        complaint: complaint || '',
         blood: 'غير محدد',
         g: '0', vd: '0', cs: '0', a: '0',
         obsNotes: '',
@@ -408,7 +444,6 @@
       let patient = patients.find(p => p.id === id);
 
       if (!patient) {
-        // Brand new patient created by doctor
         const datePatients = patients.filter(p => p.visitDate === selectedDate);
         patient = {
           id: 'pat_' + Date.now(),
@@ -436,7 +471,7 @@
       patient.weight = document.getElementById('pWeight').value;
       patient.ultrasound = document.getElementById('pUltrasound').value;
       patient.rx = document.getElementById('pRx').value;
-      patient.status = 'completed'; // Marked as completed by Doctor
+      patient.status = 'completed';
 
       saveDataLocally();
       syncPatientToCloud(patient);
@@ -446,7 +481,6 @@
       alert(`✅ تم حفظ السجل الطبي للمريضة (${patient.name}) بنجاح.`);
     }
 
-    // Open Doctor Modal for editing / completing
     function openDoctorModal(patientId) {
       const p = patients.find(item => item.id === patientId);
       if (!p) return;
@@ -506,14 +540,12 @@
       const list = document.getElementById('patientList');
       list.innerHTML = '';
 
-      // Filter by Date AND Search query
       const dateFiltered = patients.filter(p => {
         const matchesDate = q ? true : (p.visitDate === selectedDate);
         const matchesSearch = !q || (p.name && p.name.toLowerCase().includes(q)) || (p.phone && p.phone.includes(q));
         return matchesDate && matchesSearch;
       });
 
-      // Sort by queue number ascending
       dateFiltered.sort((a, b) => (parseInt(a.queueNumber) || 999) - (parseInt(b.queueNumber) || 999));
 
       const waitingCount = dateFiltered.filter(p => p.status === 'waiting').length;
@@ -534,7 +566,6 @@
         list.innerHTML += `
           <div class="bg-white rounded-2xl p-4 shadow-sm border ${isWaiting ? 'border-amber-300 bg-amber-50/20' : 'border-slate-200'} space-y-3">
             
-            <!-- Card Header with Big Queue Number -->
             <div class="flex justify-between items-start border-b pb-2">
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl ${isWaiting ? 'bg-amber-500 text-white animate-pulse' : 'bg-teal-700 text-white'} flex flex-col items-center justify-center font-bold shadow">
@@ -543,7 +574,7 @@
                 </div>
                 <div>
                   <h3 class="text-base font-bold text-slate-900">${p.name}</h3>
-                  <p class="text-xs text-slate-500">📞 ${p.phone || 'بدون رقم'} | العمر: ${p.age || '-'} سنة</p>
+                  <p class="text-xs text-slate-500">📞 ${p.phone || 'بدون هاتف'} | العمر: ${p.age ? p.age + ' سنة' : '-'}</p>
                 </div>
               </div>
 
@@ -555,16 +586,13 @@
               </div>
             </div>
 
-            <!-- Complaint/Intake Notes from Secretary -->
             ${p.complaint ? `
               <div class="text-xs text-slate-600 bg-slate-50 p-2 rounded-lg">
                 <strong>الشكوى / سبب الزيارة:</strong> ${p.complaint}
               </div>
             ` : ''}
 
-            <!-- Doctor-Only Medical Details -->
             ${isDoctor ? `
-              <!-- Obstetric Summary -->
               <div class="bg-rose-50/60 p-2 rounded-xl text-xs text-rose-950 border border-rose-100 flex flex-wrap gap-x-3 gap-y-1">
                 <span><strong>G:</strong> ${p.g || 0}</span>
                 <span><strong>طبيعي (VD):</strong> ${p.vd || 0}</span>
@@ -573,7 +601,6 @@
                 ${p.obsNotes ? `<span class="w-full text-slate-600 mt-0.5">📝 ${p.obsNotes}</span>` : ''}
               </div>
 
-              <!-- Pregnancy Calculation -->
               ${preg ? `
                 <div class="bg-emerald-50 border border-emerald-200 p-2 rounded-xl text-xs text-emerald-900 flex justify-between items-center font-semibold">
                   <span>🤰 عمر الحمل: <strong>${preg.weeks}</strong></span>
@@ -581,7 +608,6 @@
                 </div>
               ` : ''}
 
-              <!-- Clinical Notes -->
               ${(p.bp || p.weight || p.ultrasound || p.rx) ? `
                 <div class="bg-slate-50 p-2 rounded-xl text-xs border space-y-1">
                   <div class="flex gap-4 text-slate-500 font-semibold">
@@ -593,7 +619,6 @@
                 </div>
               ` : ''}
 
-              <!-- Doctor Action Buttons -->
               <div class="flex justify-between items-center pt-1 border-t text-xs">
                 <button onclick="handleDeletePatient('${p.id}')" class="text-red-400 hover:text-red-700">حذف الملف</button>
                 <button onclick="openDoctorModal('${p.id}')" class="bg-teal-700 hover:bg-teal-800 text-white px-3 py-1.5 rounded-lg font-bold shadow">
@@ -601,7 +626,6 @@
                 </button>
               </div>
             ` : `
-              <!-- Secretary View Actions -->
               <div class="text-left text-xs text-slate-400">
                 ${isWaiting ? 'تم إدراج المريضة في دور اليوم وبانتظار الطبيبة' : 'اكتمل الفحص بواسطة الطبيبة'}
               </div>
@@ -640,6 +664,8 @@
           console.warn('Firestore offline/restricted:', err);
           document.getElementById('syncStatus').innerText = '🟡 وضع محلي (بدون إنترنت)';
         });
+
+        listenToPinChanges();
       }
     } catch (e) {
       console.warn('Local offline mode:', e);
@@ -681,7 +707,7 @@
       }
     }
 
-    // --- PIN MANAGEMENT ---
+    // --- PIN MANAGEMENT (DOCTOR CONTROLS BOTH) ---
     function openChangePinModal() {
       document.getElementById('currentDocPinDisplay').innerText = getDocPin();
       document.getElementById('currentSecPinDisplay').innerText = getSecPin();
@@ -689,21 +715,31 @@
     }
     function closeChangePinModal() { document.getElementById('changePinModal').classList.add('hidden'); }
 
-    function handleDoctorPinUpdate(e) {
+    async function handleDoctorPinUpdate(e) {
       e.preventDefault();
       const p = document.getElementById('newDocPin').value.trim();
-      localStorage.setItem(DOC_PIN_KEY, p);
-      alert('✅ تم تحديث رمز الطبيبة بنجاح!');
+      if (p.length < 4) {
+        alert('يرجى إدخال رمز مؤلف من 4 أرقام على الأقل.');
+        return;
+      }
+      await savePinToCloud('doctor', p);
+      document.getElementById('currentDocPinDisplay').innerText = p;
       document.getElementById('newDocPin').value = '';
+      alert('✅ تم تحديث رمز الطبيبة بنجاح ومزامنته!');
       closeChangePinModal();
     }
 
-    function handleSecPinUpdate(e) {
+    async function handleSecPinUpdate(e) {
       e.preventDefault();
       const p = document.getElementById('newSecPin').value.trim();
-      localStorage.setItem(SEC_PIN_KEY, p);
-      alert('✅ تم تحديث رمز السكرتيرة بنجاح!');
+      if (p.length < 4) {
+        alert('يرجى إدخال رمز مؤلف من 4 أرقام على الأقل.');
+        return;
+      }
+      await savePinToCloud('secretary', p);
+      document.getElementById('currentSecPinDisplay').innerText = p;
       document.getElementById('newSecPin').value = '';
+      alert('✅ تم تحديث رمز السكرتيرة بنجاح! سيطلب جهاز السكرتيرة الرمز الجديد فوراً.');
       closeChangePinModal();
     }
 
@@ -773,17 +809,16 @@
       }
     }
 
-    // Modal toggles
+    // Modal helpers
     function openSecretaryModal() { document.getElementById('secretaryModal').classList.remove('hidden'); }
     function closeSecretaryModal() { document.getElementById('secretaryModal').classList.add('hidden'); }
     function closeDoctorModal() { document.getElementById('doctorModal').classList.add('hidden'); }
 
-    // Keyboard enter for PIN
+    // Keyboard Enter trigger
     document.getElementById('pinInput').addEventListener('keyup', (e) => {
       if (e.key === 'Enter') checkPin();
     });
 
-    // Auto-init
     document.getElementById('dateFilterInput').value = getTodayDateString();
 
     if (currentRole) {
