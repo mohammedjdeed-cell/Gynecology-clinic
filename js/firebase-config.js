@@ -1,6 +1,4 @@
 // js/firebase-config.js
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDBUW3lgkFWvDygfgBD4kSBRh4wx9d4h0Q",
@@ -12,13 +10,18 @@ const firebaseConfig = {
   measurementId: "G-7Y5WLJWL6H"
 };
 
-let dbInstance = null;
+let db = null;
 
 try {
-  const app = initializeApp(firebaseConfig);
-  dbInstance = getFirestore(app);
-} catch (error) {
-  console.warn("Firebase initialization skipped/failed. Running offline mode:", error);
+  if (window.firebase) {
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    db = firebase.firestore();
+    console.log("✅ Firebase Firestore Connected");
+  }
+} catch (e) {
+  console.warn("⚠️ Firebase offline, running in local-first mode", e);
 }
 
-export const db = dbInstance;
+export { db };
