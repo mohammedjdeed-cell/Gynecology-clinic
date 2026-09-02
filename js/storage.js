@@ -1,19 +1,9 @@
 // js/storage.js
 import { db } from './firebase-config.js';
-import { 
-  collection, 
-  addDoc, 
-  deleteDoc, 
-  doc, 
-  onSnapshot, 
-  query, 
-  orderBy 
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const LOCAL_KEY = 'syria_obgyn_local_patients';
 const COLLECTION_NAME = 'patients';
 
-// 1. جلب البيانات المحلية فوراً
 export function getLocalPatients() {
   try {
     const data = localStorage.getItem(LOCAL_KEY);
@@ -23,64 +13,62 @@ export function getLocalPatients() {
   }
 }
 
-// 2. حفظ محلي
 function saveLocalPatients(list) {
   localStorage.setItem(LOCAL_KEY, JSON.stringify(list));
 }
 
-// 3. الاستماع للسحابة إن توفرت
 export function subscribeToPatients(onDataReceived) {
-  // أرسل البيانات المحلية أولاً فوراً لتعمل الشاشة
+  // 1. Immediately emit local data (0ms latency, always works)
   onDataReceived(getLocalPatients());
 
-  if (!db) return;
-
-  try {
-    const q = query(collection(db, COLLECTION_NAME), orderBy("timestamp", "desc"));
-    onSnapshot(q, (snapshot) => {
-      const remotePatients = snapshot.docs.map(docSnap => ({
-        id: docSnap.id,
-        ...docSnap.data()
-      }));
-      if (remotePatients.length > 0) {
-        saveLocalPatients(remotePatients);
-        onDataReceived(remotePatients);
-      }
-    }, (err) => {
-      console.warn("Firebase offline or restricted, using local storage:", err);
-    });
-  } catch (err) {
-    console.warn("Failed to subscribe to Firebase:", err);
+  // 2. Real-time Firebase sync if online
+  if (db) {
+    try {
+      db.collection(COLLECTION_NAME)
+        .orderBy("timestamp", "desc")
+        .onSnapshot((snapshot) => {
+          const cloudPatients = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+          if (cloudPatients.length > 0) {
+            saveLocalPatients(cloudPatients);
+            onDataReceived(cloudPatients);
+          }
+        }, (err) => {
+          console.warn("Firestore sync warning (using local):", err);
+        });
+    } catch (e) {
+      console.warn("Cloud sync error:", e);
+    }
   }
 }
 
-// 4. حفظ مريضة جديدة
 export async function savePatientRecord(patientData) {
   patientData.timestamp = Date.now();
   patientData.createdAt = new Date().toLocaleDateString('ar-SY');
 
-  // حفظ محلي فوري
+  // Save locally first
   const localList = getLocalPatients();
   const tempId = 'local_' + Date.now();
   const recordWithId = { id: tempId, ...patientData };
   localList.unshift(recordWithId);
   saveLocalPatients(localList);
 
-  // مزامنة مع Firebase في الخلفية
+  // Sync to Firestore in background
   if (db) {
     try {
-      const docRef = await addDoc(collection(db, COLLECTION_NAME), patientData);
+      const docRef = await db.collection(COLLECTION_NAME).add(patientData);
       recordWithId.id = docRef.id;
       saveLocalPatients(localList);
     } catch (e) {
-      console.warn("Saved locally, pending cloud sync:", e);
+      console.warn("Saved to local storage, pending cloud sync:", e);
     }
   }
 
   return localList;
 }
 
-// 5. حذف مريضة
 export async function deletePatientRecord(patientId) {
   let localList = getLocalPatients();
   localList = localList.filter(p => p.id !== patientId);
@@ -88,16 +76,15 @@ export async function deletePatientRecord(patientId) {
 
   if (db && !patientId.startsWith('local_')) {
     try {
-      await deleteDoc(doc(db, COLLECTION_NAME, patientId));
+      await db.collection(COLLECTION_NAME).doc(patientId).delete();
     } catch (e) {
-      console.warn("Could not delete from cloud:", e);
+      console.warn("Cloud delete warning:", e);
     }
   }
 
   return localList;
 }
 
-// 6. نسخ احتياطي
 export function exportDatabase(patientsArray) {
   const data = patientsArray || getLocalPatients();
   const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
