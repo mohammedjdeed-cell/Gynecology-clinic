@@ -196,10 +196,14 @@
           <input type="text" id="pObsNotes" placeholder="تفاصيل الولادات السابقة والمضاعفات..." class="w-full p-2 border rounded-lg">
         </div>
 
-        <!-- 3. الحمل الحالي -->
-        <div class="bg-teal-50 p-3 rounded-xl border border-teal-100">
-          <label class="block font-semibold mb-1 text-teal-900">تاريخ أول يوم من آخر دورة طمثية (LMP)</label>
-          <input type="date" id="pLMP" class="w-full p-2 border rounded-lg font-bold">
+        <!-- 3. الحمل الحالي وحاسبة الحمل المباشرة -->
+        <div class="bg-teal-50 p-3 rounded-xl border border-teal-100 space-y-2">
+          <label class="block font-semibold text-teal-900">تاريخ أول يوم من آخر دورة طمثية (LMP)</label>
+          <input type="date" id="pLMP" oninput="updateModalPregnancyPreview()" onchange="updateModalPregnancyPreview()" 
+                 class="w-full p-2 border rounded-lg font-bold bg-white text-sm">
+          
+          <!-- الصندوق المباشر لتقدير الحمل -->
+          <div id="modalPregnancyPreview" class="hidden"></div>
         </div>
 
         <!-- 4. السوابق والتحسس -->
@@ -237,12 +241,14 @@
         <button type="button" onclick="closeChangePinModal()" class="text-gray-400 hover:text-red-500 text-2xl font-bold">&times;</button>
       </div>
 
+      <!-- Change Doctor PIN -->
       <form onsubmit="handleDoctorPinUpdate(event)" class="space-y-2 bg-slate-50 p-3 rounded-xl border">
         <h3 class="font-bold text-slate-700">1. تغيير رمز الطبيبة (الحالي: <span id="currentDocPinDisplay" class="font-mono text-teal-800 font-bold"></span>)</h3>
         <input type="password" id="newDocPin" required minlength="4" maxlength="8" placeholder="رمز الطبيبة الجديد" class="w-full p-2 border rounded-lg text-center font-bold">
         <button type="submit" class="w-full py-1.5 bg-teal-700 hover:bg-teal-800 text-white rounded-lg font-bold">تحديث رمز الطبيبة ومزامنته</button>
       </form>
 
+      <!-- Change Secretary PIN -->
       <form onsubmit="handleSecPinUpdate(event)" class="space-y-2 bg-slate-50 p-3 rounded-xl border">
         <h3 class="font-bold text-slate-700">2. تغيير رمز السكرتيرة (الحالي: <span id="currentSecPinDisplay" class="font-mono text-indigo-800 font-bold"></span>)</h3>
         <input type="password" id="newSecPin" required minlength="4" maxlength="8" placeholder="رمز السكرتيرة الجديد" class="w-full p-2 border rounded-lg text-center font-bold">
@@ -526,6 +532,7 @@
       document.getElementById('pUltrasound').value = p.ultrasound || '';
       document.getElementById('pRx').value = p.rx || '';
 
+      updateModalPregnancyPreview();
       document.getElementById('doctorModal').classList.remove('hidden');
     }
 
@@ -533,6 +540,7 @@
       document.getElementById('editingPatientId').value = '';
       document.getElementById('docModalSubtitle').innerText = `تسجيل مباشر من الطبيبة`;
       document.getElementById('doctorForm').reset();
+      updateModalPregnancyPreview();
       document.getElementById('doctorModal').classList.remove('hidden');
     }
 
@@ -550,7 +558,6 @@
       const weeks = Math.floor(diffDays / 7);
       const days = diffDays % 7;
 
-      // Calculate Clinical Pregnancy Month (الأشهر الحملية)
       let monthName = "الشهر الأول";
       if (weeks >= 36) monthName = "الشهر التاسع";
       else if (weeks >= 31) monthName = "الشهر الثامن";
@@ -561,7 +568,6 @@
       else if (weeks >= 8) monthName = "الشهر الثالث";
       else if (weeks >= 4) monthName = "الشهر الثاني";
 
-      // Calculate Days Remaining Until EDD (متبقي لموعد الولادة)
       const daysUntilDelivery = Math.ceil((edd - today) / (1000 * 60 * 60 * 24));
       const isDueWithinMonth = (daysUntilDelivery >= 0 && daysUntilDelivery <= 30);
 
@@ -572,6 +578,40 @@
         daysUntilDelivery: daysUntilDelivery,
         isDueWithinMonth: isDueWithinMonth
       };
+    }
+
+    // --- LIVE PREGNANCY PREVIEW INSIDE MODAL ---
+    function updateModalPregnancyPreview() {
+      const lmpVal = document.getElementById('pLMP').value;
+      const previewEl = document.getElementById('modalPregnancyPreview');
+      if (!lmpVal) {
+        previewEl.classList.add('hidden');
+        previewEl.innerHTML = '';
+        return;
+      }
+
+      const preg = calculatePregnancy(lmpVal);
+      if (!preg) {
+        previewEl.classList.add('hidden');
+        previewEl.innerHTML = '';
+        return;
+      }
+
+      previewEl.innerHTML = `
+        <div class="bg-emerald-100 border border-emerald-300 p-2.5 rounded-xl text-xs text-emerald-950 space-y-1 shadow-sm mt-2">
+          <div class="flex justify-between items-center font-bold">
+            <span>🤰 مرحلة الحمل: <span class="bg-emerald-700 text-white px-2 py-0.5 rounded text-[11px]">${preg.monthName}</span></span>
+            <span>📅 الولادة المتوقعة (EDD): <strong class="text-teal-900">${preg.edd}</strong></span>
+          </div>
+          <div class="flex justify-between items-center text-slate-700 font-semibold border-t border-emerald-200/60 pt-1">
+            <span>عمر الحمل: <strong>${preg.weeks}</strong></span>
+            ${preg.isDueWithinMonth ? 
+              `<span class="text-rose-700 font-bold animate-pulse">🔔 تنبيه: متبقي ${preg.daysUntilDelivery} يوم على الولادة!</span>` : 
+              `<span>متبقي للولادة: ${preg.daysUntilDelivery} يوم</span>`}
+          </div>
+        </div>
+      `;
+      previewEl.classList.remove('hidden');
     }
 
     // --- MAIN RENDER ---
