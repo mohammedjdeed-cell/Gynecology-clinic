@@ -153,8 +153,11 @@
 
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="block font-semibold mb-1 text-slate-700">العمر (اختياري)</label>
-            <input type="number" id="secAge" placeholder="العمر" class="w-full p-2.5 border rounded-xl text-sm">
+            <div class="flex justify-between items-center mb-1">
+              <label class="font-semibold text-slate-700">سنة التولد (اختياري)</label>
+              <span id="secAgePreview" class="text-teal-700 font-bold text-[11px]"></span>
+            </div>
+            <input type="number" id="secBirthYear" min="1930" max="2030" placeholder="مثال: 1998" oninput="updateSecAgePreview()" class="w-full p-2.5 border rounded-xl text-sm font-mono">
           </div>
           <div>
             <label class="block font-semibold mb-1 text-slate-700">رقم الهاتف (اختياري)</label>
@@ -207,9 +210,12 @@
             <input type="tel" id="pPhone" maxlength="10" placeholder="09xxxxxxxx" class="w-full p-2 border rounded-lg font-mono text-sm bg-white" dir="ltr" oninput="formatSyrianPhone(this)">
           </div>
           <div>
-            <label class="block font-semibold mb-1">العمر والزمرة</label>
+            <div class="flex justify-between items-center mb-1">
+              <label class="font-semibold">سنة التولد والزمرة</label>
+              <span id="docAgePreview" class="text-teal-700 font-bold text-[10px]"></span>
+            </div>
             <div class="flex gap-1">
-              <input type="number" id="pAge" placeholder="العمر" class="w-1/2 p-2 border rounded-lg text-sm bg-white">
+              <input type="number" id="pBirthYear" min="1930" max="2030" placeholder="1998" oninput="updateDocAgePreview()" class="w-1/2 p-2 border rounded-lg text-sm bg-white font-mono">
               <select id="pBlood" class="w-1/2 p-2 border rounded-lg text-xs font-bold bg-white">
                 <option value="غير محدد">الزمرة</option>
                 <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
@@ -256,7 +262,7 @@
           <textarea id="pUltrasound" rows="2" placeholder="تقرير الفحص السريري والإيكو..." class="w-full p-2 border rounded-lg text-sm bg-white"></textarea>
         </div>
 
-        <!-- Photos Attachment -->
+        <!-- Photos -->
         <div class="bg-slate-50 p-3 rounded-xl border space-y-2">
           <div class="flex justify-between items-center">
             <h3 class="font-bold text-slate-800">📸 إرفاق صور الإيكو والتحاليل:</h3>
@@ -350,12 +356,14 @@
         <button type="button" onclick="closeChangePinModal()" class="text-gray-400 hover:text-red-500 text-2xl font-bold">&times;</button>
       </div>
 
+      <!-- Change Doctor PIN -->
       <form onsubmit="handleDoctorPinUpdate(event)" class="space-y-2 bg-slate-50 p-3 rounded-xl border">
         <h3 class="font-bold text-slate-700">1. تغيير رمز الطبيبة (الحالي: <span id="currentDocPinDisplay" class="font-mono text-teal-800 font-bold"></span>)</h3>
         <input type="password" id="newDocPin" required minlength="4" maxlength="8" placeholder="رمز الطبيبة الجديد" class="w-full p-2 border rounded-lg text-center font-bold">
         <button type="submit" class="w-full py-1.5 bg-teal-700 hover:bg-teal-800 text-white rounded-lg font-bold">تحديث رمز الطبيبة ومزامنته</button>
       </form>
 
+      <!-- Change Secretary PIN -->
       <form onsubmit="handleSecPinUpdate(event)" class="space-y-2 bg-slate-50 p-3 rounded-xl border">
         <h3 class="font-bold text-slate-700">2. تغيير رمز السكرتيرة (الحالي: <span id="currentSecPinDisplay" class="font-mono text-indigo-800 font-bold"></span>)</h3>
         <input type="password" id="newSecPin" required minlength="4" maxlength="8" placeholder="رمز السكرتيرة الجديد" class="w-full p-2 border rounded-lg text-center font-bold">
@@ -407,7 +415,6 @@
     const DRUGS_KEY = "clinic_custom_drugs_v1";
     const LAST_BACKUP_KEY = "clinic_last_weekly_backup_v4";
 
-    // Default Popular Syrian OB/GYN Medications
     const DEFAULT_DRUGS = [
       { id: "d_1", name: "حديد + فوليك أسيد", company: "لوتوفوليك / ابن حيان", dose: "حبة يومياً بعد الغداء" },
       { id: "d_2", name: "دوفاستون 10 مغ", company: "Abbott / آسيا", dose: "حبة مرتين يومياً" },
@@ -429,6 +436,29 @@
 
     function getDocPin() { return localStorage.getItem(DOC_PIN_KEY) || DEFAULT_DOC_PIN; }
     function getSecPin() { return localStorage.getItem(SEC_PIN_KEY) || DEFAULT_SEC_PIN; }
+
+    // Helper to calculate age from birth year
+    function calculateAgeFromBirthYear(birthYear) {
+      if (!birthYear) return null;
+      const y = parseInt(birthYear, 10);
+      const currentYear = new Date().getFullYear();
+      if (isNaN(y) || y < 1920 || y > currentYear) return null;
+      return currentYear - y;
+    }
+
+    function updateSecAgePreview() {
+      const val = document.getElementById('secBirthYear').value;
+      const age = calculateAgeFromBirthYear(val);
+      const preview = document.getElementById('secAgePreview');
+      preview.innerText = age !== null ? `(العمر: ${age} سنة)` : '';
+    }
+
+    function updateDocAgePreview() {
+      const val = document.getElementById('pBirthYear').value;
+      const age = calculateAgeFromBirthYear(val);
+      const preview = document.getElementById('docAgePreview');
+      preview.innerText = age !== null ? `(${age} سنة)` : '';
+    }
 
     function listenToPinAndDrugsChanges() {
       if (!db) return;
@@ -488,7 +518,7 @@
       }
     }
 
-    // --- DRUG MANAGEMENT (NEW FEATURE) ---
+    // --- DRUG MANAGEMENT ---
     function renderDrugChips() {
       const container = document.getElementById('quickDrugsContainer');
       if (!container) return;
@@ -567,7 +597,7 @@
       document.getElementById('newDrugCompany').value = '';
       document.getElementById('newDrugDose').value = '';
 
-      alert(`✅ تم إضافة دواء (${name}) إلى الصيدلية السريعة بنجاح!`);
+      alert(`✅ تم إضافة دواء (${name}) إلى الصيدلية بنجاح!`);
     }
 
     async function deleteDrug(index) {
@@ -581,9 +611,7 @@
       renderDrugsTable();
       document.getElementById('drugsModal').classList.remove('hidden');
     }
-    function closeDrugsModal() {
-      document.getElementById('drugsModal').classList.add('hidden');
-    }
+    function closeDrugsModal() { document.getElementById('drugsModal').classList.add('hidden'); }
 
     function checkPin() {
       const pin = document.getElementById('pinInput').value.trim();
@@ -762,7 +790,7 @@
     async function handleSecretarySubmit(e) {
       e.preventDefault();
       const name = document.getElementById('secName').value.trim();
-      const age = document.getElementById('secAge').value.trim();
+      const birthYear = document.getElementById('secBirthYear').value.trim();
       const phone = document.getElementById('secPhone').value.trim();
       const fee = parseInt(document.getElementById('secFee').value) || 0;
       const complaint = document.getElementById('secComplaint').value.trim();
@@ -784,7 +812,7 @@
         queueNumber: nextQueueNumber,
         status: 'waiting',
         name: name,
-        age: age || '',
+        birthYear: birthYear || '',
         phone: phone || '',
         fee: fee,
         complaint: complaint || '',
@@ -809,7 +837,8 @@
       await syncPatientToCloud(newPatient);
 
       document.getElementById('secName').value = '';
-      document.getElementById('secAge').value = '';
+      document.getElementById('secBirthYear').value = '';
+      document.getElementById('secAgePreview').innerText = '';
       document.getElementById('secPhone').value = '';
       document.getElementById('secFee').value = '';
       document.getElementById('secComplaint').value = '';
@@ -843,7 +872,7 @@
 
       patient.name = document.getElementById('pName').value.trim();
       patient.phone = document.getElementById('pPhone').value.trim();
-      patient.age = document.getElementById('pAge').value.trim();
+      patient.birthYear = document.getElementById('pBirthYear').value.trim();
       patient.blood = document.getElementById('pBlood').value;
       patient.g = document.getElementById('pG').value;
       patient.vd = document.getElementById('pVD').value;
@@ -897,7 +926,9 @@
       document.getElementById('docModalSubtitle').innerText = `رقم الدور (${p.queueNumber}) - تاريخ: ${p.visitDate}`;
       document.getElementById('pName').value = p.name || '';
       document.getElementById('pPhone').value = p.phone || '';
-      document.getElementById('pAge').value = p.age || '';
+      document.getElementById('pBirthYear').value = p.birthYear || '';
+      updateDocAgePreview();
+
       document.getElementById('pBlood').value = p.blood || 'غير محدد';
       document.getElementById('pG').value = p.g || '0';
       document.getElementById('pVD').value = p.vd || '0';
@@ -925,6 +956,7 @@
       document.getElementById('editingPatientId').value = '';
       document.getElementById('docModalSubtitle').innerText = `تسجيل مباشر من الطبيبة`;
       document.getElementById('doctorForm').reset();
+      document.getElementById('docAgePreview').innerText = '';
       currentAttachedPhotos = [];
       renderPhotosPreview();
       renderDrugChips();
@@ -1056,7 +1088,7 @@
           const pb = calculatePregnancy(b.lmp);
           return (pa?.daysUntilDelivery || 999) - (pb?.daysUntilDelivery || 999);
         });
-      } else { // 'all'
+      } else {
         displayList = patients.filter(p => !q || (p.name && p.name.toLowerCase().includes(q)) || (p.phone && p.phone.includes(q)));
       }
 
@@ -1084,6 +1116,7 @@
         const preg = calculatePregnancy(p.lmp);
         const isDoctor = (currentRole === 'doctor');
         const isWaiting = (p.status === 'waiting');
+        const calculatedAge = calculateAgeFromBirthYear(p.birthYear) || p.age;
 
         list.innerHTML += `
           <div class="bg-white rounded-2xl p-4 shadow-sm border ${preg && preg.isDueWithinMonth ? 'border-rose-400 ring-2 ring-rose-200' : (isWaiting ? 'border-amber-300 bg-amber-50/20' : 'border-slate-200')} space-y-3">
@@ -1099,7 +1132,11 @@
                     <h3 class="text-base font-bold text-slate-900">${p.name}</h3>
                     ${p.visits && p.visits.length > 1 ? `<span class="bg-purple-100 text-purple-800 text-[10px] px-2 py-0.2 rounded-full font-bold">📜 ${p.visits.length} مراجعات</span>` : ''}
                   </div>
-                  <p class="text-xs text-slate-500">📞 ${p.phone || 'بدون هاتف'} | العمر: ${p.age ? p.age + ' سنة' : '-'} | تاريخ الزيارة: ${p.visitDate || '-'}</p>
+                  <p class="text-xs text-slate-500">
+                    📞 ${p.phone || 'بدون هاتف'} | 
+                    ${p.birthYear ? `🎂 تولد: ${p.birthYear} (${calculatedAge} سنة)` : (p.age ? `العمر: ${p.age} سنة` : 'العمر: -')} | 
+                    تاريخ الزيارة: ${p.visitDate || '-'}
+                  </p>
                 </div>
               </div>
 
@@ -1137,6 +1174,7 @@
                 ${p.obsNotes ? `<span class="w-full text-slate-600 mt-0.5">📝 ${p.obsNotes}</span>` : ''}
               </div>
 
+              <!-- Comprehensive Pregnancy Status -->
               ${preg && !preg.isFuture ? `
                 <div class="bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl text-xs text-emerald-900 space-y-1">
                   <div class="flex justify-between items-center font-bold">
