@@ -1,10 +1,22 @@
-/* Custom mobile optimizations */
-input, select, textarea {
-  font-family: 'Cairo', sans-serif;
+/* Custom App Polish */
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
 }
 
+body {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+input, textarea, select {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* Custom Scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
 }
 ::-webkit-scrollbar-track {
   background: #f1f5f9;
@@ -12,4 +24,11 @@ input, select, textarea {
 ::-webkit-scrollbar-thumb {
   background: #cbd5e1;
   border-radius: 4px;
+}
+
+/* Print Styling */
+@media print {
+  header, #lockScreen, button, input {
+    display: none !important;
+  }
 }
