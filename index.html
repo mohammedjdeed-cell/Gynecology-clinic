@@ -229,7 +229,7 @@
     </div>
   </div>
 
-  <!-- ==================== 6. PIN SETTINGS MODAL (DOCTOR ONLY) ==================== -->
+  <!-- ==================== 6. PIN SETTINGS MODAL ==================== -->
   <div id="changePinModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-3 z-40">
     <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4 text-xs">
       <div class="flex justify-between items-center border-b pb-2">
@@ -237,19 +237,42 @@
         <button type="button" onclick="closeChangePinModal()" class="text-gray-400 hover:text-red-500 text-2xl font-bold">&times;</button>
       </div>
 
-      <!-- Change Doctor PIN -->
       <form onsubmit="handleDoctorPinUpdate(event)" class="space-y-2 bg-slate-50 p-3 rounded-xl border">
         <h3 class="font-bold text-slate-700">1. تغيير رمز الطبيبة (الحالي: <span id="currentDocPinDisplay" class="font-mono text-teal-800 font-bold"></span>)</h3>
         <input type="password" id="newDocPin" required minlength="4" maxlength="8" placeholder="رمز الطبيبة الجديد" class="w-full p-2 border rounded-lg text-center font-bold">
         <button type="submit" class="w-full py-1.5 bg-teal-700 hover:bg-teal-800 text-white rounded-lg font-bold">تحديث رمز الطبيبة ومزامنته</button>
       </form>
 
-      <!-- Change Secretary PIN -->
       <form onsubmit="handleSecPinUpdate(event)" class="space-y-2 bg-slate-50 p-3 rounded-xl border">
         <h3 class="font-bold text-slate-700">2. تغيير رمز السكرتيرة (الحالي: <span id="currentSecPinDisplay" class="font-mono text-indigo-800 font-bold"></span>)</h3>
         <input type="password" id="newSecPin" required minlength="4" maxlength="8" placeholder="رمز السكرتيرة الجديد" class="w-full p-2 border rounded-lg text-center font-bold">
         <button type="submit" class="w-full py-1.5 bg-indigo-700 hover:bg-indigo-800 text-white rounded-lg font-bold">تحديث رمز السكرتيرة ومزامنته</button>
       </form>
+    </div>
+  </div>
+
+  <!-- ==================== 7. PIN-PROTECTED DELETE CONFIRMATION MODAL ==================== -->
+  <div id="deleteModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center p-3 z-50">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl space-y-4">
+      <div class="w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto text-2xl">
+        🗑️
+      </div>
+      <div>
+        <h3 class="text-base font-bold text-slate-900">تأكيد حذف ملف المريضة</h3>
+        <p id="deleteModalPatientName" class="text-xs text-red-600 font-bold mt-1"></p>
+        <p class="text-[11px] text-slate-500 mt-1">لحماية البيانات من الحذف الخاطئ، يرجى إدخال رمز أمان الطبيبة:</p>
+      </div>
+
+      <div>
+        <input type="password" id="deletePinInput" maxlength="8" placeholder="••••" 
+               class="w-full text-center text-xl tracking-[0.3em] py-2.5 border-2 border-red-200 rounded-xl focus:outline-red-500 font-bold bg-slate-50">
+        <p id="deletePinError" class="text-xs text-red-500 font-bold mt-1.5 hidden">⚠️ رمز الأمان غير صحيح!</p>
+      </div>
+
+      <div class="flex gap-2 pt-2">
+        <button type="button" onclick="closeDeleteModal()" class="w-1/2 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl font-bold text-xs">إلغاء</button>
+        <button type="button" onclick="confirmDeletePatientWithPin()" class="w-1/2 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-xs shadow-lg">تأكيد الحذف النهائي</button>
+      </div>
     </div>
   </div>
 
@@ -266,12 +289,12 @@
 
     let patients = JSON.parse(localStorage.getItem(LOCAL_KEY) || '[]');
     let currentRole = sessionStorage.getItem(CURRENT_ROLE_KEY) || null;
+    let patientToDeleteId = null;
     let db = null;
 
     function getDocPin() { return localStorage.getItem(DOC_PIN_KEY) || DEFAULT_DOC_PIN; }
     function getSecPin() { return localStorage.getItem(SEC_PIN_KEY) || DEFAULT_SEC_PIN; }
 
-    // Cloud Listener for PIN sync across devices
     function listenToPinChanges() {
       if (!db) return;
       try {
@@ -357,7 +380,6 @@
       renderApp();
     }
 
-    // --- SYRIAN PHONE FORMATTER ---
     function formatSyrianPhone(input) {
       let val = input.value.replace(/\D/g, '');
       if (val.length > 0 && !val.startsWith('09')) {
@@ -368,7 +390,7 @@
     }
 
     function isValidSyrianPhone(phone) {
-      if (!phone) return true; // Optional phone allowed!
+      if (!phone) return true;
       return /^09[3-9]\d{7}$/.test(phone);
     }
 
@@ -381,7 +403,7 @@
       renderApp();
     }
 
-    // --- SECRETARY SUBMIT (PHONE IS OPTIONAL) ---
+    // --- SECRETARY SUBMIT ---
     async function handleSecretarySubmit(e) {
       e.preventDefault();
       const name = document.getElementById('secName').value.trim();
@@ -390,7 +412,7 @@
       const complaint = document.getElementById('secComplaint').value.trim();
 
       if (phone && !isValidSyrianPhone(phone)) {
-        alert('⚠️ إذا أردتِ إدخال رقم الهاتف، يرجى كتابة رقم موبايل سوري مؤلف من 10 أرقام يبدأ بـ 09 (مثال: 0933123456)');
+        alert('⚠️ يرجى كتابة رقم موبايل سوري صالح مؤلف من 10 أرقام يبدأ بـ 09');
         return;
       }
 
@@ -514,7 +536,7 @@
       document.getElementById('doctorModal').classList.remove('hidden');
     }
 
-    // --- PREGNANCY CALCULATOR ---
+    // --- PREGNANCY CALCULATIONS & DUE REMINDER ---
     function calculatePregnancy(lmpStr) {
       if (!lmpStr) return null;
       const lmp = new Date(lmpStr);
@@ -527,9 +549,28 @@
 
       const weeks = Math.floor(diffDays / 7);
       const days = diffDays % 7;
+
+      // Calculate Clinical Pregnancy Month (الأشهر الحملية)
+      let monthName = "الشهر الأول";
+      if (weeks >= 36) monthName = "الشهر التاسع";
+      else if (weeks >= 31) monthName = "الشهر الثامن";
+      else if (weeks >= 27) monthName = "الشهر السابع";
+      else if (weeks >= 22) monthName = "الشهر السادس";
+      else if (weeks >= 17) monthName = "الشهر الخامس";
+      else if (weeks >= 13) monthName = "الشهر الرابع";
+      else if (weeks >= 8) monthName = "الشهر الثالث";
+      else if (weeks >= 4) monthName = "الشهر الثاني";
+
+      // Calculate Days Remaining Until EDD (متبقي لموعد الولادة)
+      const daysUntilDelivery = Math.ceil((edd - today) / (1000 * 60 * 60 * 24));
+      const isDueWithinMonth = (daysUntilDelivery >= 0 && daysUntilDelivery <= 30);
+
       return {
         weeks: `${weeks} أسبوع و ${days} يوم`,
-        edd: edd.toLocaleDateString('ar-SY', { year: 'numeric', month: 'long', day: 'numeric' })
+        monthName: monthName,
+        edd: edd.toLocaleDateString('ar-SY', { year: 'numeric', month: 'long', day: 'numeric' }),
+        daysUntilDelivery: daysUntilDelivery,
+        isDueWithinMonth: isDueWithinMonth
       };
     }
 
@@ -564,7 +605,7 @@
         const isWaiting = (p.status === 'waiting');
 
         list.innerHTML += `
-          <div class="bg-white rounded-2xl p-4 shadow-sm border ${isWaiting ? 'border-amber-300 bg-amber-50/20' : 'border-slate-200'} space-y-3">
+          <div class="bg-white rounded-2xl p-4 shadow-sm border ${preg && preg.isDueWithinMonth ? 'border-rose-400 ring-2 ring-rose-200' : (isWaiting ? 'border-amber-300 bg-amber-50/20' : 'border-slate-200')} space-y-3">
             
             <div class="flex justify-between items-start border-b pb-2">
               <div class="flex items-center gap-3">
@@ -592,6 +633,14 @@
               </div>
             ` : ''}
 
+            <!-- 1-Month Delivery Alert Badge -->
+            ${preg && preg.isDueWithinMonth ? `
+              <div class="bg-rose-50 border border-rose-300 p-2.5 rounded-xl text-xs text-rose-900 flex items-center justify-between font-bold animate-pulse">
+                <span>🔔 تنبيه: موعد الولادة المتوقع خلال أقل من شهر (${preg.daysUntilDelivery} يوم)!</span>
+                <span class="bg-rose-600 text-white px-2 py-0.5 rounded-lg text-[10px]">${preg.monthName}</span>
+              </div>
+            ` : ''}
+
             ${isDoctor ? `
               <div class="bg-rose-50/60 p-2 rounded-xl text-xs text-rose-950 border border-rose-100 flex flex-wrap gap-x-3 gap-y-1">
                 <span><strong>G:</strong> ${p.g || 0}</span>
@@ -601,10 +650,13 @@
                 ${p.obsNotes ? `<span class="w-full text-slate-600 mt-0.5">📝 ${p.obsNotes}</span>` : ''}
               </div>
 
+              <!-- Comprehensive Pregnancy Status -->
               ${preg ? `
-                <div class="bg-emerald-50 border border-emerald-200 p-2 rounded-xl text-xs text-emerald-900 flex justify-between items-center font-semibold">
-                  <span>🤰 عمر الحمل: <strong>${preg.weeks}</strong></span>
-                  <span>تاريخ الولادة المتوقع: <strong>${preg.edd}</strong></span>
+                <div class="bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl text-xs text-emerald-900 space-y-1">
+                  <div class="flex justify-between items-center font-bold">
+                    <span>🤰 مرحلة الحمل: <span class="bg-emerald-700 text-white px-2 py-0.5 rounded text-[11px]">${preg.monthName}</span> (${preg.weeks})</span>
+                    <span>الولادة المتوقعة: <strong>${preg.edd}</strong></span>
+                  </div>
                 </div>
               ` : ''}
 
@@ -620,7 +672,9 @@
               ` : ''}
 
               <div class="flex justify-between items-center pt-1 border-t text-xs">
-                <button onclick="handleDeletePatient('${p.id}')" class="text-red-400 hover:text-red-700">حذف الملف</button>
+                <button onclick="requestDeletePatient('${p.id}', '${p.name}')" class="text-red-500 hover:text-red-700 font-semibold flex items-center gap-1">
+                  <span>🗑️</span> <span>حذف برمز الأمان</span>
+                </button>
                 <button onclick="openDoctorModal('${p.id}')" class="bg-teal-700 hover:bg-teal-800 text-white px-3 py-1.5 rounded-lg font-bold shadow">
                   ${isWaiting ? '🩺 فحص وتكملة الملف' : '✏️ تعديل السجل الطبي'}
                 </button>
@@ -634,6 +688,48 @@
           </div>
         `;
       });
+    }
+
+    // --- SECURE DELETION WITH PIN CONFIRMATION ---
+    function requestDeletePatient(id, name) {
+      patientToDeleteId = id;
+      document.getElementById('deleteModalPatientName').innerText = `المريضة: ${name}`;
+      document.getElementById('deletePinInput').value = '';
+      document.getElementById('deletePinError').classList.add('hidden');
+      document.getElementById('deleteModal').classList.remove('hidden');
+    }
+
+    function closeDeleteModal() {
+      patientToDeleteId = null;
+      document.getElementById('deleteModal').classList.add('hidden');
+    }
+
+    async function confirmDeletePatientWithPin() {
+      const enteredPin = document.getElementById('deletePinInput').value.trim();
+      const docPin = getDocPin();
+
+      if (enteredPin !== docPin) {
+        document.getElementById('deletePinError').classList.remove('hidden');
+        return;
+      }
+
+      if (!patientToDeleteId) return;
+
+      const targetId = patientToDeleteId;
+      patients = patients.filter(p => p.id !== targetId);
+      saveDataLocally();
+      renderApp();
+      closeDeleteModal();
+
+      if (db && !targetId.startsWith('pat_')) {
+        try {
+          await db.collection('patients').doc(targetId).delete();
+        } catch (e) {
+          console.warn('Cloud delete error:', e);
+        }
+      }
+
+      alert('🗑️ تم حذف ملف المريضة نهائياً بنجاح.');
     }
 
     // --- FIREBASE SYNC & CLOUD ---
@@ -692,22 +788,7 @@
       }
     }
 
-    async function handleDeletePatient(id) {
-      if (!confirm('هل أنتِ متأكدة من حذف هذا السجل نهائياً؟')) return;
-      patients = patients.filter(p => p.id !== id);
-      saveDataLocally();
-      renderApp();
-
-      if (db && !id.startsWith('pat_')) {
-        try {
-          await db.collection('patients').doc(id).delete();
-        } catch (e) {
-          console.warn('Cloud delete error:', e);
-        }
-      }
-    }
-
-    // --- PIN MANAGEMENT (DOCTOR CONTROLS BOTH) ---
+    // --- PIN MANAGEMENT ---
     function openChangePinModal() {
       document.getElementById('currentDocPinDisplay').innerText = getDocPin();
       document.getElementById('currentSecPinDisplay').innerText = getSecPin();
@@ -809,14 +890,17 @@
       }
     }
 
-    // Modal helpers
+    // Modal Helpers
     function openSecretaryModal() { document.getElementById('secretaryModal').classList.remove('hidden'); }
     function closeSecretaryModal() { document.getElementById('secretaryModal').classList.add('hidden'); }
     function closeDoctorModal() { document.getElementById('doctorModal').classList.add('hidden'); }
 
-    // Keyboard Enter trigger
     document.getElementById('pinInput').addEventListener('keyup', (e) => {
       if (e.key === 'Enter') checkPin();
+    });
+
+    document.getElementById('deletePinInput').addEventListener('keyup', (e) => {
+      if (e.key === 'Enter') confirmDeletePatientWithPin();
     });
 
     document.getElementById('dateFilterInput').value = getTodayDateString();
