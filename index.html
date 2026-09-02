@@ -9,6 +9,10 @@
   <link rel="stylesheet" href="./css/styles.css">
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Firebase Compat Scripts (Safe from ES Module Network Blockers) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 </head>
 <body class="bg-slate-100 text-slate-800 font-['Cairo']">
 
@@ -22,7 +26,7 @@
       <div class="flex gap-2">
         <button id="installBtn" class="hidden bg-emerald-600 hover:bg-emerald-700 text-xs px-3 py-2 rounded-lg font-bold">📱 تثبيت التطبيق</button>
         <button id="exportBtn" class="bg-teal-800 hover:bg-teal-900 text-xs px-3 py-2 rounded-lg">💾 نسخ احتياطي</button>
-        <button id="openModalBtn" class="bg-white text-teal-800 font-bold px-3 py-2 rounded-lg text-xs shadow">+ مريضة جديدة</button>
+        <button id="openModalBtn" class="bg-white text-teal-800 font-bold px-3 py-2 rounded-lg text-xs shadow hover:bg-gray-100">+ مريضة جديدة</button>
       </div>
     </div>
   </header>
@@ -105,7 +109,7 @@
     </div>
   </div>
 
-  <!-- Scripts Loaded as ES Modules -->
+  <!-- App bootstrap -->
   <script type="module" src="./js/app.js"></script>
 </body>
 </html>
