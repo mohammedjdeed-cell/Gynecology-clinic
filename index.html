@@ -93,8 +93,8 @@
   <!-- ==================== 3. MAIN DASHBOARD ==================== -->
   <main class="max-w-5xl mx-auto p-4 space-y-3.5">
     
-    <!-- Tabs -->
-    <div class="flex gap-2 border-b pb-2 overflow-x-auto">
+    <!-- Tabs (Doctor Only) -->
+    <div id="tabsContainer" class="flex gap-2 border-b pb-2 overflow-x-auto">
       <button onclick="setActiveTab('daily')" id="tabDaily" class="px-3 py-2 rounded-xl text-xs font-bold bg-teal-700 text-white shadow">
         📅 سجل اليوميات
       </button>
@@ -116,15 +116,16 @@
       </div>
 
       <div class="w-full md:w-72">
-        <input type="text" id="searchInput" oninput="renderApp()" placeholder="🔍 بحث بالاسم أو الهاتف السوري..." 
+        <input type="text" id="searchInput" oninput="renderApp()" placeholder="🔍 بحث بالاسم، الزوج، الهاتف، أو الوطني..." 
                class="w-full p-2.5 border rounded-xl text-xs focus:outline-teal-600 bg-slate-50">
       </div>
     </div>
 
-    <!-- Stats & Financial Bar -->
+    <!-- Stats Bar -->
     <div class="bg-slate-800 text-white p-3 rounded-2xl shadow-sm flex justify-between items-center flex-wrap gap-2 text-xs font-bold">
       <div id="queueStats" class="text-slate-200"></div>
       <div class="flex items-center gap-3">
+        <!-- Financial Tally (Doctor Only) -->
         <div id="financialTally" class="bg-emerald-800 text-emerald-100 px-3 py-1 rounded-xl border border-emerald-600 flex items-center gap-1">
           <span>💰 الصندوق:</span>
           <span id="dailyTotalIncome">0</span>
@@ -138,7 +139,7 @@
     <div id="patientList" class="space-y-3"></div>
   </main>
 
-  <!-- ==================== 4. SECRETARY INTAKE MODAL ==================== -->
+  <!-- ==================== 4. SECRETARY INTAKE MODAL (NO FEES, NO SENSITIVE DATA) ==================== -->
   <div id="secretaryModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-3 z-30">
     <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl">
       <div class="flex justify-between items-center border-b pb-2 mb-3">
@@ -150,6 +151,17 @@
         <div>
           <label class="block font-semibold mb-1 text-slate-700">الاسم الثلاثي للمريضة *</label>
           <input type="text" id="secName" required placeholder="مثال: ريم أحمد الخطيب" class="w-full p-2.5 border rounded-xl text-sm">
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700">اسم الزوج (اختياري)</label>
+            <input type="text" id="secHusband" placeholder="اسم الزوج" class="w-full p-2.5 border rounded-xl text-sm">
+          </div>
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700">الرقم الوطني (اختياري)</label>
+            <input type="text" id="secNationalId" maxlength="11" placeholder="الرقم الوطني" class="w-full p-2.5 border rounded-xl text-sm font-mono">
+          </div>
         </div>
 
         <div class="grid grid-cols-2 gap-2">
@@ -167,15 +179,9 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block font-semibold mb-1 text-slate-700">الكشفية / الأجر (ل.س)</label>
-            <input type="number" id="secFee" placeholder="مثال: 50000" class="w-full p-2.5 border rounded-xl text-sm font-mono text-emerald-700 font-bold">
-          </div>
-          <div>
-            <label class="block font-semibold mb-1 text-slate-700">سبب الزيارة (اختياري)</label>
-            <input type="text" id="secComplaint" placeholder="متابعة حمل، فحص..." class="w-full p-2.5 border rounded-xl text-sm">
-          </div>
+        <div>
+          <label class="block font-semibold mb-1 text-slate-700">سبب الزيارة (اختياري)</label>
+          <input type="text" id="secComplaint" placeholder="متابعة حمل، فحص، استشارة..." class="w-full p-2.5 border rounded-xl text-sm">
         </div>
 
         <div class="flex justify-end gap-2 pt-2 border-t">
@@ -201,27 +207,40 @@
         <input type="hidden" id="editingPatientId">
 
         <!-- Basic Info -->
-        <div class="bg-slate-50 p-3 rounded-xl border grid grid-cols-1 md:grid-cols-4 gap-2.5">
-          <div class="md:col-span-2">
-            <label class="block font-semibold mb-1">الاسم الثلاثي *</label>
-            <input type="text" id="pName" required class="w-full p-2 border rounded-lg text-sm bg-white">
-          </div>
-          <div>
-            <label class="block font-semibold mb-1">الهاتف السوري</label>
-            <input type="tel" id="pPhone" maxlength="10" placeholder="09xxxxxxxx" class="w-full p-2 border rounded-lg font-mono text-sm bg-white" dir="ltr" oninput="formatSyrianPhone(this)">
-          </div>
-          <div>
-            <div class="flex justify-between items-center mb-1">
-              <label class="font-semibold">سنة التولد والزمرة</label>
-              <span id="docAgePreview" class="text-teal-700 font-bold text-[10px]"></span>
+        <div class="bg-slate-50 p-3 rounded-xl border space-y-2">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <div>
+              <label class="block font-semibold mb-1">الاسم الثلاثي للمريضة *</label>
+              <input type="text" id="pName" required class="w-full p-2 border rounded-lg text-sm bg-white font-bold">
             </div>
-            <div class="flex gap-1">
-              <input type="number" id="pBirthYear" min="1930" max="2030" placeholder="1998" oninput="updateDocAgePreview()" class="w-1/2 p-2 border rounded-lg text-sm bg-white font-mono">
-              <select id="pBlood" class="w-1/2 p-2 border rounded-lg text-xs font-bold bg-white">
-                <option value="غير محدد">الزمرة</option>
-                <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
-                <option>O+</option><option>O-</option><option>AB+</option><option>AB-</option>
-              </select>
+            <div>
+              <label class="block font-semibold mb-1">اسم الزوج</label>
+              <input type="text" id="pHusband" placeholder="اسم الزوج الثلاثي" class="w-full p-2 border rounded-lg text-sm bg-white">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+            <div>
+              <label class="block font-semibold mb-1">الرقم الوطني</label>
+              <input type="text" id="pNationalId" maxlength="11" placeholder="الرقم الوطني" class="w-full p-2 border rounded-lg font-mono text-xs bg-white">
+            </div>
+            <div>
+              <label class="block font-semibold mb-1">الهاتف السوري</label>
+              <input type="tel" id="pPhone" maxlength="10" placeholder="09xxxxxxxx" class="w-full p-2 border rounded-lg font-mono text-xs bg-white" dir="ltr" oninput="formatSyrianPhone(this)">
+            </div>
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <label class="font-semibold">سنة التولد والزمرة</label>
+                <span id="docAgePreview" class="text-teal-700 font-bold text-[10px]"></span>
+              </div>
+              <div class="flex gap-1">
+                <input type="number" id="pBirthYear" min="1930" max="2030" placeholder="1998" oninput="updateDocAgePreview()" class="w-1/2 p-2 border rounded-lg text-xs bg-white font-mono">
+                <select id="pBlood" class="w-1/2 p-2 border rounded-lg text-xs font-bold bg-white">
+                  <option value="غير محدد">الزمرة</option>
+                  <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+                  <option>O+</option><option>O-</option><option>AB+</option><option>AB-</option>
+                </select>
+              </div>
             </div>
           </div>
         </div>
@@ -254,7 +273,7 @@
 
         <!-- Vitals & Examination -->
         <div class="bg-slate-50 p-3 rounded-xl border space-y-2.5">
-          <h3 class="font-bold text-slate-800">فحص الزيارة الحالية:</h3>
+          <h3 class="font-bold text-slate-800">فحص الزيارة الحالية والمالية:</h3>
           <div class="grid grid-cols-3 gap-2">
             <input type="text" id="pBP" placeholder="الضغط (120/80)" class="w-full p-2 border rounded-lg bg-white">
             <input type="text" id="pWeight" placeholder="الوزن (كغ)" class="w-full p-2 border rounded-lg bg-white">
@@ -406,9 +425,9 @@
     const DOC_PIN_KEY = "clinic_doc_pin";
     const SEC_PIN_KEY = "clinic_sec_pin";
     const CURRENT_ROLE_KEY = "clinic_user_role";
-    const LOCAL_KEY = "syria_obgyn_patients_v5";
+    const LOCAL_KEY = "syria_obgyn_patients_v6";
     const DRUGS_KEY = "clinic_custom_drugs_v2";
-    const LAST_BACKUP_KEY = "clinic_last_weekly_backup_v5";
+    const LAST_BACKUP_KEY = "clinic_last_weekly_backup_v6";
 
     const DEFAULT_DRUGS = [
       { id: "d_1", name: "حديد + فوليك أسيد", company: "لوتوفوليك / ابن حيان", dose: "حبة يومياً بعد الغداء" },
@@ -452,6 +471,14 @@
       const age = calculateAgeFromBirthYear(val);
       const preview = document.getElementById('docAgePreview');
       preview.innerText = age !== null ? `(${age} سنة)` : '';
+    }
+
+    // --- ACCURATE QUEUE NUMBER GENERATOR (PREVENTS DUPLICATE TURNS) ---
+    function getNextQueueNumberForDate(dateStr) {
+      const datePatients = patients.filter(p => p.visitDate === dateStr && p.queueNumber);
+      if (datePatients.length === 0) return 1;
+      const maxQueue = Math.max(...datePatients.map(p => parseInt(p.queueNumber, 10) || 0));
+      return (maxQueue >= 0 ? maxQueue + 1 : 1);
     }
 
     function listenToPinAndDrugsChanges() {
@@ -642,23 +669,36 @@
       const roleBadge = document.getElementById('roleBadge');
       const docNav = document.getElementById('doctorNav');
       const secNav = document.getElementById('secretaryNav');
+      const tabsContainer = document.getElementById('tabsContainer');
+      const dateControlGroup = document.getElementById('dateControlGroup');
+      const financialTally = document.getElementById('financialTally');
 
       if (currentRole === 'doctor') {
-        roleBadge.innerText = '👑 الطبيبة (كامل الصلاحيات)';
+        roleBadge.innerText = '👑 الطبيبة (كامل الصلاحيات والمالية)';
         roleBadge.className = 'text-[10px] bg-teal-900 text-teal-200 px-2 py-0.5 rounded-full font-bold';
         docNav.classList.remove('hidden');
         secNav.classList.add('hidden');
+        tabsContainer.classList.remove('hidden');
+        dateControlGroup.classList.remove('hidden');
+        financialTally.classList.remove('hidden');
       } else {
-        roleBadge.innerText = '📋 الاستقبال (السكرتيرة)';
+        // Secretary: Locked to Today only, No Financial Access, No Archive Tabs
+        roleBadge.innerText = '📋 الاستقبال (مريضات اليوم فقط)';
         roleBadge.className = 'text-[10px] bg-indigo-900 text-indigo-200 px-2 py-0.5 rounded-full font-bold';
         docNav.classList.add('hidden');
         secNav.classList.remove('hidden');
+        tabsContainer.classList.add('hidden');
+        dateControlGroup.classList.add('hidden');
+        financialTally.classList.add('hidden');
+        activeTab = 'daily';
+        setDateToToday();
       }
       renderApp();
       renderDrugChips();
     }
 
     function setActiveTab(tab) {
+      if (currentRole !== 'doctor') return;
       activeTab = tab;
       const tabDaily = document.getElementById('tabDaily');
       const tabDueMonth = document.getElementById('tabDueMonth');
@@ -780,7 +820,7 @@
     }
     function closeLightbox() { document.getElementById('imageLightbox').classList.add('hidden'); }
 
-    // --- SMART SECRETARY SUBMIT (PREVENTS DUPLICATION & RECOGNIZES RETURNING PATIENTS) ---
+    // --- SECRETARY INTAKE (STRICT TODAY ONLY, NO FEES, UNIQUE QUEUE #) ---
     async function handleSecretarySubmit(e) {
       e.preventDefault();
       const submitBtn = document.getElementById('secSubmitBtn');
@@ -790,9 +830,10 @@
       }
 
       const name = document.getElementById('secName').value.trim();
+      const husband = document.getElementById('secHusband').value.trim();
+      const nationalId = document.getElementById('secNationalId').value.trim();
       const birthYear = document.getElementById('secBirthYear').value.trim();
       const phone = document.getElementById('secPhone').value.trim();
-      const fee = parseInt(document.getElementById('secFee').value) || 0;
       const complaint = document.getElementById('secComplaint').value.trim();
 
       if (phone && !isValidSyrianPhone(phone)) {
@@ -803,31 +844,30 @@
 
       const today = getTodayDateString();
 
-      // 1. Check if patient is ALREADY registered in today's queue
+      // Check if ALREADY in today's queue
       const alreadyInQueueToday = patients.find(p => p.visitDate === today && (
         (phone && p.phone === phone) || (p.name.toLowerCase() === name.toLowerCase())
       ));
 
       if (alreadyInQueueToday) {
-        alert(`⚠️ تنبيه: المريضة (${name}) مسجلة بالفعل في دور اليوم بالرقم [ ${alreadyInQueueToday.queueNumber} ].`);
+        alert(`⚠️ تنبيه: المريضة (${name}) مسجلة بالفعل في دور اليوم برقم الدور: [ ${alreadyInQueueToday.queueNumber} ].`);
         if (submitBtn) { submitBtn.disabled = false; submitBtn.innerText = 'إعطاء دور وتسجيل'; }
         return;
       }
 
-      // 2. Check if patient is a RETURNING patient from previous dates
+      // Check if patient exists in archive
       const existingPatient = patients.find(p => 
         (phone && p.phone === phone) || (p.name.toLowerCase() === name.toLowerCase())
       );
 
-      const todayPatients = patients.filter(p => p.visitDate === today);
-      const nextQueueNumber = todayPatients.length + 1;
+      const nextQueueNumber = getNextQueueNumberForDate(today);
 
       if (existingPatient) {
-        // Returning patient: Update current queue details without cloning entire profile!
         existingPatient.visitDate = today;
         existingPatient.queueNumber = nextQueueNumber;
         existingPatient.status = 'waiting';
-        existingPatient.fee = fee;
+        if (husband && !existingPatient.husband) existingPatient.husband = husband;
+        if (nationalId && !existingPatient.nationalId) existingPatient.nationalId = nationalId;
         if (complaint) existingPatient.complaint = complaint;
         if (birthYear && !existingPatient.birthYear) existingPatient.birthYear = birthYear;
         if (phone && !existingPatient.phone) existingPatient.phone = phone;
@@ -836,9 +876,8 @@
         saveDataLocally();
         await syncPatientToCloud(existingPatient);
 
-        alert(`✅ تم التعرف على المريضة مسبقاً في أرشيف العيادة!\n\nتم إعطاؤها الدور لليوم: [ ${nextQueueNumber} ]\nالمريضة: ${name}`);
+        alert(`✅ تم استدعاء ملف المريضة وإعطاؤها دور اليوم!\n\nرقم الدور: [ ${nextQueueNumber} ]\nالمريضة: ${name}`);
       } else {
-        // Brand new patient
         const newDocId = db ? db.collection('patients').doc().id : ('pat_' + Date.now());
 
         const newPatient = {
@@ -847,9 +886,11 @@
           queueNumber: nextQueueNumber,
           status: 'waiting',
           name: name,
+          husband: husband || '',
+          nationalId: nationalId || '',
           birthYear: birthYear || '',
           phone: phone || '',
-          fee: fee,
+          fee: 0,
           complaint: complaint || '',
           blood: 'غير محدد',
           g: '0', vd: '0', cs: '0', a: '0',
@@ -871,14 +912,15 @@
         saveDataLocally();
         await syncPatientToCloud(newPatient);
 
-        alert(`✅ تم تسجيل مريضة جديدة بنجاح!\n\nرقم الدور اليومي: [ ${nextQueueNumber} ]\nالمريضة: ${name}`);
+        alert(`✅ تم تسجيل المريضة بنجاح!\n\nرقم الدور لليوم: [ ${nextQueueNumber} ]\nالمريضة: ${name}`);
       }
 
       document.getElementById('secName').value = '';
+      document.getElementById('secHusband').value = '';
+      document.getElementById('secNationalId').value = '';
       document.getElementById('secBirthYear').value = '';
       document.getElementById('secAgePreview').innerText = '';
       document.getElementById('secPhone').value = '';
-      document.getElementById('secFee').value = '';
       document.getElementById('secComplaint').value = '';
       
       if (submitBtn) { submitBtn.disabled = false; submitBtn.innerText = 'إعطاء دور وتسجيل'; }
@@ -886,7 +928,7 @@
       renderApp();
     }
 
-    // --- DOCTOR SUBMIT ---
+    // --- DOCTOR SUBMIT (FULL MEDICAL & FEES) ---
     async function handleDoctorSubmit(e) {
       e.preventDefault();
       const saveBtn = document.getElementById('saveDoctorBtn');
@@ -902,11 +944,11 @@
 
       if (!patient) {
         const newDocId = db ? db.collection('patients').doc().id : ('pat_' + Date.now());
-        const datePatients = patients.filter(p => p.visitDate === selectedDate);
+        const nextQueueNumber = getNextQueueNumberForDate(selectedDate);
         patient = {
           id: newDocId,
           visitDate: selectedDate,
-          queueNumber: datePatients.length + 1,
+          queueNumber: nextQueueNumber,
           timestamp: Date.now(),
           createdAt: new Date().toLocaleDateString('ar-SY'),
           visits: []
@@ -915,6 +957,8 @@
       }
 
       patient.name = document.getElementById('pName').value.trim();
+      patient.husband = document.getElementById('pHusband').value.trim();
+      patient.nationalId = document.getElementById('pNationalId').value.trim();
       patient.phone = document.getElementById('pPhone').value.trim();
       patient.birthYear = document.getElementById('pBirthYear').value.trim();
       patient.blood = document.getElementById('pBlood').value;
@@ -974,6 +1018,8 @@
       document.getElementById('editingPatientId').value = p.id;
       document.getElementById('docModalSubtitle').innerText = `رقم الدور (${p.queueNumber}) - تاريخ: ${p.visitDate}`;
       document.getElementById('pName').value = p.name || '';
+      document.getElementById('pHusband').value = p.husband || '';
+      document.getElementById('pNationalId').value = p.nationalId || '';
       document.getElementById('pPhone').value = p.phone || '';
       document.getElementById('pBirthYear').value = p.birthYear || '';
       updateDocAgePreview();
@@ -1103,26 +1149,43 @@
       previewEl.classList.remove('hidden');
     }
 
-    // --- CLEAN DUPLICATE PATIENTS UTILITY ---
+    // --- CLEAN DUPLICATE PATIENTS & FIX OVERLAPPING QUEUE NUMBERS ---
     async function cleanDuplicatePatients() {
       const seen = new Map();
       const toDeleteFromCloud = [];
       const cleanList = [];
 
+      // Deduplicate patients by phone or name
       patients.forEach(p => {
-        // Unique key by normalized phone or normalized name
         const key = p.phone ? p.phone.trim() : p.name.trim().toLowerCase();
         if (!seen.has(key)) {
           seen.set(key, p);
           cleanList.push(p);
         } else {
-          // It's a duplicate! Delete the redundant clone
           if (p.id) toDeleteFromCloud.push(p.id);
         }
       });
 
+      // Fix duplicate queue numbers per day
+      const dateBuckets = {};
+      cleanList.forEach(p => {
+        const d = p.visitDate || getTodayDateString();
+        if (!dateBuckets[d]) dateBuckets[d] = [];
+        dateBuckets[d].push(p);
+      });
+
+      Object.keys(dateBuckets).forEach(d => {
+        dateBuckets[d].sort((a,b) => (a.timestamp || 0) - (b.timestamp || 0));
+        dateBuckets[d].forEach((p, idx) => {
+          p.queueNumber = idx + 1;
+        });
+      });
+
       if (toDeleteFromCloud.length === 0) {
-        alert('✨ السجل نظيف تماماً ولا توجد بطاقات مكررة!');
+        patients = cleanList;
+        saveDataLocally();
+        renderApp();
+        alert('✨ تم إعادة ترقيم الأدوار تسلسلياً والسجل نظيف تماماً!');
         return;
       }
 
@@ -1167,10 +1230,16 @@
       }
 
       let displayList = [];
-      if (activeTab === 'daily') {
+      const isSec = (currentRole === 'secretary');
+
+      if (isSec || activeTab === 'daily') {
+        const targetDate = isSec ? getTodayDateString() : selectedDate;
         displayList = patients.filter(p => {
-          const matchesDate = q ? true : (p.visitDate === selectedDate);
-          const matchesSearch = !q || (p.name && p.name.toLowerCase().includes(q)) || (p.phone && p.phone.includes(q));
+          const matchesDate = q ? (p.visitDate === targetDate) : (p.visitDate === targetDate);
+          const matchesSearch = !q || (p.name && p.name.toLowerCase().includes(q)) || 
+                                      (p.husband && p.husband.toLowerCase().includes(q)) || 
+                                      (p.nationalId && p.nationalId.includes(q)) || 
+                                      (p.phone && p.phone.includes(q));
           return matchesDate && matchesSearch;
         });
         displayList.sort((a, b) => (parseInt(a.queueNumber) || 999) - (parseInt(b.queueNumber) || 999));
@@ -1185,14 +1254,19 @@
         displayList = patients.filter(p => !q || (p.name && p.name.toLowerCase().includes(q)) || (p.phone && p.phone.includes(q)));
       }
 
-      const dailyPatientsForDate = patients.filter(p => p.visitDate === selectedDate);
-      const totalDailyIncome = dailyPatientsForDate.reduce((sum, p) => sum + (parseInt(p.fee) || 0), 0);
-      document.getElementById('dailyTotalIncome').innerText = totalDailyIncome.toLocaleString('en-US');
+      // Financial Calculation (Doctor Only)
+      if (currentRole === 'doctor') {
+        const dailyPatientsForDate = patients.filter(p => p.visitDate === selectedDate);
+        const totalDailyIncome = dailyPatientsForDate.reduce((sum, p) => sum + (parseInt(p.fee) || 0), 0);
+        document.getElementById('dailyTotalIncome').innerText = totalDailyIncome.toLocaleString('en-US');
+      }
 
       const waitingCount = displayList.filter(p => p.status === 'waiting').length;
       const completedCount = displayList.filter(p => p.status === 'completed').length;
       
-      if (activeTab === 'daily') {
+      if (isSec) {
+        document.getElementById('queueStats').innerText = `📋 مريضات اليوم (${getTodayDateString()}): ${displayList.length} (بانتظار: ${waitingCount} | تم: ${completedCount})`;
+      } else if (activeTab === 'daily') {
         document.getElementById('queueStats').innerText = `يوميات: ${selectedDate} | الإجمالي: ${displayList.length} (بانتظار: ${waitingCount} | تم: ${completedCount})`;
       } else if (activeTab === 'dueMonth') {
         document.getElementById('queueStats').innerText = `🤰 قائمة الحوامل المقربات على الولادة (${displayList.length} مريضة)`;
@@ -1201,7 +1275,7 @@
       }
 
       if (displayList.length === 0) {
-        list.innerHTML = `<div class="bg-white rounded-2xl p-12 text-center text-slate-400 font-semibold border">لا توجد سجلات مطابقة للعرض حالياً</div>`;
+        list.innerHTML = `<div class="bg-white rounded-2xl p-12 text-center text-slate-400 font-semibold border">لا توجد مريضات مسجلات لعرضهن حالياً</div>`;
         return;
       }
 
@@ -1223,12 +1297,13 @@
                 <div>
                   <div class="flex items-center gap-2">
                     <h3 class="text-base font-bold text-slate-900">${p.name}</h3>
-                    ${p.visits && p.visits.length > 1 ? `<span class="bg-purple-100 text-purple-800 text-[10px] px-2 py-0.2 rounded-full font-bold">📜 ${p.visits.length} مراجعات</span>` : ''}
+                    ${p.husband ? `<span class="text-slate-600 font-normal text-xs">(زوجها: ${p.husband})</span>` : ''}
+                    ${isDoctor && p.visits && p.visits.length > 1 ? `<span class="bg-purple-100 text-purple-800 text-[10px] px-2 py-0.2 rounded-full font-bold">📜 ${p.visits.length} مراجعات</span>` : ''}
                   </div>
-                  <p class="text-xs text-slate-500">
+                  <p class="text-xs text-slate-500 mt-0.5">
                     📞 ${p.phone || 'بدون هاتف'} | 
-                    ${p.birthYear ? `🎂 تولد: ${p.birthYear} (${calculatedAge} سنة)` : (p.age ? `العمر: ${p.age} سنة` : 'العمر: -')} | 
-                    تاريخ الزيارة: ${p.visitDate || '-'}
+                    ${p.birthYear ? `🎂 تولد: ${p.birthYear} (${calculatedAge} سنة)` : (p.age ? `العمر: ${p.age} سنة` : 'العمر: -')}
+                    ${p.nationalId ? ` | 🆔 ${p.nationalId}` : ''}
                   </p>
                 </div>
               </div>
@@ -1238,7 +1313,7 @@
                   ${isWaiting ? '⏳ بانتظار الفحص' : '✅ تم الفحص'}
                 </span>
                 <div class="flex gap-1.5 items-center">
-                  ${p.fee ? `<span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">${p.fee.toLocaleString()} ل.س</span>` : ''}
+                  ${isDoctor && p.fee ? `<span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">${p.fee.toLocaleString()} ل.س</span>` : ''}
                   ${isDoctor && p.blood ? `<span class="text-xs font-bold text-red-600">${p.blood}</span>` : ''}
                 </div>
               </div>
@@ -1267,7 +1342,6 @@
                 ${p.obsNotes ? `<span class="w-full text-slate-600 mt-0.5">📝 ${p.obsNotes}</span>` : ''}
               </div>
 
-              <!-- Comprehensive Pregnancy Status -->
               ${preg && !preg.isFuture ? `
                 <div class="bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl text-xs text-emerald-900 space-y-1">
                   <div class="flex justify-between items-center font-bold">
