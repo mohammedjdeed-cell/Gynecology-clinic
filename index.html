@@ -69,6 +69,7 @@
       <!-- Doctor Actions -->
       <div id="doctorNav" class="flex gap-1.5 flex-wrap items-center">
         <button onclick="openDrugsModal()" title="إدارة صيدلية الأدوية" class="bg-teal-800 hover:bg-teal-900 text-xs px-2.5 py-1.5 rounded-lg font-semibold flex items-center gap-1">💊 الأدوية</button>
+        <button onclick="cleanDuplicatePatients()" title="تنظيف التكرارات" class="bg-teal-800 hover:bg-teal-900 text-xs px-2.5 py-1.5 rounded-lg">🧹 دمج المكرر</button>
         <button onclick="triggerImport()" title="استيراد" class="bg-teal-800 hover:bg-teal-900 text-xs px-2.5 py-1.5 rounded-lg">📥 استيراد</button>
         <button onclick="exportData(false)" title="تصدير" class="bg-teal-800 hover:bg-teal-900 text-xs px-2.5 py-1.5 rounded-lg">💾 تصدير</button>
         <button onclick="openChangePinModal()" title="إدارة الرموز" class="bg-teal-800 hover:bg-teal-900 text-xs px-2.5 py-1.5 rounded-lg">🔑 الرموز</button>
@@ -145,7 +146,7 @@
         <button type="button" onclick="closeSecretaryModal()" class="text-gray-400 hover:text-red-500 text-2xl font-bold">&times;</button>
       </div>
 
-      <form onsubmit="handleSecretarySubmit(event)" class="space-y-3 text-xs">
+      <form id="secFormElement" onsubmit="handleSecretarySubmit(event)" class="space-y-3 text-xs">
         <div>
           <label class="block font-semibold mb-1 text-slate-700">الاسم الثلاثي للمريضة *</label>
           <input type="text" id="secName" required placeholder="مثال: ريم أحمد الخطيب" class="w-full p-2.5 border rounded-xl text-sm">
@@ -179,7 +180,7 @@
 
         <div class="flex justify-end gap-2 pt-2 border-t">
           <button type="button" onclick="closeSecretaryModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg">إلغاء</button>
-          <button type="submit" class="px-5 py-2 bg-teal-700 hover:bg-teal-800 text-white rounded-lg font-bold">إعطاء دور وتسجيل</button>
+          <button type="submit" id="secSubmitBtn" class="px-5 py-2 bg-teal-700 hover:bg-teal-800 text-white rounded-lg font-bold">إعطاء دور وتسجيل</button>
         </div>
       </form>
     </div>
@@ -285,9 +286,7 @@
             </button>
           </div>
 
-          <!-- Dynamic Drug Chips Container -->
           <div id="quickDrugsContainer" class="flex gap-1.5 flex-wrap py-1"></div>
-
           <textarea id="pRx" rows="3" placeholder="العلاج والتعليمات الطبية..." class="w-full p-2.5 border rounded-lg text-sm bg-yellow-50/70 font-sans"></textarea>
         </div>
 
@@ -310,7 +309,6 @@
         <button type="button" onclick="closeDrugsModal()" class="text-gray-400 hover:text-red-500 text-2xl font-bold">&times;</button>
       </div>
 
-      <!-- Add New Drug Form -->
       <form onsubmit="handleAddNewDrug(event)" class="bg-slate-50 p-3 rounded-xl border space-y-2">
         <h3 class="font-bold text-slate-800">➕ إضافة دواء جديد للقائمة السريعة:</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -332,7 +330,6 @@
         </button>
       </form>
 
-      <!-- Existing Drugs List -->
       <div class="space-y-2">
         <h3 class="font-bold text-slate-800">قائمة الأدوية المتوفرة حالياً:</h3>
         <div id="drugsListTable" class="space-y-1.5 max-h-60 overflow-y-auto"></div>
@@ -356,14 +353,12 @@
         <button type="button" onclick="closeChangePinModal()" class="text-gray-400 hover:text-red-500 text-2xl font-bold">&times;</button>
       </div>
 
-      <!-- Change Doctor PIN -->
       <form onsubmit="handleDoctorPinUpdate(event)" class="space-y-2 bg-slate-50 p-3 rounded-xl border">
         <h3 class="font-bold text-slate-700">1. تغيير رمز الطبيبة (الحالي: <span id="currentDocPinDisplay" class="font-mono text-teal-800 font-bold"></span>)</h3>
         <input type="password" id="newDocPin" required minlength="4" maxlength="8" placeholder="رمز الطبيبة الجديد" class="w-full p-2 border rounded-lg text-center font-bold">
         <button type="submit" class="w-full py-1.5 bg-teal-700 hover:bg-teal-800 text-white rounded-lg font-bold">تحديث رمز الطبيبة ومزامنته</button>
       </form>
 
-      <!-- Change Secretary PIN -->
       <form onsubmit="handleSecPinUpdate(event)" class="space-y-2 bg-slate-50 p-3 rounded-xl border">
         <h3 class="font-bold text-slate-700">2. تغيير رمز السكرتيرة (الحالي: <span id="currentSecPinDisplay" class="font-mono text-indigo-800 font-bold"></span>)</h3>
         <input type="password" id="newSecPin" required minlength="4" maxlength="8" placeholder="رمز السكرتيرة الجديد" class="w-full p-2 border rounded-lg text-center font-bold">
@@ -371,9 +366,9 @@
       </form>
 
       <div class="bg-red-50 p-3 rounded-xl border border-red-200 space-y-1.5 text-center">
-        <h3 class="font-bold text-red-800">🧹 تنظيف السجلات التجريبية القديمة</h3>
-        <p class="text-[10px] text-red-600">لحذف كل الأسماء التجريبية القديمة المسجلة مسبقاً وتصفير السجلات تماماً:</p>
-        <button type="button" onclick="purgeAllOldTestPatients()" class="w-full py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold">مسح جميع السجلات القديمة نهائياً</button>
+        <h3 class="font-bold text-red-800">🧹 مسح جميع السجلات القديمة وتصفير العيادة</h3>
+        <p class="text-[10px] text-red-600">لحذف كل الأسماء والبطاقات القديمة نهائياً والبدء بسجل نظيف:</p>
+        <button type="button" onclick="purgeAllOldTestPatients()" class="w-full py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold">مسح جميع السجلات نهائياً</button>
       </div>
     </div>
   </div>
@@ -411,9 +406,9 @@
     const DOC_PIN_KEY = "clinic_doc_pin";
     const SEC_PIN_KEY = "clinic_sec_pin";
     const CURRENT_ROLE_KEY = "clinic_user_role";
-    const LOCAL_KEY = "syria_obgyn_patients_v4";
-    const DRUGS_KEY = "clinic_custom_drugs_v1";
-    const LAST_BACKUP_KEY = "clinic_last_weekly_backup_v4";
+    const LOCAL_KEY = "syria_obgyn_patients_v5";
+    const DRUGS_KEY = "clinic_custom_drugs_v2";
+    const LAST_BACKUP_KEY = "clinic_last_weekly_backup_v5";
 
     const DEFAULT_DRUGS = [
       { id: "d_1", name: "حديد + فوليك أسيد", company: "لوتوفوليك / ابن حيان", dose: "حبة يومياً بعد الغداء" },
@@ -437,7 +432,6 @@
     function getDocPin() { return localStorage.getItem(DOC_PIN_KEY) || DEFAULT_DOC_PIN; }
     function getSecPin() { return localStorage.getItem(SEC_PIN_KEY) || DEFAULT_SEC_PIN; }
 
-    // Helper to calculate age from birth year
     function calculateAgeFromBirthYear(birthYear) {
       if (!birthYear) return null;
       const y = parseInt(birthYear, 10);
@@ -786,9 +780,15 @@
     }
     function closeLightbox() { document.getElementById('imageLightbox').classList.add('hidden'); }
 
-    // --- SECRETARY SUBMIT ---
+    // --- SMART SECRETARY SUBMIT (PREVENTS DUPLICATION & RECOGNIZES RETURNING PATIENTS) ---
     async function handleSecretarySubmit(e) {
       e.preventDefault();
+      const submitBtn = document.getElementById('secSubmitBtn');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerText = 'جاري التحقق والتسجيل...';
+      }
+
       const name = document.getElementById('secName').value.trim();
       const birthYear = document.getElementById('secBirthYear').value.trim();
       const phone = document.getElementById('secPhone').value.trim();
@@ -797,44 +797,82 @@
 
       if (phone && !isValidSyrianPhone(phone)) {
         alert('⚠️ يرجى كتابة رقم موبايل سوري صالح مؤلف من 10 أرقام يبدأ بـ 09');
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.innerText = 'إعطاء دور وتسجيل'; }
         return;
       }
 
       const today = getTodayDateString();
+
+      // 1. Check if patient is ALREADY registered in today's queue
+      const alreadyInQueueToday = patients.find(p => p.visitDate === today && (
+        (phone && p.phone === phone) || (p.name.toLowerCase() === name.toLowerCase())
+      ));
+
+      if (alreadyInQueueToday) {
+        alert(`⚠️ تنبيه: المريضة (${name}) مسجلة بالفعل في دور اليوم بالرقم [ ${alreadyInQueueToday.queueNumber} ].`);
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.innerText = 'إعطاء دور وتسجيل'; }
+        return;
+      }
+
+      // 2. Check if patient is a RETURNING patient from previous dates
+      const existingPatient = patients.find(p => 
+        (phone && p.phone === phone) || (p.name.toLowerCase() === name.toLowerCase())
+      );
+
       const todayPatients = patients.filter(p => p.visitDate === today);
       const nextQueueNumber = todayPatients.length + 1;
 
-      const newDocId = db ? db.collection('patients').doc().id : ('pat_' + Date.now());
+      if (existingPatient) {
+        // Returning patient: Update current queue details without cloning entire profile!
+        existingPatient.visitDate = today;
+        existingPatient.queueNumber = nextQueueNumber;
+        existingPatient.status = 'waiting';
+        existingPatient.fee = fee;
+        if (complaint) existingPatient.complaint = complaint;
+        if (birthYear && !existingPatient.birthYear) existingPatient.birthYear = birthYear;
+        if (phone && !existingPatient.phone) existingPatient.phone = phone;
+        existingPatient.timestamp = Date.now();
 
-      const newPatient = {
-        id: newDocId,
-        visitDate: today,
-        queueNumber: nextQueueNumber,
-        status: 'waiting',
-        name: name,
-        birthYear: birthYear || '',
-        phone: phone || '',
-        fee: fee,
-        complaint: complaint || '',
-        blood: 'غير محدد',
-        g: '0', vd: '0', cs: '0', a: '0',
-        obsNotes: '',
-        lmp: '',
-        medHistory: '',
-        allergies: '',
-        bp: '',
-        weight: '',
-        ultrasound: '',
-        rx: '',
-        photos: [],
-        visits: [],
-        timestamp: Date.now(),
-        createdAt: new Date().toLocaleDateString('ar-SY')
-      };
+        saveDataLocally();
+        await syncPatientToCloud(existingPatient);
 
-      patients.unshift(newPatient);
-      saveDataLocally();
-      await syncPatientToCloud(newPatient);
+        alert(`✅ تم التعرف على المريضة مسبقاً في أرشيف العيادة!\n\nتم إعطاؤها الدور لليوم: [ ${nextQueueNumber} ]\nالمريضة: ${name}`);
+      } else {
+        // Brand new patient
+        const newDocId = db ? db.collection('patients').doc().id : ('pat_' + Date.now());
+
+        const newPatient = {
+          id: newDocId,
+          visitDate: today,
+          queueNumber: nextQueueNumber,
+          status: 'waiting',
+          name: name,
+          birthYear: birthYear || '',
+          phone: phone || '',
+          fee: fee,
+          complaint: complaint || '',
+          blood: 'غير محدد',
+          g: '0', vd: '0', cs: '0', a: '0',
+          obsNotes: '',
+          lmp: '',
+          medHistory: '',
+          allergies: '',
+          bp: '',
+          weight: '',
+          ultrasound: '',
+          rx: '',
+          photos: [],
+          visits: [],
+          timestamp: Date.now(),
+          createdAt: new Date().toLocaleDateString('ar-SY')
+        };
+
+        patients.unshift(newPatient);
+        saveDataLocally();
+        await syncPatientToCloud(newPatient);
+
+        alert(`✅ تم تسجيل مريضة جديدة بنجاح!\n\nرقم الدور اليومي: [ ${nextQueueNumber} ]\nالمريضة: ${name}`);
+      }
 
       document.getElementById('secName').value = '';
       document.getElementById('secBirthYear').value = '';
@@ -842,15 +880,21 @@
       document.getElementById('secPhone').value = '';
       document.getElementById('secFee').value = '';
       document.getElementById('secComplaint').value = '';
+      
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.innerText = 'إعطاء دور وتسجيل'; }
       closeSecretaryModal();
       renderApp();
-
-      alert(`✅ تم إعطاء الدور بنجاح!\n\nرقم الدور اليومي: [ ${nextQueueNumber} ]\nالمريضة: ${name}\nالكشفية: ${fee.toLocaleString()} ل.س`);
     }
 
     // --- DOCTOR SUBMIT ---
     async function handleDoctorSubmit(e) {
       e.preventDefault();
+      const saveBtn = document.getElementById('saveDoctorBtn');
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerText = 'جاري الحفظ والتوثيق...';
+      }
+
       const id = document.getElementById('editingPatientId').value;
       const selectedDate = document.getElementById('dateFilterInput').value || getTodayDateString();
 
@@ -912,6 +956,11 @@
 
       saveDataLocally();
       await syncPatientToCloud(patient);
+
+      if (saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.innerText = 'حفظ السجل واكتمال الفحص';
+      }
 
       closeDoctorModal();
       renderApp();
@@ -1054,6 +1103,50 @@
       previewEl.classList.remove('hidden');
     }
 
+    // --- CLEAN DUPLICATE PATIENTS UTILITY ---
+    async function cleanDuplicatePatients() {
+      const seen = new Map();
+      const toDeleteFromCloud = [];
+      const cleanList = [];
+
+      patients.forEach(p => {
+        // Unique key by normalized phone or normalized name
+        const key = p.phone ? p.phone.trim() : p.name.trim().toLowerCase();
+        if (!seen.has(key)) {
+          seen.set(key, p);
+          cleanList.push(p);
+        } else {
+          // It's a duplicate! Delete the redundant clone
+          if (p.id) toDeleteFromCloud.push(p.id);
+        }
+      });
+
+      if (toDeleteFromCloud.length === 0) {
+        alert('✨ السجل نظيف تماماً ولا توجد بطاقات مكررة!');
+        return;
+      }
+
+      if (confirm(`تم العثور على ${toDeleteFromCloud.length} بطاقة مكررة. هل ترغبين في دمجها وحذف النسخ المكررة نهائياً؟`)) {
+        patients = cleanList;
+        saveDataLocally();
+        renderApp();
+
+        if (db) {
+          try {
+            const batch = db.batch();
+            toDeleteFromCloud.forEach(id => {
+              batch.delete(db.collection('patients').doc(id));
+            });
+            await batch.commit();
+            console.log("🧹 Redundant duplicates deleted from Firestore.");
+          } catch (e) {
+            console.warn("Deduplication cloud error:", e);
+          }
+        }
+        alert(`✅ تم تنظيف السجلات ودمج البطاقات المكررة بنجاح!`);
+      }
+    }
+
     // --- MAIN RENDER ---
     function renderApp() {
       const selectedDate = document.getElementById('dateFilterInput').value || getTodayDateString();
@@ -1088,7 +1181,7 @@
           const pb = calculatePregnancy(b.lmp);
           return (pa?.daysUntilDelivery || 999) - (pb?.daysUntilDelivery || 999);
         });
-      } else {
+      } else { // 'all'
         displayList = patients.filter(p => !q || (p.name && p.name.toLowerCase().includes(q)) || (p.phone && p.phone.includes(q)));
       }
 
