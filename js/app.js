@@ -1,9 +1,9 @@
 // js/app.js
-import { subscribeToPatients, savePatientRecord, deletePatientRecord, exportDatabase } from './storage.js';
+import { subscribeToPatients, savePatientRecord, deletePatientRecord, exportDatabase, getLocalPatients } from './storage.js';
 import { renderList } from './ui.js';
 import { promptPwaInstall } from './pwa-register.js';
 
-let currentPatientsList = [];
+let currentPatientsList = getLocalPatients();
 
 function initApp() {
   const patientListContainer = document.getElementById('patientList');
@@ -16,6 +16,7 @@ function initApp() {
   const installBtn = document.getElementById('installBtn');
 
   function refreshView() {
+    if (!patientListContainer) return;
     const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
     const filtered = currentPatientsList.filter(p => 
       (p.name && p.name.toLowerCase().includes(query)) || 
@@ -28,38 +29,35 @@ function initApp() {
 
   async function handleDelete(id) {
     if (confirm('هل أنتِ متأكدة من حذف هذا الملف نهائياً؟')) {
-      await deletePatientRecord(id);
+      currentPatientsList = await deletePatientRecord(id);
+      refreshView();
     }
   }
 
-  // ربط أزرار النافذة المنبثقة فوراً
-  if (openModalBtn) {
-    openModalBtn.addEventListener('click', () => {
-      patientModal.classList.remove('hidden');
-    });
+  // أزرار المودال
+  if (openModalBtn && patientModal) {
+    openModalBtn.onclick = () => patientModal.classList.remove('hidden');
   }
 
-  if (closeModalBtn) {
-    closeModalBtn.addEventListener('click', () => {
-      patientModal.classList.add('hidden');
-    });
+  if (closeModalBtn && patientModal) {
+    closeModalBtn.onclick = () => patientModal.classList.add('hidden');
   }
 
   if (exportBtn) {
-    exportBtn.addEventListener('click', () => exportDatabase(currentPatientsList));
+    exportBtn.onclick = () => exportDatabase(currentPatientsList);
   }
 
   if (installBtn) {
-    installBtn.addEventListener('click', promptPwaInstall);
+    installBtn.onclick = promptPwaInstall;
   }
 
   if (searchInput) {
-    searchInput.addEventListener('input', refreshView);
+    searchInput.oninput = refreshView;
   }
 
   // حفظ المريضة
   if (patientForm) {
-    patientForm.addEventListener('submit', async (e) => {
+    patientForm.onsubmit = async (e) => {
       e.preventDefault();
       const saveBtn = patientForm.querySelector('button[type="submit"]');
       if (saveBtn) {
@@ -68,48 +66,47 @@ function initApp() {
       }
 
       const newRecord = {
-        name: document.getElementById('pName').value,
-        phone: document.getElementById('pPhone').value,
-        age: document.getElementById('pAge').value,
-        blood: document.getElementById('pBlood').value,
-        g: document.getElementById('pG').value,
-        vd: document.getElementById('pVD').value,
-        cs: document.getElementById('pCS').value,
-        a: document.getElementById('pA').value,
-        obsNotes: document.getElementById('pObsNotes').value,
-        lmp: document.getElementById('pLMP').value,
-        medHistory: document.getElementById('pMedicalHistory').value,
-        allergies: document.getElementById('pAllergies').value,
-        bp: document.getElementById('pBP').value,
-        weight: document.getElementById('pWeight').value,
-        ultrasound: document.getElementById('pUltrasound').value,
-        rx: document.getElementById('pRx').value
+        name: document.getElementById('pName')?.value || '',
+        phone: document.getElementById('pPhone')?.value || '',
+        age: document.getElementById('pAge')?.value || '',
+        blood: document.getElementById('pBlood')?.value || 'غير محدد',
+        g: document.getElementById('pG')?.value || '0',
+        vd: document.getElementById('pVD')?.value || '0',
+        cs: document.getElementById('pCS')?.value || '0',
+        a: document.getElementById('pA')?.value || '0',
+        obsNotes: document.getElementById('pObsNotes')?.value || '',
+        lmp: document.getElementById('pLMP')?.value || '',
+        medHistory: document.getElementById('pMedicalHistory')?.value || '',
+        allergies: document.getElementById('pAllergies')?.value || '',
+        bp: document.getElementById('pBP')?.value || '',
+        weight: document.getElementById('pWeight')?.value || '',
+        ultrasound: document.getElementById('pUltrasound')?.value || '',
+        rx: document.getElementById('pRx')?.value || ''
       };
 
-      try {
-        await savePatientRecord(newRecord);
-        patientForm.reset();
-        patientModal.classList.add('hidden');
-      } catch (err) {
-        alert('حدث خطأ أثناء الحفظ، يرجى المحاولة ثانية');
-        console.error(err);
-      } finally {
-        if (saveBtn) {
-          saveBtn.disabled = false;
-          saveBtn.innerText = 'حفظ الملف';
-        }
+      currentPatientsList = await savePatientRecord(newRecord);
+      patientForm.reset();
+      if (patientModal) patientModal.classList.add('hidden');
+      refreshView();
+
+      if (saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.innerText = 'حفظ الملف';
       }
-    });
+    };
   }
 
-  // الاستماع لقاعدة بيانات Firebase الحية
-  subscribeToPatients((patients) => {
-    currentPatientsList = patients;
+  // أول عرض مباشر
+  refreshView();
+
+  // استماع للتحديثات
+  subscribeToPatients((updatedList) => {
+    currentPatientsList = updatedList;
     refreshView();
   });
 }
 
-// تشغيل التطبيق سواء تم تحميل الصفحة أو كان المتصفح جاهزاً
+// تشغيل فوري
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initApp);
 } else {
