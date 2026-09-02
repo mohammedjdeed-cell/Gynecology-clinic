@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#0f766e">
-  <title>عيادة النسائية والتوليد - السجل والدور اليومي</title>
+  <title>عيادة النسائية والتوليد - السجل الطبي المتكامل</title>
   
   <link rel="manifest" href="./manifest.json">
   <link rel="stylesheet" href="./css/styles.css">
@@ -19,18 +19,20 @@
 
   <style>
     body { font-family: 'Cairo', sans-serif; }
+    .chip-btn { transition: all 0.15s ease-in-out; }
+    .chip-btn:active { transform: scale(0.95); }
   </style>
 </head>
 <body class="bg-slate-100 text-slate-800">
 
-  <!-- ==================== 1. SECURITY / ROLE LOGIN ==================== -->
+  <!-- ==================== 1. SECURITY LOCK SCREEN ==================== -->
   <div id="lockScreen" class="fixed inset-0 bg-teal-900 flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl space-y-5">
       <div class="w-16 h-16 bg-teal-100 text-teal-700 rounded-full flex items-center justify-center mx-auto text-3xl">
         🩺
       </div>
       <div>
-        <h2 class="text-xl font-bold text-slate-900">سجل عيادة النسائية والتوليد</h2>
+        <h2 class="text-xl font-bold text-slate-900">عيادة النسائية والتوليد</h2>
         <p class="text-xs text-slate-500 mt-1">أدخلي رمز الدخول (الطبيبة أو الاستقبال)</p>
       </div>
 
@@ -45,8 +47,8 @@
       </button>
 
       <div class="text-[11px] text-slate-400 border-t pt-3 space-y-1">
-        <p>رمز الطبيبة الافتراضي: <span class="font-bold text-teal-700">1234</span></p>
-        <p>رمز السكرتيرة الافتراضي: <span class="font-bold text-indigo-600">0000</span></p>
+        <p>رمز الطبيبة: <span class="font-bold text-teal-700">1234</span></p>
+        <p>رمز السكرتيرة: <span class="font-bold text-indigo-600">0000</span></p>
       </div>
     </div>
   </div>
@@ -54,26 +56,26 @@
   <input type="file" id="importFileInput" accept=".json" class="hidden" onchange="handleImportFile(event)">
 
   <!-- ==================== 2. HEADER ==================== -->
-  <header class="bg-teal-700 text-white p-4 shadow-md sticky top-0 z-20">
+  <header class="bg-teal-700 text-white p-3.5 shadow-md sticky top-0 z-20">
     <div class="max-w-5xl mx-auto flex justify-between items-center flex-wrap gap-2">
       <div class="flex items-center gap-2">
         <span class="text-2xl">🩺</span>
         <div>
-          <h1 class="text-lg md:text-xl font-bold">سجل العيادة النسائية</h1>
+          <h1 class="text-base md:text-lg font-bold leading-tight">سجل العيادة النسائية</h1>
           <span id="roleBadge" class="text-[10px] bg-teal-900 text-teal-200 px-2 py-0.5 rounded-full font-bold"></span>
         </div>
       </div>
       
-      <!-- Doctor Action Buttons -->
-      <div id="doctorNav" class="flex gap-2 flex-wrap items-center">
+      <!-- Doctor Actions -->
+      <div id="doctorNav" class="flex gap-1.5 flex-wrap items-center">
         <button onclick="triggerImport()" title="استيراد" class="bg-teal-800 hover:bg-teal-900 text-xs px-2.5 py-1.5 rounded-lg">📥 استيراد</button>
         <button onclick="exportData(false)" title="تصدير" class="bg-teal-800 hover:bg-teal-900 text-xs px-2.5 py-1.5 rounded-lg">💾 تصدير</button>
-        <button onclick="openChangePinModal()" title="إدارة رموز الأمان" class="bg-teal-800 hover:bg-teal-900 text-xs px-2.5 py-1.5 rounded-lg">🔑 الرموز</button>
+        <button onclick="openChangePinModal()" title="إدارة الرموز" class="bg-teal-800 hover:bg-teal-900 text-xs px-2.5 py-1.5 rounded-lg">🔑 الرموز</button>
         <button onclick="lockApp()" class="bg-teal-900 hover:bg-black/30 text-xs px-2.5 py-1.5 rounded-lg">🔒 قفل</button>
         <button onclick="openDoctorNewPatientModal()" class="bg-white text-teal-800 font-bold px-3 py-1.5 rounded-lg text-xs shadow hover:bg-gray-100">+ مريضة جديدة</button>
       </div>
 
-      <!-- Secretary Action Buttons -->
+      <!-- Secretary Actions -->
       <div id="secretaryNav" class="hidden flex gap-2 items-center">
         <button onclick="lockApp()" class="bg-teal-900 hover:bg-black/30 text-xs px-3 py-2 rounded-lg font-semibold">🔒 قفل</button>
         <button onclick="openSecretaryModal()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-4 py-2 rounded-lg text-xs shadow">+ تسجيل دور جديد</button>
@@ -86,13 +88,26 @@
     💾 تم حفظ وتنزيل النسخة الاحتياطية الأسبوعية التلقائية بنجاح!
   </div>
 
-  <!-- ==================== 3. MAIN VIEW ==================== -->
-  <main class="max-w-5xl mx-auto p-4 space-y-4">
+  <!-- ==================== 3. MAIN DASHBOARD ==================== -->
+  <main class="max-w-5xl mx-auto p-4 space-y-3.5">
     
-    <!-- Date Log Selector & Search -->
+    <!-- Top Navigation Tabs (Daily Log vs Due This Month vs All) -->
+    <div class="flex gap-2 border-b pb-2 overflow-x-auto">
+      <button onclick="setActiveTab('daily')" id="tabDaily" class="px-3 py-2 rounded-xl text-xs font-bold bg-teal-700 text-white shadow">
+        📅 سجل اليوميات
+      </button>
+      <button onclick="setActiveTab('dueMonth')" id="tabDueMonth" class="px-3 py-2 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-slate-100 border">
+        🤰 ولادات هذا الشهر <span id="dueThisMonthCount" class="bg-rose-500 text-white px-1.5 py-0.2 rounded-full text-[10px] mr-1 hidden">0</span>
+      </button>
+      <button onclick="setActiveTab('all')" id="tabAll" class="px-3 py-2 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-slate-100 border">
+        📋 أرشيف جميع المريضات
+      </button>
+    </div>
+
+    <!-- Date Filter & Search Bar -->
     <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row gap-3 justify-between items-center">
-      <div class="flex items-center gap-2 w-full md:w-auto">
-        <span class="text-xs font-bold text-slate-600">📅 تاريخ اليوميات:</span>
+      <div id="dateControlGroup" class="flex items-center gap-2 w-full md:w-auto">
+        <span class="text-xs font-bold text-slate-600">📅 التاريخ:</span>
         <input type="date" id="dateFilterInput" onchange="renderApp()" 
                class="p-2 border rounded-xl text-xs font-bold bg-slate-50 focus:outline-teal-600">
         <button onclick="setDateToToday()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs px-2.5 py-2 rounded-xl font-bold">اليوم</button>
@@ -104,10 +119,17 @@
       </div>
     </div>
 
-    <!-- Status Bar -->
-    <div class="flex justify-between items-center text-xs text-slate-500 px-1">
-      <span id="queueStats" class="font-bold"></span>
-      <span id="syncStatus" class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">🟢 متصل بالسحابة</span>
+    <!-- Stats & Financial Summary Bar -->
+    <div class="bg-slate-800 text-white p-3 rounded-2xl shadow-sm flex justify-between items-center flex-wrap gap-2 text-xs font-bold">
+      <div id="queueStats" class="text-slate-200"></div>
+      <div class="flex items-center gap-3">
+        <div id="financialTally" class="bg-emerald-800 text-emerald-100 px-3 py-1 rounded-xl border border-emerald-600 flex items-center gap-1">
+          <span>💰 الصندوق:</span>
+          <span id="dailyTotalIncome">0</span>
+          <span>ل.س</span>
+        </div>
+        <span id="syncStatus" class="bg-teal-900 text-teal-200 px-2.5 py-1 rounded-xl text-[11px]">🟢 متصل</span>
+      </div>
     </div>
 
     <!-- Patient Cards List -->
@@ -140,9 +162,15 @@
           </div>
         </div>
 
-        <div>
-          <label class="block font-semibold mb-1 text-slate-700">سبب الزيارة / شكوى أولية (اختياري)</label>
-          <input type="text" id="secComplaint" placeholder="فحص دوري، متابعة حمل، ألم أسفل البطن..." class="w-full p-2.5 border rounded-xl text-sm">
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700">الكشفية / الأجر (ل.س)</label>
+            <input type="number" id="secFee" placeholder="مثال: 50000" class="w-full p-2.5 border rounded-xl text-sm font-mono text-emerald-700 font-bold">
+          </div>
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700">سبب الزيارة (اختياري)</label>
+            <input type="text" id="secComplaint" placeholder="متابعة حمل، فحص..." class="w-full p-2.5 border rounded-xl text-sm">
+          </div>
         </div>
 
         <div class="flex justify-end gap-2 pt-2 border-t">
@@ -158,24 +186,30 @@
     <div class="bg-white rounded-2xl max-w-2xl w-full p-5 max-h-[92vh] overflow-y-auto shadow-2xl">
       <div class="flex justify-between items-center mb-3 pb-2 border-b">
         <div>
-          <h2 class="text-base font-bold text-teal-800">🩺 الملف الطبي والفحص السريري</h2>
+          <h2 class="text-base font-bold text-teal-800">🩺 الملف الطبي وفحص الزيارة الحالية</h2>
           <p id="docModalSubtitle" class="text-xs text-slate-500 font-semibold"></p>
         </div>
         <button type="button" onclick="closeDoctorModal()" class="text-gray-400 hover:text-red-500 text-2xl font-bold">&times;</button>
       </div>
 
-      <form id="doctorForm" onsubmit="handleDoctorSubmit(event)" class="space-y-4 text-xs">
+      <form id="doctorForm" onsubmit="handleDoctorSubmit(event)" class="space-y-3.5 text-xs">
         <input type="hidden" id="editingPatientId">
 
-        <!-- 1. الأساسيات -->
-        <div class="bg-slate-50 p-3 rounded-xl border grid grid-cols-1 md:grid-cols-3 gap-3">
-          <div><label class="block font-semibold mb-1">الاسم الثلاثي *</label><input type="text" id="pName" required class="w-full p-2 border rounded-lg text-sm"></div>
-          <div><label class="block font-semibold mb-1">الهاتف السوري</label><input type="tel" id="pPhone" maxlength="10" placeholder="09xxxxxxxx" class="w-full p-2 border rounded-lg font-mono text-sm" dir="ltr" oninput="formatSyrianPhone(this)"></div>
+        <!-- 1. Basic Info -->
+        <div class="bg-slate-50 p-3 rounded-xl border grid grid-cols-1 md:grid-cols-4 gap-2.5">
+          <div class="md:col-span-2">
+            <label class="block font-semibold mb-1">الاسم الثلاثي *</label>
+            <input type="text" id="pName" required class="w-full p-2 border rounded-lg text-sm bg-white">
+          </div>
+          <div>
+            <label class="block font-semibold mb-1">الهاتف السوري</label>
+            <input type="tel" id="pPhone" maxlength="10" placeholder="09xxxxxxxx" class="w-full p-2 border rounded-lg font-mono text-sm bg-white" dir="ltr" oninput="formatSyrianPhone(this)">
+          </div>
           <div>
             <label class="block font-semibold mb-1">العمر والزمرة</label>
             <div class="flex gap-1">
-              <input type="number" id="pAge" placeholder="العمر" class="w-1/2 p-2 border rounded-lg text-sm">
-              <select id="pBlood" class="w-1/2 p-2 border rounded-lg text-sm font-bold">
+              <input type="number" id="pAge" placeholder="العمر" class="w-1/2 p-2 border rounded-lg text-sm bg-white">
+              <select id="pBlood" class="w-1/2 p-2 border rounded-lg text-xs font-bold bg-white">
                 <option value="غير محدد">الزمرة</option>
                 <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
                 <option>O+</option><option>O-</option><option>AB+</option><option>AB-</option>
@@ -184,46 +218,81 @@
           </div>
         </div>
 
-        <!-- 2. السوابق التوليدية -->
+        <!-- 2. Obstetric History (GPA) -->
         <div class="bg-rose-50 p-3 rounded-xl border border-rose-100">
-          <h3 class="font-bold text-rose-900 mb-2">السوابق التوليدية (GPA):</h3>
+          <h3 class="font-bold text-rose-900 mb-1.5">السوابق التوليدية الثابتة (GPA):</h3>
           <div class="grid grid-cols-4 gap-2 mb-2 text-center">
-            <div><label class="block text-rose-800 font-semibold">حمول (G)</label><input type="number" id="pG" value="0" min="0" class="w-full p-1.5 border rounded text-center font-bold text-sm"></div>
-            <div><label class="block text-rose-800 font-semibold">طبيعي (VD)</label><input type="number" id="pVD" value="0" min="0" class="w-full p-1.5 border rounded text-center font-bold text-sm"></div>
-            <div><label class="block text-rose-800 font-semibold">قيصري (CS)</label><input type="number" id="pCS" value="0" min="0" class="w-full p-1.5 border rounded text-center font-bold text-sm"></div>
-            <div><label class="block text-rose-800 font-semibold">إجهاض (A)</label><input type="number" id="pA" value="0" min="0" class="w-full p-1.5 border rounded text-center font-bold text-sm"></div>
+            <div><label class="block text-rose-800 font-semibold">حمول (G)</label><input type="number" id="pG" value="0" min="0" class="w-full p-1.5 border rounded text-center font-bold text-sm bg-white"></div>
+            <div><label class="block text-rose-800 font-semibold">طبيعي (VD)</label><input type="number" id="pVD" value="0" min="0" class="w-full p-1.5 border rounded text-center font-bold text-sm bg-white"></div>
+            <div><label class="block text-rose-800 font-semibold">قيصري (CS)</label><input type="number" id="pCS" value="0" min="0" class="w-full p-1.5 border rounded text-center font-bold text-sm bg-white"></div>
+            <div><label class="block text-rose-800 font-semibold">إجهاض (A)</label><input type="number" id="pA" value="0" min="0" class="w-full p-1.5 border rounded text-center font-bold text-sm bg-white"></div>
           </div>
-          <input type="text" id="pObsNotes" placeholder="تفاصيل الولادات السابقة والمضاعفات..." class="w-full p-2 border rounded-lg">
+          <input type="text" id="pObsNotes" placeholder="تفاصيل الولادات السابقة والمضاعفات السابقة..." class="w-full p-2 border rounded-lg bg-white">
         </div>
 
-        <!-- 3. الحمل الحالي وحاسبة الحمل المباشرة -->
+        <!-- 3. Current Pregnancy & Live Calculator -->
         <div class="bg-teal-50 p-3 rounded-xl border border-teal-100 space-y-2">
-          <label class="block font-semibold text-teal-900">تاريخ أول يوم من آخر دورة طمثية (LMP)</label>
+          <label class="block font-semibold text-teal-900">تاريخ أول يوم من آخر دورة طمثية للحمل الحالي (LMP)</label>
           <input type="date" id="pLMP" oninput="updateModalPregnancyPreview()" onchange="updateModalPregnancyPreview()" 
-                 class="w-full p-2.5 border rounded-lg font-bold bg-white text-sm focus:ring-2 focus:ring-teal-500">
-          
-          <!-- الصندوق المباشر لتقدير الحمل -->
+                 class="w-full p-2 border rounded-lg font-bold bg-white text-sm">
           <div id="modalPregnancyPreview" class="hidden"></div>
         </div>
 
-        <!-- 4. السوابق والتحسس -->
+        <!-- 4. Medical History & Allergies -->
         <div class="bg-slate-50 p-3 rounded-xl border grid grid-cols-1 md:grid-cols-2 gap-2">
-          <input type="text" id="pMedicalHistory" placeholder="أمراض مزمنة / سوابق جراحية..." class="w-full p-2 border rounded-lg">
-          <input type="text" id="pAllergies" placeholder="تحسس دوائي..." class="w-full p-2 border rounded-lg text-red-600 font-bold">
+          <input type="text" id="pMedicalHistory" placeholder="أمراض مزمنة / سوابق جراحية..." class="w-full p-2 border rounded-lg bg-white">
+          <input type="text" id="pAllergies" placeholder="تحسس دوائي..." class="w-full p-2 border rounded-lg text-red-600 font-bold bg-white">
         </div>
 
-        <!-- 5. الفحص والإيكو والوصفة -->
-        <div class="bg-slate-50 p-3 rounded-xl border space-y-2">
-          <div class="grid grid-cols-2 gap-2">
-            <input type="text" id="pBP" placeholder="الضغط (120/80)" class="w-full p-2 border rounded-lg">
-            <input type="text" id="pWeight" placeholder="الوزن (كغ)" class="w-full p-2 border rounded-lg">
+        <!-- 5. Today's Visit Vitals & Examination -->
+        <div class="bg-slate-50 p-3 rounded-xl border space-y-2.5">
+          <h3 class="font-bold text-slate-800">فحص الزيارة الحالية:</h3>
+          <div class="grid grid-cols-3 gap-2">
+            <input type="text" id="pBP" placeholder="الضغط (120/80)" class="w-full p-2 border rounded-lg bg-white">
+            <input type="text" id="pWeight" placeholder="الوزن (كغ)" class="w-full p-2 border rounded-lg bg-white">
+            <input type="number" id="pFee" placeholder="الكشفية (ل.س)" class="w-full p-2 border rounded-lg bg-white font-mono text-emerald-700 font-bold">
           </div>
-          <textarea id="pUltrasound" rows="2" placeholder="تقرير الفحص السريري والإيكو..." class="w-full p-2 border rounded-lg text-sm"></textarea>
-          <textarea id="pRx" rows="2" placeholder="الوصفة الطبية والعلاج..." class="w-full p-2 border rounded-lg text-sm bg-yellow-50"></textarea>
+          <textarea id="pUltrasound" rows="2" placeholder="تقرير الفحص السريري والإيكو..." class="w-full p-2 border rounded-lg text-sm bg-white"></textarea>
+        </div>
+
+        <!-- 6. Ultrasound Photo Attachments -->
+        <div class="bg-slate-50 p-3 rounded-xl border space-y-2">
+          <div class="flex justify-between items-center">
+            <h3 class="font-bold text-slate-800">📸 إرفاق صور الإيكو والتحاليل:</h3>
+            <label class="bg-teal-700 hover:bg-teal-800 text-white px-3 py-1 rounded-lg cursor-pointer text-xs font-bold">
+              📷 التقاط أو إضافة صورة
+              <input type="file" accept="image/*" class="hidden" onchange="handlePhotoUpload(event)">
+            </label>
+          </div>
+          <div id="photosPreviewContainer" class="flex gap-2 flex-wrap min-h-[40px] p-1 bg-white rounded-lg border border-dashed border-slate-300">
+            <span class="text-slate-400 text-[11px] self-center pr-2" id="noPhotosText">لا توجد صور مرفقة لهذه الزيارة</span>
+          </div>
+        </div>
+
+        <!-- 7. Prescription with Quick Medication Chips -->
+        <div class="bg-slate-50 p-3 rounded-xl border space-y-2">
+          <div class="flex justify-between items-center flex-wrap gap-1">
+            <h3 class="font-bold text-slate-800">💊 الوصفة الطبية والعلاج (Rx):</h3>
+            <span class="text-[11px] text-slate-500 font-semibold">انقري لإضافة الدواء تلقائياً ⬇️</span>
+          </div>
+
+          <!-- Quick Medication Chips (Feature 3) -->
+          <div class="flex gap-1.5 flex-wrap py-1">
+            <button type="button" onclick="insertMedication('حديد + فوليك أسيد حبة يومياً')" class="chip-btn bg-teal-100 hover:bg-teal-200 text-teal-900 px-2.5 py-1 rounded-lg text-[11px] font-bold border border-teal-300">+ حديد وفوليك</button>
+            <button type="button" onclick="insertMedication('دوفاستون (Duphaston) حبة مرتين يومياً')" class="chip-btn bg-rose-100 hover:bg-rose-200 text-rose-900 px-2.5 py-1 rounded-lg text-[11px] font-bold border border-rose-300">+ دوفاستون مثبت</button>
+            <button type="button" onclick="insertMedication('بروجستيرون 200 تحميلة مهبلية مساءً')" class="chip-btn bg-rose-100 hover:bg-rose-200 text-rose-900 px-2.5 py-1 rounded-lg text-[11px] font-bold border border-rose-300">+ بروجستيرون 200</button>
+            <button type="button" onclick="insertMedication('كالسيوم + فيتامين د3 حبة بعد الغداء')" class="chip-btn bg-amber-100 hover:bg-amber-200 text-amber-900 px-2.5 py-1 rounded-lg text-[11px] font-bold border border-amber-300">+ كالسيوم ود3</button>
+            <button type="button" onclick="insertMedication('سيتامول 500 مغ عند اللزوم')" class="chip-btn bg-sky-100 hover:bg-sky-200 text-sky-900 px-2.5 py-1 rounded-lg text-[11px] font-bold border border-sky-300">+ سيتامول</button>
+            <button type="button" onclick="insertMedication('أوغمنتين 1 غرام حبة كل 12 ساعة بعد الطعام')" class="chip-btn bg-purple-100 hover:bg-purple-200 text-purple-900 px-2.5 py-1 rounded-lg text-[11px] font-bold border border-purple-300">+ أوغمنتين 1غ</button>
+            <button type="button" onclick="insertMedication('أسبرين أطفال 81 مغ حبة يومياً بعد الغداء')" class="chip-btn bg-emerald-100 hover:bg-emerald-200 text-emerald-900 px-2.5 py-1 rounded-lg text-[11px] font-bold border border-emerald-300">+ أسبرين أطفال</button>
+            <button type="button" onclick="insertMedication('فيتامينات متعددة للحمل (Pregnacare) حبة يومياً')" class="chip-btn bg-indigo-100 hover:bg-indigo-200 text-indigo-900 px-2.5 py-1 rounded-lg text-[11px] font-bold border border-indigo-300">+ فيتامينات حمل</button>
+          </div>
+
+          <textarea id="pRx" rows="3" placeholder="العلاج والتعليمات الطبية..." class="w-full p-2.5 border rounded-lg text-sm bg-yellow-50/70 font-sans"></textarea>
         </div>
 
         <div class="flex justify-between items-center pt-2 border-t">
-          <span class="text-xs text-slate-400">حفظ الملف يحدث السجل فوراً</span>
+          <span class="text-xs text-slate-400">حفظ الملف يوثق الزيارة الحالية في السجل الزمني</span>
           <div class="flex gap-2">
             <button type="button" onclick="closeDoctorModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg">إلغاء</button>
             <button type="submit" id="saveDoctorBtn" class="px-5 py-2 bg-teal-700 hover:bg-teal-800 text-white rounded-lg font-bold">حفظ السجل واكتمال الفحص</button>
@@ -233,7 +302,15 @@
     </div>
   </div>
 
-  <!-- ==================== 6. PIN SETTINGS MODAL ==================== -->
+  <!-- ==================== 6. FULLSCREEN IMAGE LIGHTBOX ==================== -->
+  <div id="imageLightbox" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center p-4 z-50" onclick="closeLightbox()">
+    <div class="relative max-w-3xl max-h-[90vh]">
+      <img id="lightboxImg" src="" class="max-w-full max-h-[85vh] rounded-xl shadow-2xl object-contain">
+      <button class="absolute -top-10 left-0 text-white text-3xl font-bold">&times;</button>
+    </div>
+  </div>
+
+  <!-- ==================== 7. PIN SETTINGS MODAL ==================== -->
   <div id="changePinModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-3 z-40">
     <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4 text-xs">
       <div class="flex justify-between items-center border-b pb-2">
@@ -241,14 +318,12 @@
         <button type="button" onclick="closeChangePinModal()" class="text-gray-400 hover:text-red-500 text-2xl font-bold">&times;</button>
       </div>
 
-      <!-- Change Doctor PIN -->
       <form onsubmit="handleDoctorPinUpdate(event)" class="space-y-2 bg-slate-50 p-3 rounded-xl border">
         <h3 class="font-bold text-slate-700">1. تغيير رمز الطبيبة (الحالي: <span id="currentDocPinDisplay" class="font-mono text-teal-800 font-bold"></span>)</h3>
         <input type="password" id="newDocPin" required minlength="4" maxlength="8" placeholder="رمز الطبيبة الجديد" class="w-full p-2 border rounded-lg text-center font-bold">
         <button type="submit" class="w-full py-1.5 bg-teal-700 hover:bg-teal-800 text-white rounded-lg font-bold">تحديث رمز الطبيبة ومزامنته</button>
       </form>
 
-      <!-- Change Secretary PIN -->
       <form onsubmit="handleSecPinUpdate(event)" class="space-y-2 bg-slate-50 p-3 rounded-xl border">
         <h3 class="font-bold text-slate-700">2. تغيير رمز السكرتيرة (الحالي: <span id="currentSecPinDisplay" class="font-mono text-indigo-800 font-bold"></span>)</h3>
         <input type="password" id="newSecPin" required minlength="4" maxlength="8" placeholder="رمز السكرتيرة الجديد" class="w-full p-2 border rounded-lg text-center font-bold">
@@ -257,7 +332,7 @@
     </div>
   </div>
 
-  <!-- ==================== 7. PIN-PROTECTED DELETE CONFIRMATION MODAL ==================== -->
+  <!-- ==================== 8. PIN-PROTECTED DELETE MODAL ==================== -->
   <div id="deleteModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center p-3 z-50">
     <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl space-y-4">
       <div class="w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto text-2xl">
@@ -266,7 +341,7 @@
       <div>
         <h3 class="text-base font-bold text-slate-900">تأكيد حذف ملف المريضة</h3>
         <p id="deleteModalPatientName" class="text-xs text-red-600 font-bold mt-1"></p>
-        <p class="text-[11px] text-slate-500 mt-1">لحماية البيانات من الحذف الخاطئ، يرجى إدخال رمز أمان الطبيبة:</p>
+        <p class="text-[11px] text-slate-500 mt-1">لحماية البيانات، أدخلي رمز أمان الطبيبة لتأكيد الحذف:</p>
       </div>
 
       <div>
@@ -282,25 +357,28 @@
     </div>
   </div>
 
-  <!-- ==================== JAVASCRIPT LOGIC ==================== -->
+  <!-- ==================== JAVASCRIPT ENGINE ==================== -->
   <script>
-    // --- ROLES & PINS ---
+    // --- ROLES, PINS & STATE ---
     const DEFAULT_DOC_PIN = "1234";
     const DEFAULT_SEC_PIN = "0000";
     const DOC_PIN_KEY = "clinic_doc_pin";
     const SEC_PIN_KEY = "clinic_sec_pin";
     const CURRENT_ROLE_KEY = "clinic_user_role";
-    const LOCAL_KEY = "syria_obgyn_patients_v2";
-    const LAST_BACKUP_KEY = "clinic_last_weekly_backup_v2";
+    const LOCAL_KEY = "syria_obgyn_patients_v3";
+    const LAST_BACKUP_KEY = "clinic_last_weekly_backup_v3";
 
     let patients = JSON.parse(localStorage.getItem(LOCAL_KEY) || '[]');
     let currentRole = sessionStorage.getItem(CURRENT_ROLE_KEY) || null;
+    let activeTab = 'daily'; // 'daily' | 'dueMonth' | 'all'
+    let currentAttachedPhotos = [];
     let patientToDeleteId = null;
     let db = null;
 
     function getDocPin() { return localStorage.getItem(DOC_PIN_KEY) || DEFAULT_DOC_PIN; }
     function getSecPin() { return localStorage.getItem(SEC_PIN_KEY) || DEFAULT_SEC_PIN; }
 
+    // Cloud Listener for PIN sync across devices
     function listenToPinChanges() {
       if (!db) return;
       try {
@@ -317,11 +395,8 @@
     }
 
     async function savePinToCloud(type, newPin) {
-      if (type === 'doctor') {
-        localStorage.setItem(DOC_PIN_KEY, newPin);
-      } else {
-        localStorage.setItem(SEC_PIN_KEY, newPin);
-      }
+      if (type === 'doctor') localStorage.setItem(DOC_PIN_KEY, newPin);
+      else localStorage.setItem(SEC_PIN_KEY, newPin);
 
       if (db) {
         try {
@@ -331,7 +406,7 @@
             updatedAt: Date.now()
           }, { merge: true });
         } catch (err) {
-          console.warn("Saved PIN locally, cloud update pending:", err);
+          console.warn("Saved PIN locally, cloud pending:", err);
         }
       }
     }
@@ -386,6 +461,31 @@
       renderApp();
     }
 
+    // --- TABS CONTROLLER (Feature 5) ---
+    function setActiveTab(tab) {
+      activeTab = tab;
+      const tabDaily = document.getElementById('tabDaily');
+      const tabDueMonth = document.getElementById('tabDueMonth');
+      const tabAll = document.getElementById('tabAll');
+      const dateControlGroup = document.getElementById('dateControlGroup');
+
+      [tabDaily, tabDueMonth, tabAll].forEach(t => {
+        t.className = 'px-3 py-2 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-slate-100 border';
+      });
+
+      if (tab === 'daily') {
+        tabDaily.className = 'px-3 py-2 rounded-xl text-xs font-bold bg-teal-700 text-white shadow';
+        dateControlGroup.classList.remove('hidden');
+      } else if (tab === 'dueMonth') {
+        tabDueMonth.className = 'px-3 py-2 rounded-xl text-xs font-bold bg-rose-600 text-white shadow';
+        dateControlGroup.classList.add('hidden');
+      } else if (tab === 'all') {
+        tabAll.className = 'px-3 py-2 rounded-xl text-xs font-bold bg-slate-800 text-white shadow';
+        dateControlGroup.classList.add('hidden');
+      }
+      renderApp();
+    }
+
     function formatSyrianPhone(input) {
       let val = input.value.replace(/\D/g, '');
       if (val.length > 0 && !val.startsWith('09')) {
@@ -413,12 +513,98 @@
       renderApp();
     }
 
+    // --- QUICK MEDICATION CHIP INSERTER (Feature 3) ---
+    function insertMedication(medText) {
+      const rxBox = document.getElementById('pRx');
+      if (rxBox.value.trim().length === 0) {
+        rxBox.value = medText;
+      } else {
+        rxBox.value = rxBox.value.trim() + '\n+ ' + medText;
+      }
+      rxBox.focus();
+    }
+
+    // --- IMAGE COMPRESSION & ATTACHMENT (Feature 7) ---
+    function handlePhotoUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const maxDim = 800; // Resize to max 800px for lightweight cloud storage
+          let width = img.width;
+          let height = img.height;
+          if (width > height) {
+            if (width > maxDim) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            }
+          } else {
+            if (height > maxDim) {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.65);
+
+          currentAttachedPhotos.push(compressedDataUrl);
+          renderPhotosPreview();
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+      event.target.value = '';
+    }
+
+    function renderPhotosPreview() {
+      const container = document.getElementById('photosPreviewContainer');
+      const noPhotosText = document.getElementById('noPhotosText');
+      container.innerHTML = '';
+
+      if (currentAttachedPhotos.length === 0) {
+        container.appendChild(noPhotosText);
+        noPhotosText.classList.remove('hidden');
+        return;
+      }
+
+      currentAttachedPhotos.forEach((src, idx) => {
+        const wrap = document.createElement('div');
+        wrap.className = 'relative w-14 h-14 rounded-lg overflow-hidden border border-slate-300 shadow-sm group';
+        wrap.innerHTML = `
+          <img src="${src}" class="w-full h-full object-cover cursor-pointer" onclick="openLightbox('${src}')">
+          <button type="button" onclick="removePhoto(${idx})" class="absolute top-0 right-0 bg-red-600 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-bl">&times;</button>
+        `;
+        container.appendChild(wrap);
+      });
+    }
+
+    function removePhoto(index) {
+      currentAttachedPhotos.splice(index, 1);
+      renderPhotosPreview();
+    }
+
+    function openLightbox(src) {
+      document.getElementById('lightboxImg').src = src;
+      document.getElementById('imageLightbox').classList.remove('hidden');
+    }
+    function closeLightbox() {
+      document.getElementById('imageLightbox').classList.add('hidden');
+    }
+
     // --- SECRETARY SUBMIT ---
     async function handleSecretarySubmit(e) {
       e.preventDefault();
       const name = document.getElementById('secName').value.trim();
       const age = document.getElementById('secAge').value.trim();
       const phone = document.getElementById('secPhone').value.trim();
+      const fee = parseInt(document.getElementById('secFee').value) || 0;
       const complaint = document.getElementById('secComplaint').value.trim();
 
       if (phone && !isValidSyrianPhone(phone)) {
@@ -438,6 +624,7 @@
         name: name,
         age: age || '',
         phone: phone || '',
+        fee: fee,
         complaint: complaint || '',
         blood: 'غير محدد',
         g: '0', vd: '0', cs: '0', a: '0',
@@ -449,6 +636,8 @@
         weight: '',
         ultrasound: '',
         rx: '',
+        photos: [],
+        visits: [],
         timestamp: Date.now(),
         createdAt: new Date().toLocaleDateString('ar-SY')
       };
@@ -460,14 +649,15 @@
       document.getElementById('secName').value = '';
       document.getElementById('secAge').value = '';
       document.getElementById('secPhone').value = '';
+      document.getElementById('secFee').value = '';
       document.getElementById('secComplaint').value = '';
       closeSecretaryModal();
       renderApp();
 
-      alert(`✅ تم إعطاء الدور بنجاح!\n\nرقم الدور اليومي: [ ${nextQueueNumber} ]\nالمريضة: ${name}`);
+      alert(`✅ تم إعطاء الدور بنجاح!\n\nرقم الدور اليومي: [ ${nextQueueNumber} ]\nالمريضة: ${name}\nالكشفية: ${fee.toLocaleString()} ل.س`);
     }
 
-    // --- DOCTOR SUBMIT ---
+    // --- DOCTOR SUBMIT (Multi-Visit History & Timeline - Feature 4) ---
     async function handleDoctorSubmit(e) {
       e.preventDefault();
       const id = document.getElementById('editingPatientId').value;
@@ -482,11 +672,13 @@
           visitDate: selectedDate,
           queueNumber: datePatients.length + 1,
           timestamp: Date.now(),
-          createdAt: new Date().toLocaleDateString('ar-SY')
+          createdAt: new Date().toLocaleDateString('ar-SY'),
+          visits: []
         };
         patients.unshift(patient);
       }
 
+      // Fixed Profile Info
       patient.name = document.getElementById('pName').value.trim();
       patient.phone = document.getElementById('pPhone').value.trim();
       patient.age = document.getElementById('pAge').value.trim();
@@ -499,18 +691,44 @@
       patient.lmp = document.getElementById('pLMP').value;
       patient.medHistory = document.getElementById('pMedicalHistory').value;
       patient.allergies = document.getElementById('pAllergies').value;
+
+      // Current Visit Details
       patient.bp = document.getElementById('pBP').value;
       patient.weight = document.getElementById('pWeight').value;
+      patient.fee = parseInt(document.getElementById('pFee').value) || patient.fee || 0;
       patient.ultrasound = document.getElementById('pUltrasound').value;
       patient.rx = document.getElementById('pRx').value;
+      patient.photos = [...currentAttachedPhotos];
       patient.status = 'completed';
+
+      // Push into Multi-Visit History Timeline (Feature 4)
+      patient.visits = patient.visits || [];
+      const currentVisitRecord = {
+        date: patient.visitDate || selectedDate,
+        queueNumber: patient.queueNumber,
+        bp: patient.bp,
+        weight: patient.weight,
+        fee: patient.fee,
+        ultrasound: patient.ultrasound,
+        rx: patient.rx,
+        photos: [...currentAttachedPhotos],
+        recordedAt: new Date().toLocaleTimeString('ar-SY', { hour: '2-digit', minute: '2-digit' })
+      };
+
+      // Replace today's visit if exists or append
+      const existingVisitIdx = patient.visits.findIndex(v => v.date === currentVisitRecord.date);
+      if (existingVisitIdx >= 0) {
+        patient.visits[existingVisitIdx] = currentVisitRecord;
+      } else {
+        patient.visits.unshift(currentVisitRecord);
+      }
 
       saveDataLocally();
       await syncPatientToCloud(patient);
 
       closeDoctorModal();
       renderApp();
-      alert(`✅ تم حفظ السجل الطبي للمريضة (${patient.name}) بنجاح.`);
+      alert(`✅ تم توثيق الفحص والزيارة للمريضة (${patient.name}) بنجاح.`);
     }
 
     function openDoctorModal(patientId) {
@@ -533,8 +751,12 @@
       document.getElementById('pAllergies').value = p.allergies || '';
       document.getElementById('pBP').value = p.bp || '';
       document.getElementById('pWeight').value = p.weight || '';
+      document.getElementById('pFee').value = p.fee || '';
       document.getElementById('pUltrasound').value = p.ultrasound || '';
       document.getElementById('pRx').value = p.rx || '';
+
+      currentAttachedPhotos = p.photos ? [...p.photos] : [];
+      renderPhotosPreview();
 
       updateModalPregnancyPreview();
       document.getElementById('doctorModal').classList.remove('hidden');
@@ -544,15 +766,15 @@
       document.getElementById('editingPatientId').value = '';
       document.getElementById('docModalSubtitle').innerText = `تسجيل مباشر من الطبيبة`;
       document.getElementById('doctorForm').reset();
+      currentAttachedPhotos = [];
+      renderPhotosPreview();
       updateModalPregnancyPreview();
       document.getElementById('doctorModal').classList.remove('hidden');
     }
 
-    // --- ACCURATE PREGNANCY CALCULATIONS & DUE REMINDER ---
+    // --- ACCURATE PREGNANCY CALCULATIONS (LMP -> EDD) ---
     function calculatePregnancy(lmpStr) {
       if (!lmpStr) return null;
-      
-      // Parse YYYY-MM-DD locally without UTC shift
       const parts = lmpStr.split('-');
       if (parts.length !== 3) return null;
       const lmp = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
@@ -563,7 +785,6 @@
 
       // Naegele's rule: EDD = LMP + 280 days
       const edd = new Date(lmp.getTime() + 280 * 24 * 60 * 60 * 1000);
-      
       const diffMs = today.getTime() - lmp.getTime();
       const totalDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
@@ -581,7 +802,6 @@
       const weeks = Math.floor(totalDays / 7);
       const days = totalDays % 7;
 
-      // Clinical Month Mapping
       let monthName = "الشهر الأول";
       if (weeks >= 36) monthName = "الشهر التاسع";
       else if (weeks >= 31) monthName = "الشهر الثامن";
@@ -594,22 +814,23 @@
 
       const daysUntilDelivery = Math.ceil((edd.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
       const isDueWithinMonth = (daysUntilDelivery >= 0 && daysUntilDelivery <= 30);
+      const isDueInCurrentMonth = (edd.getMonth() === now.getMonth() && edd.getFullYear() === now.getFullYear());
 
       return {
         isFuture: false,
         weeks: `${weeks} أسبوع و ${days} يوم`,
         monthName: monthName,
+        eddDateObj: edd,
         edd: edd.toLocaleDateString('ar-SY', { year: 'numeric', month: 'long', day: 'numeric' }),
         daysUntilDelivery: daysUntilDelivery,
-        isDueWithinMonth: isDueWithinMonth
+        isDueWithinMonth: isDueWithinMonth,
+        isDueInCurrentMonth: isDueInCurrentMonth
       };
     }
 
-    // --- LIVE PREGNANCY PREVIEW INSIDE MODAL ---
     function updateModalPregnancyPreview() {
       const lmpVal = document.getElementById('pLMP').value;
       const previewEl = document.getElementById('modalPregnancyPreview');
-      
       if (!lmpVal) {
         previewEl.classList.add('hidden');
         previewEl.innerHTML = '';
@@ -619,30 +840,25 @@
       const preg = calculatePregnancy(lmpVal);
       if (!preg) {
         previewEl.classList.add('hidden');
-        previewEl.innerHTML = '';
         return;
       }
 
       if (preg.isFuture) {
-        previewEl.innerHTML = `
-          <div class="bg-amber-100 border border-amber-300 p-2.5 rounded-xl text-xs text-amber-900 font-bold">
-            ⚠️ تنبيه: التاريخ المحدد يقع في المستقبل بالنسبة لتاريخ اليوم.
-          </div>
-        `;
+        previewEl.innerHTML = `<div class="bg-amber-100 border border-amber-300 p-2 rounded-xl text-xs text-amber-900 font-bold">⚠️ تنبيه: التاريخ المحدد يقع في المستقبل.</div>`;
         previewEl.classList.remove('hidden');
         return;
       }
 
       previewEl.innerHTML = `
-        <div class="bg-emerald-100 border-2 border-emerald-400 p-3 rounded-xl text-xs text-emerald-950 space-y-2 shadow-sm">
+        <div class="bg-emerald-100 border-2 border-emerald-400 p-3 rounded-xl text-xs text-emerald-950 space-y-1.5 shadow-sm">
           <div class="flex justify-between items-center font-bold">
             <span class="text-sm">🤰 مرحلة الحمل: <span class="bg-emerald-700 text-white px-2 py-0.5 rounded-lg text-xs">${preg.monthName}</span></span>
-            <span class="text-xs">📅 تاريخ الولادة المتوقع (EDD): <strong class="text-teal-900 underline">${preg.edd}</strong></span>
+            <span>📅 موعد الولادة المتوقع (EDD): <strong class="text-teal-900 underline">${preg.edd}</strong></span>
           </div>
-          <div class="flex justify-between items-center text-slate-800 font-semibold border-t border-emerald-200 pt-1.5">
-            <span>عمر الحمل الحالي: <strong>${preg.weeks}</strong></span>
+          <div class="flex justify-between items-center text-slate-800 font-semibold border-t border-emerald-200 pt-1">
+            <span>عمر الحمل: <strong>${preg.weeks}</strong></span>
             ${preg.isDueWithinMonth ? 
-              `<span class="text-rose-700 font-bold bg-rose-100 px-2 py-0.5 rounded-md animate-pulse">🔔 متبقي ${preg.daysUntilDelivery} يوم على الولادة!</span>` : 
+              `<span class="text-rose-700 font-bold bg-rose-100 px-2 py-0.5 rounded-md animate-pulse">🔔 موعد الولادة خلال ${preg.daysUntilDelivery} يوم!</span>` : 
               `<span>متبقي لموعد الولادة: <strong>${preg.daysUntilDelivery} يوم</strong></span>`}
           </div>
         </div>
@@ -650,48 +866,90 @@
       previewEl.classList.remove('hidden');
     }
 
-    // --- MAIN RENDER ---
+    // --- MAIN RENDER (Tabs, Financial Tally & History) ---
     function renderApp() {
       const selectedDate = document.getElementById('dateFilterInput').value || getTodayDateString();
       const q = document.getElementById('searchInput').value.trim().toLowerCase();
       const list = document.getElementById('patientList');
       list.innerHTML = '';
 
-      const dateFiltered = patients.filter(p => {
-        const matchesDate = q ? true : (p.visitDate === selectedDate);
-        const matchesSearch = !q || (p.name && p.name.toLowerCase().includes(q)) || (p.phone && p.phone.includes(q));
-        return matchesDate && matchesSearch;
+      // 1. Calculate Due This Month Count Badge (Feature 5)
+      const dueMonthPatients = patients.filter(p => {
+        const preg = calculatePregnancy(p.lmp);
+        return preg && !preg.isFuture && (preg.isDueWithinMonth || preg.isDueInCurrentMonth);
       });
+      const dueBadge = document.getElementById('dueThisMonthCount');
+      if (dueMonthPatients.length > 0) {
+        dueBadge.innerText = dueMonthPatients.length;
+        dueBadge.classList.remove('hidden');
+      } else {
+        dueBadge.classList.add('hidden');
+      }
 
-      dateFiltered.sort((a, b) => (parseInt(a.queueNumber) || 999) - (parseInt(b.queueNumber) || 999));
+      // 2. Filter Patients by Tab
+      let displayList = [];
+      if (activeTab === 'daily') {
+        displayList = patients.filter(p => {
+          const matchesDate = q ? true : (p.visitDate === selectedDate);
+          const matchesSearch = !q || (p.name && p.name.toLowerCase().includes(q)) || (p.phone && p.phone.includes(q));
+          return matchesDate && matchesSearch;
+        });
+        displayList.sort((a, b) => (parseInt(a.queueNumber) || 999) - (parseInt(b.queueNumber) || 999));
+      } else if (activeTab === 'dueMonth') {
+        displayList = dueMonthPatients.filter(p => !q || (p.name && p.name.toLowerCase().includes(q)) || (p.phone && p.phone.includes(q)));
+        displayList.sort((a, b) => {
+          const pa = calculatePregnancy(a.lmp);
+          const pb = calculatePregnancy(b.lmp);
+          return (pa?.daysUntilDelivery || 999) - (pb?.daysUntilDelivery || 999);
+        });
+      } else { // 'all'
+        displayList = patients.filter(p => !q || (p.name && p.name.toLowerCase().includes(q)) || (p.phone && p.phone.includes(q)));
+      }
 
-      const waitingCount = dateFiltered.filter(p => p.status === 'waiting').length;
-      const completedCount = dateFiltered.filter(p => p.status === 'completed').length;
+      // 3. Financial Calculation for Selected Date (Feature 6)
+      const dailyPatientsForDate = patients.filter(p => p.visitDate === selectedDate);
+      const totalDailyIncome = dailyPatientsForDate.reduce((sum, p) => sum + (parseInt(p.fee) || 0), 0);
+      document.getElementById('dailyTotalIncome').innerText = totalDailyIncome.toLocaleString('en-US');
+
+      // 4. Stats Text
+      const waitingCount = displayList.filter(p => p.status === 'waiting').length;
+      const completedCount = displayList.filter(p => p.status === 'completed').length;
       
-      document.getElementById('queueStats').innerText = `تاريخ: ${selectedDate} | الإجمالي: ${dateFiltered.length} (بانتظار الفحص: ${waitingCount} | تم الفحص: ${completedCount})`;
+      if (activeTab === 'daily') {
+        document.getElementById('queueStats').innerText = `يوميات: ${selectedDate} | الإجمالي: ${displayList.length} (بانتظار: ${waitingCount} | تم: ${completedCount})`;
+      } else if (activeTab === 'dueMonth') {
+        document.getElementById('queueStats').innerText = `🤰 قائمة الحوامل المقربات على الولادة هذا الشهر (${displayList.length} مريضة)`;
+      } else {
+        document.getElementById('queueStats').innerText = `📋 إجمالي أرشيف العيادة: ${displayList.length} ملف مريضة`;
+      }
 
-      if (dateFiltered.length === 0) {
-        list.innerHTML = `<div class="bg-white rounded-2xl p-12 text-center text-slate-400 font-semibold border">لا يوجد مريضات مسجلات في هذا التاريخ</div>`;
+      if (displayList.length === 0) {
+        list.innerHTML = `<div class="bg-white rounded-2xl p-12 text-center text-slate-400 font-semibold border">لا توجد سجلات مطابقة للعرض حالياً</div>`;
         return;
       }
 
-      dateFiltered.forEach((p) => {
+      displayList.forEach((p) => {
         const preg = calculatePregnancy(p.lmp);
         const isDoctor = (currentRole === 'doctor');
         const isWaiting = (p.status === 'waiting');
+        const visitsCount = (p.visits && p.visits.length) ? p.visits.length : 1;
 
         list.innerHTML += `
           <div class="bg-white rounded-2xl p-4 shadow-sm border ${preg && preg.isDueWithinMonth ? 'border-rose-400 ring-2 ring-rose-200' : (isWaiting ? 'border-amber-300 bg-amber-50/20' : 'border-slate-200')} space-y-3">
             
+            <!-- Card Header -->
             <div class="flex justify-between items-start border-b pb-2">
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl ${isWaiting ? 'bg-amber-500 text-white animate-pulse' : 'bg-teal-700 text-white'} flex flex-col items-center justify-center font-bold shadow">
-                  <span class="text-[9px] leading-tight">دور</span>
+                  <span class="text-[8px] leading-tight">دور</span>
                   <span class="text-base leading-tight">${p.queueNumber || '-'}</span>
                 </div>
                 <div>
-                  <h3 class="text-base font-bold text-slate-900">${p.name}</h3>
-                  <p class="text-xs text-slate-500">📞 ${p.phone || 'بدون هاتف'} | العمر: ${p.age ? p.age + ' سنة' : '-'}</p>
+                  <div class="flex items-center gap-2">
+                    <h3 class="text-base font-bold text-slate-900">${p.name}</h3>
+                    ${p.visits && p.visits.length > 1 ? `<span class="bg-purple-100 text-purple-800 text-[10px] px-2 py-0.2 rounded-full font-bold">📜 ${p.visits.length} مراجعات</span>` : ''}
+                  </div>
+                  <p class="text-xs text-slate-500">📞 ${p.phone || 'بدون هاتف'} | العمر: ${p.age ? p.age + ' سنة' : '-'} | تاريخ الزيارة: ${p.visitDate || '-'}</p>
                 </div>
               </div>
 
@@ -699,7 +957,10 @@
                 <span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${isWaiting ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}">
                   ${isWaiting ? '⏳ بانتظار الفحص' : '✅ تم الفحص'}
                 </span>
-                ${isDoctor && p.blood ? `<span class="text-xs font-bold text-red-600">${p.blood}</span>` : ''}
+                <div class="flex gap-1.5 items-center">
+                  ${p.fee ? `<span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">${p.fee.toLocaleString()} ل.س</span>` : ''}
+                  ${isDoctor && p.blood ? `<span class="text-xs font-bold text-red-600">${p.blood}</span>` : ''}
+                </div>
               </div>
             </div>
 
@@ -712,21 +973,22 @@
             <!-- 1-Month Delivery Alert Badge -->
             ${preg && preg.isDueWithinMonth ? `
               <div class="bg-rose-50 border border-rose-300 p-2.5 rounded-xl text-xs text-rose-900 flex items-center justify-between font-bold animate-pulse">
-                <span>🔔 تنبيه: موعد الولادة المتوقع خلال أقل من شهر (${preg.daysUntilDelivery} يوم)!</span>
+                <span>🔔 تنبيه ولادة: موعد الولادة المتوقع خلال (${preg.daysUntilDelivery} يوم)!</span>
                 <span class="bg-rose-600 text-white px-2 py-0.5 rounded-lg text-[10px]">${preg.monthName}</span>
               </div>
             ` : ''}
 
             ${isDoctor ? `
+              <!-- Obstetric Info -->
               <div class="bg-rose-50/60 p-2 rounded-xl text-xs text-rose-950 border border-rose-100 flex flex-wrap gap-x-3 gap-y-1">
-                <span><strong>G:</strong> ${p.g || 0}</span>
+                <span><strong>حمول (G):</strong> ${p.g || 0}</span>
                 <span><strong>طبيعي (VD):</strong> ${p.vd || 0}</span>
                 <span><strong>قيصري (CS):</strong> ${p.cs || 0}</span>
                 <span><strong>إجهاض (A):</strong> ${p.a || 0}</span>
                 ${p.obsNotes ? `<span class="w-full text-slate-600 mt-0.5">📝 ${p.obsNotes}</span>` : ''}
               </div>
 
-              <!-- Comprehensive Pregnancy Status -->
+              <!-- Pregnancy Summary -->
               ${preg && !preg.isFuture ? `
                 <div class="bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl text-xs text-emerald-900 space-y-1">
                   <div class="flex justify-between items-center font-bold">
@@ -736,23 +998,55 @@
                 </div>
               ` : ''}
 
-              ${(p.bp || p.weight || p.ultrasound || p.rx) ? `
-                <div class="bg-slate-50 p-2 rounded-xl text-xs border space-y-1">
+              <!-- Clinical Details -->
+              ${(p.bp || p.weight || p.ultrasound || p.rx || (p.photos && p.photos.length > 0)) ? `
+                <div class="bg-slate-50 p-2.5 rounded-xl text-xs border space-y-1.5">
                   <div class="flex gap-4 text-slate-500 font-semibold">
                     <span>الضغط: ${p.bp || '-'}</span>
                     <span>الوزن: ${p.weight ? p.weight + ' كغ' : '-'}</span>
                   </div>
                   ${p.ultrasound ? `<p><strong>تقرير الإيكو:</strong> ${p.ultrasound}</p>` : ''}
-                  ${p.rx ? `<p class="text-teal-800 font-semibold"><strong>الوصفة:</strong> ${p.rx}</p>` : ''}
+                  ${p.rx ? `<p class="text-teal-800 font-semibold"><strong>الوصفة (Rx):</strong><br><span class="text-slate-800 whitespace-pre-line">${p.rx}</span></p>` : ''}
+                  
+                  <!-- Photo Thumbnails (Feature 7) -->
+                  ${p.photos && p.photos.length > 0 ? `
+                    <div class="pt-1">
+                      <span class="text-[11px] text-slate-500 font-bold block mb-1">📸 صور الإيكو والتحاليل المرفقة:</span>
+                      <div class="flex gap-2 flex-wrap">
+                        ${p.photos.map(imgSrc => `
+                          <img src="${imgSrc}" class="w-12 h-12 rounded-lg object-cover border border-slate-300 cursor-pointer shadow-sm hover:opacity-80" onclick="openLightbox('${imgSrc}')">
+                        `).join('')}
+                      </div>
+                    </div>
+                  ` : ''}
                 </div>
+              ` : ''}
+
+              <!-- Expandable Multi-Visit History Timeline (Feature 4) -->
+              ${p.visits && p.visits.length > 1 ? `
+                <details class="text-xs bg-slate-50 rounded-xl p-2 border border-slate-200">
+                  <summary class="font-bold text-teal-800 cursor-pointer select-none">📜 استعراض أرشيف الزيارات السابقة للمريضة (${p.visits.length} زيارات)</summary>
+                  <div class="space-y-2 mt-2 pt-2 border-t divide-y">
+                    ${p.visits.map((v, vIdx) => `
+                      <div class="pt-1.5 space-y-1">
+                        <div class="flex justify-between font-bold text-slate-700">
+                          <span>📅 زيارة تاريخ: ${v.date}</span>
+                          <span>الضغط: ${v.bp || '-'} | الوزن: ${v.weight || '-'}</span>
+                        </div>
+                        ${v.ultrasound ? `<p class="text-slate-600">إيكو: ${v.ultrasound}</p>` : ''}
+                        ${v.rx ? `<p class="text-teal-900">علاج: ${v.rx}</p>` : ''}
+                      </div>
+                    `).join('')}
+                  </div>
+                </details>
               ` : ''}
 
               <div class="flex justify-between items-center pt-1 border-t text-xs">
                 <button onclick="requestDeletePatient('${p.id}', '${p.name}')" class="text-red-500 hover:text-red-700 font-semibold flex items-center gap-1">
                   <span>🗑️</span> <span>حذف برمز الأمان</span>
                 </button>
-                <button onclick="openDoctorModal('${p.id}')" class="bg-teal-700 hover:bg-teal-800 text-white px-3 py-1.5 rounded-lg font-bold shadow">
-                  ${isWaiting ? '🩺 فحص وتكملة الملف' : '✏️ تعديل السجل الطبي'}
+                <button onclick="openDoctorModal('${p.id}')" class="bg-teal-700 hover:bg-teal-800 text-white px-3.5 py-1.5 rounded-lg font-bold shadow">
+                  ${isWaiting ? '🩺 فحص وتوثيق الزيارة' : '✏️ تعديل / إضافة زيارة'}
                 </button>
               </div>
             ` : `
@@ -766,7 +1060,7 @@
       });
     }
 
-    // --- SECURE DELETION WITH PERMANENT CLOUD REMOVAL ---
+    // --- SECURE DELETION WITH PIN CONFIRMATION ---
     function requestDeletePatient(id, name) {
       patientToDeleteId = id;
       document.getElementById('deleteModalPatientName').innerText = `المريضة: ${name}`;
@@ -790,26 +1084,21 @@
       }
 
       if (!patientToDeleteId) return;
-
       const targetId = patientToDeleteId;
       
-      // 1. Delete locally
       patients = patients.filter(p => p.id !== targetId);
       saveDataLocally();
       renderApp();
       closeDeleteModal();
 
-      // 2. Delete permanently from Cloud Firestore
       if (db) {
         try {
           await db.collection('patients').doc(targetId).delete();
-          console.log("✅ Permanently deleted from Firestore Cloud:", targetId);
         } catch (e) {
           console.warn("Cloud delete error:", e);
         }
       }
-
-      alert('🗑️ تم حذف ملف المريضة نهائياً من الجهاز والسحابة.');
+      alert('🗑️ تم حذف ملف المريضة نهائياً.');
     }
 
     // --- FIREBASE SYNC & CLOUD ---
@@ -829,22 +1118,21 @@
         db = firebase.firestore();
 
         db.collection('patients').orderBy('timestamp', 'desc').onSnapshot((snapshot) => {
-          // Always mirror cloud state (even if empty or deleted)
           const cloudData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
           patients = cloudData;
           saveDataLocally();
           renderApp();
-          document.getElementById('syncStatus').innerText = '🟢 متصل بالسحابة';
+          document.getElementById('syncStatus').innerText = '🟢 متصل';
         }, (err) => {
           console.warn('Firestore offline/restricted:', err);
-          document.getElementById('syncStatus').innerText = '🟡 وضع محلي (بدون إنترنت)';
+          document.getElementById('syncStatus').innerText = '🟡 محلي';
         });
 
         listenToPinChanges();
       }
     } catch (e) {
       console.warn('Local offline mode:', e);
-      document.getElementById('syncStatus').innerText = '🟡 وضع محلي (بدون إنترنت)';
+      document.getElementById('syncStatus').innerText = '🟡 محلي';
     }
 
     function saveDataLocally() {
@@ -872,28 +1160,22 @@
     async function handleDoctorPinUpdate(e) {
       e.preventDefault();
       const p = document.getElementById('newDocPin').value.trim();
-      if (p.length < 4) {
-        alert('يرجى إدخال رمز مؤلف من 4 أرقام على الأقل.');
-        return;
-      }
+      if (p.length < 4) { alert('الرمز يجب أن يكون 4 أرقام على الأقل'); return; }
       await savePinToCloud('doctor', p);
       document.getElementById('currentDocPinDisplay').innerText = p;
       document.getElementById('newDocPin').value = '';
-      alert('✅ تم تحديث رمز الطبيبة بنجاح ومزامنته!');
+      alert('✅ تم تحديث رمز الطبيبة ومزامنته!');
       closeChangePinModal();
     }
 
     async function handleSecPinUpdate(e) {
       e.preventDefault();
       const p = document.getElementById('newSecPin').value.trim();
-      if (p.length < 4) {
-        alert('يرجى إدخال رمز مؤلف من 4 أرقام على الأقل.');
-        return;
-      }
+      if (p.length < 4) { alert('الرمز يجب أن يكون 4 أرقام على الأقل'); return; }
       await savePinToCloud('secretary', p);
       document.getElementById('currentSecPinDisplay').innerText = p;
       document.getElementById('newSecPin').value = '';
-      alert('✅ تم تحديث رمز السكرتيرة بنجاح! سيطلب جهاز السكرتيرة الرمز الجديد فوراً.');
+      alert('✅ تم تحديث رمز السكرتيرة بنجاح!');
       closeChangePinModal();
     }
 
@@ -933,10 +1215,7 @@
       reader.onload = async function(e) {
         try {
           const imported = JSON.parse(e.target.result);
-          if (!Array.isArray(imported)) {
-            alert('❌ ملف غير صالح.');
-            return;
-          }
+          if (!Array.isArray(imported)) { alert('❌ ملف غير صالح.'); return; }
           if (confirm(`تم العثور على ${imported.length} سجل.\n\nهل ترغبين باستبدال السجلات بالكامل (OK) أم دمجها (Cancel)؟`)) {
             patients = imported;
           } else {
@@ -946,9 +1225,7 @@
           saveDataLocally();
           renderApp();
           alert(`🎉 تم استيراد السجلات بنجاح! الإجمالي: ${patients.length}`);
-        } catch (err) {
-          alert('❌ خطأ في قراءة الملف.');
-        }
+        } catch (err) { alert('❌ خطأ في قراءة الملف.'); }
         event.target.value = '';
       };
       reader.readAsText(file);
