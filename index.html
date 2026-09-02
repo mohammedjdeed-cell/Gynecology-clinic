@@ -69,7 +69,6 @@
       <!-- Doctor Actions -->
       <div id="doctorNav" class="flex gap-1.5 flex-wrap items-center">
         <button onclick="openDrugsModal()" title="إدارة صيدلية الأدوية" class="bg-teal-800 hover:bg-teal-900 text-xs px-2.5 py-1.5 rounded-lg font-semibold flex items-center gap-1">💊 الأدوية</button>
-        <button onclick="cleanDuplicatePatients()" title="تنظيف التكرارات" class="bg-teal-800 hover:bg-teal-900 text-xs px-2.5 py-1.5 rounded-lg">🧹 دمج المكرر</button>
         <button onclick="triggerImport()" title="استيراد" class="bg-teal-800 hover:bg-teal-900 text-xs px-2.5 py-1.5 rounded-lg">📥 استيراد</button>
         <button onclick="exportData(false)" title="تصدير" class="bg-teal-800 hover:bg-teal-900 text-xs px-2.5 py-1.5 rounded-lg">💾 تصدير</button>
         <button onclick="openChangePinModal()" title="إدارة الرموز" class="bg-teal-800 hover:bg-teal-900 text-xs px-2.5 py-1.5 rounded-lg">🔑 الرموز</button>
@@ -139,7 +138,7 @@
     <div id="patientList" class="space-y-3"></div>
   </main>
 
-  <!-- ==================== 4. SECRETARY INTAKE MODAL (NO FEES, NO SENSITIVE DATA) ==================== -->
+  <!-- ==================== 4. SECRETARY INTAKE MODAL ==================== -->
   <div id="secretaryModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-3 z-30">
     <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl">
       <div class="flex justify-between items-center border-b pb-2 mb-3">
@@ -150,7 +149,7 @@
       <form id="secFormElement" onsubmit="handleSecretarySubmit(event)" class="space-y-3 text-xs">
         <div>
           <label class="block font-semibold mb-1 text-slate-700">الاسم الثلاثي للمريضة *</label>
-          <input type="text" id="secName" required placeholder="مثال: ريم أحمد الخطيب" class="w-full p-2.5 border rounded-xl text-sm">
+          <input type="text" id="secName" required placeholder="مثال: ريم أحمد الخطيب" class="w-full p-2.5 border rounded-xl text-sm font-bold">
         </div>
 
         <div class="grid grid-cols-2 gap-2">
@@ -425,9 +424,9 @@
     const DOC_PIN_KEY = "clinic_doc_pin";
     const SEC_PIN_KEY = "clinic_sec_pin";
     const CURRENT_ROLE_KEY = "clinic_user_role";
-    const LOCAL_KEY = "syria_obgyn_patients_v6";
+    const LOCAL_KEY = "syria_obgyn_patients_v7";
     const DRUGS_KEY = "clinic_custom_drugs_v2";
-    const LAST_BACKUP_KEY = "clinic_last_weekly_backup_v6";
+    const LAST_BACKUP_KEY = "clinic_last_weekly_backup_v7";
 
     const DEFAULT_DRUGS = [
       { id: "d_1", name: "حديد + فوليك أسيد", company: "لوتوفوليك / ابن حيان", dose: "حبة يومياً بعد الغداء" },
@@ -471,14 +470,6 @@
       const age = calculateAgeFromBirthYear(val);
       const preview = document.getElementById('docAgePreview');
       preview.innerText = age !== null ? `(${age} سنة)` : '';
-    }
-
-    // --- ACCURATE QUEUE NUMBER GENERATOR (PREVENTS DUPLICATE TURNS) ---
-    function getNextQueueNumberForDate(dateStr) {
-      const datePatients = patients.filter(p => p.visitDate === dateStr && p.queueNumber);
-      if (datePatients.length === 0) return 1;
-      const maxQueue = Math.max(...datePatients.map(p => parseInt(p.queueNumber, 10) || 0));
-      return (maxQueue >= 0 ? maxQueue + 1 : 1);
     }
 
     function listenToPinAndDrugsChanges() {
@@ -682,7 +673,6 @@
         dateControlGroup.classList.remove('hidden');
         financialTally.classList.remove('hidden');
       } else {
-        // Secretary: Locked to Today only, No Financial Access, No Archive Tabs
         roleBadge.innerText = '📋 الاستقبال (مريضات اليوم فقط)';
         roleBadge.className = 'text-[10px] bg-indigo-900 text-indigo-200 px-2 py-0.5 rounded-full font-bold';
         docNav.classList.add('hidden');
@@ -820,7 +810,7 @@
     }
     function closeLightbox() { document.getElementById('imageLightbox').classList.add('hidden'); }
 
-    // --- SECRETARY INTAKE (STRICT TODAY ONLY, NO FEES, UNIQUE QUEUE #) ---
+    // --- SECRETARY INTAKE (SEQUENTIAL REAL-TIME QUEUE) ---
     async function handleSecretarySubmit(e) {
       e.preventDefault();
       const submitBtn = document.getElementById('secSubmitBtn');
@@ -850,7 +840,7 @@
       ));
 
       if (alreadyInQueueToday) {
-        alert(`⚠️ تنبيه: المريضة (${name}) مسجلة بالفعل في دور اليوم برقم الدور: [ ${alreadyInQueueToday.queueNumber} ].`);
+        alert(`⚠️ تنبيه: المريضة (${name}) مسجلة بالفعل في دور اليوم.`);
         if (submitBtn) { submitBtn.disabled = false; submitBtn.innerText = 'إعطاء دور وتسجيل'; }
         return;
       }
@@ -860,11 +850,8 @@
         (phone && p.phone === phone) || (p.name.toLowerCase() === name.toLowerCase())
       );
 
-      const nextQueueNumber = getNextQueueNumberForDate(today);
-
       if (existingPatient) {
         existingPatient.visitDate = today;
-        existingPatient.queueNumber = nextQueueNumber;
         existingPatient.status = 'waiting';
         if (husband && !existingPatient.husband) existingPatient.husband = husband;
         if (nationalId && !existingPatient.nationalId) existingPatient.nationalId = nationalId;
@@ -876,14 +863,13 @@
         saveDataLocally();
         await syncPatientToCloud(existingPatient);
 
-        alert(`✅ تم استدعاء ملف المريضة وإعطاؤها دور اليوم!\n\nرقم الدور: [ ${nextQueueNumber} ]\nالمريضة: ${name}`);
+        alert(`✅ تم استدعاء ملف المريضة وإعطاؤها دور اليوم!\nالمريضة: ${name}`);
       } else {
         const newDocId = db ? db.collection('patients').doc().id : ('pat_' + Date.now());
 
         const newPatient = {
           id: newDocId,
           visitDate: today,
-          queueNumber: nextQueueNumber,
           status: 'waiting',
           name: name,
           husband: husband || '',
@@ -912,7 +898,7 @@
         saveDataLocally();
         await syncPatientToCloud(newPatient);
 
-        alert(`✅ تم تسجيل المريضة بنجاح!\n\nرقم الدور لليوم: [ ${nextQueueNumber} ]\nالمريضة: ${name}`);
+        alert(`✅ تم تسجيل المريضة بنجاح في دور اليوم!\nالمريضة: ${name}`);
       }
 
       document.getElementById('secName').value = '';
@@ -928,7 +914,7 @@
       renderApp();
     }
 
-    // --- DOCTOR SUBMIT (FULL MEDICAL & FEES) ---
+    // --- DOCTOR SUBMIT ---
     async function handleDoctorSubmit(e) {
       e.preventDefault();
       const saveBtn = document.getElementById('saveDoctorBtn');
@@ -944,11 +930,9 @@
 
       if (!patient) {
         const newDocId = db ? db.collection('patients').doc().id : ('pat_' + Date.now());
-        const nextQueueNumber = getNextQueueNumberForDate(selectedDate);
         patient = {
           id: newDocId,
           visitDate: selectedDate,
-          queueNumber: nextQueueNumber,
           timestamp: Date.now(),
           createdAt: new Date().toLocaleDateString('ar-SY'),
           visits: []
@@ -982,7 +966,6 @@
       patient.visits = patient.visits || [];
       const currentVisitRecord = {
         date: patient.visitDate || selectedDate,
-        queueNumber: patient.queueNumber,
         bp: patient.bp,
         weight: patient.weight,
         fee: patient.fee,
@@ -1016,7 +999,7 @@
       if (!p) return;
 
       document.getElementById('editingPatientId').value = p.id;
-      document.getElementById('docModalSubtitle').innerText = `رقم الدور (${p.queueNumber}) - تاريخ: ${p.visitDate}`;
+      document.getElementById('docModalSubtitle').innerText = `تاريخ الزيارة: ${p.visitDate}`;
       document.getElementById('pName').value = p.name || '';
       document.getElementById('pHusband').value = p.husband || '';
       document.getElementById('pNationalId').value = p.nationalId || '';
@@ -1149,68 +1132,7 @@
       previewEl.classList.remove('hidden');
     }
 
-    // --- CLEAN DUPLICATE PATIENTS & FIX OVERLAPPING QUEUE NUMBERS ---
-    async function cleanDuplicatePatients() {
-      const seen = new Map();
-      const toDeleteFromCloud = [];
-      const cleanList = [];
-
-      // Deduplicate patients by phone or name
-      patients.forEach(p => {
-        const key = p.phone ? p.phone.trim() : p.name.trim().toLowerCase();
-        if (!seen.has(key)) {
-          seen.set(key, p);
-          cleanList.push(p);
-        } else {
-          if (p.id) toDeleteFromCloud.push(p.id);
-        }
-      });
-
-      // Fix duplicate queue numbers per day
-      const dateBuckets = {};
-      cleanList.forEach(p => {
-        const d = p.visitDate || getTodayDateString();
-        if (!dateBuckets[d]) dateBuckets[d] = [];
-        dateBuckets[d].push(p);
-      });
-
-      Object.keys(dateBuckets).forEach(d => {
-        dateBuckets[d].sort((a,b) => (a.timestamp || 0) - (b.timestamp || 0));
-        dateBuckets[d].forEach((p, idx) => {
-          p.queueNumber = idx + 1;
-        });
-      });
-
-      if (toDeleteFromCloud.length === 0) {
-        patients = cleanList;
-        saveDataLocally();
-        renderApp();
-        alert('✨ تم إعادة ترقيم الأدوار تسلسلياً والسجل نظيف تماماً!');
-        return;
-      }
-
-      if (confirm(`تم العثور على ${toDeleteFromCloud.length} بطاقة مكررة. هل ترغبين في دمجها وحذف النسخ المكررة نهائياً؟`)) {
-        patients = cleanList;
-        saveDataLocally();
-        renderApp();
-
-        if (db) {
-          try {
-            const batch = db.batch();
-            toDeleteFromCloud.forEach(id => {
-              batch.delete(db.collection('patients').doc(id));
-            });
-            await batch.commit();
-            console.log("🧹 Redundant duplicates deleted from Firestore.");
-          } catch (e) {
-            console.warn("Deduplication cloud error:", e);
-          }
-        }
-        alert(`✅ تم تنظيف السجلات ودمج البطاقات المكررة بنجاح!`);
-      }
-    }
-
-    // --- MAIN RENDER ---
+    // --- MAIN RENDER (WITH DYNAMIC SEQUENTIAL QUEUE NUMBERING) ---
     function renderApp() {
       const selectedDate = document.getElementById('dateFilterInput').value || getTodayDateString();
       const q = document.getElementById('searchInput').value.trim().toLowerCase();
@@ -1234,15 +1156,26 @@
 
       if (isSec || activeTab === 'daily') {
         const targetDate = isSec ? getTodayDateString() : selectedDate;
-        displayList = patients.filter(p => {
-          const matchesDate = q ? (p.visitDate === targetDate) : (p.visitDate === targetDate);
-          const matchesSearch = !q || (p.name && p.name.toLowerCase().includes(q)) || 
-                                      (p.husband && p.husband.toLowerCase().includes(q)) || 
-                                      (p.nationalId && p.nationalId.includes(q)) || 
-                                      (p.phone && p.phone.includes(q));
-          return matchesDate && matchesSearch;
+        
+        // 1. Get all patients for this day
+        let dayPatients = patients.filter(p => p.visitDate === targetDate);
+        
+        // 2. Sort strictly by arrival time (timestamp)
+        dayPatients.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+
+        // 3. Assign 100% Sequential Unbroken Queue Numbers (1, 2, 3, 4...)
+        dayPatients.forEach((p, idx) => {
+          p.dynamicQueueNumber = idx + 1;
         });
-        displayList.sort((a, b) => (parseInt(a.queueNumber) || 999) - (parseInt(b.queueNumber) || 999));
+
+        // 4. Filter by search if searched
+        displayList = dayPatients.filter(p => {
+          if (!q) return true;
+          return (p.name && p.name.toLowerCase().includes(q)) || 
+                 (p.husband && p.husband.toLowerCase().includes(q)) || 
+                 (p.nationalId && p.nationalId.includes(q)) || 
+                 (p.phone && p.phone.includes(q));
+        });
       } else if (activeTab === 'dueMonth') {
         displayList = dueMonthPatients.filter(p => !q || (p.name && p.name.toLowerCase().includes(q)) || (p.phone && p.phone.includes(q)));
         displayList.sort((a, b) => {
@@ -1252,6 +1185,7 @@
         });
       } else { // 'all'
         displayList = patients.filter(p => !q || (p.name && p.name.toLowerCase().includes(q)) || (p.phone && p.phone.includes(q)));
+        displayList.sort((a,b) => (b.timestamp || 0) - (a.timestamp || 0));
       }
 
       // Financial Calculation (Doctor Only)
@@ -1279,11 +1213,14 @@
         return;
       }
 
-      displayList.forEach((p) => {
+      displayList.forEach((p, index) => {
         const preg = calculatePregnancy(p.lmp);
         const isDoctor = (currentRole === 'doctor');
         const isWaiting = (p.status === 'waiting');
         const calculatedAge = calculateAgeFromBirthYear(p.birthYear) || p.age;
+        
+        // Display strictly sequential number for daily queue, or index for archive
+        const queueNumToDisplay = p.dynamicQueueNumber || (index + 1);
 
         list.innerHTML += `
           <div class="bg-white rounded-2xl p-4 shadow-sm border ${preg && preg.isDueWithinMonth ? 'border-rose-400 ring-2 ring-rose-200' : (isWaiting ? 'border-amber-300 bg-amber-50/20' : 'border-slate-200')} space-y-3">
@@ -1292,7 +1229,7 @@
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl ${isWaiting ? 'bg-amber-500 text-white animate-pulse' : 'bg-teal-700 text-white'} flex flex-col items-center justify-center font-bold shadow">
                   <span class="text-[8px] leading-tight">دور</span>
-                  <span class="text-base leading-tight">${p.queueNumber || '-'}</span>
+                  <span class="text-base leading-tight">${queueNumToDisplay}</span>
                 </div>
                 <div>
                   <div class="flex items-center gap-2">
@@ -1342,6 +1279,7 @@
                 ${p.obsNotes ? `<span class="w-full text-slate-600 mt-0.5">📝 ${p.obsNotes}</span>` : ''}
               </div>
 
+              <!-- Comprehensive Pregnancy Status -->
               ${preg && !preg.isFuture ? `
                 <div class="bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl text-xs text-emerald-900 space-y-1">
                   <div class="flex justify-between items-center font-bold">
