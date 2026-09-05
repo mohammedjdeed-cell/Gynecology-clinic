@@ -73,6 +73,7 @@
       
       <!-- Doctor Actions -->
       <div id="doctorNav" class="flex gap-1.5 flex-wrap items-center">
+        <button onclick="syncAllToCloud()" title="رفع وتحديث كل المريضات إلى السحابة فوراً" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-2.5 py-1.5 rounded-lg font-bold flex items-center gap-1 shadow">☁️ مزامنة سحابية</button>
         <button onclick="manualInstantRefresh()" title="تحديث فوري للسجلات" class="bg-teal-800 hover:bg-teal-900 text-xs px-2.5 py-1.5 rounded-lg font-bold flex items-center gap-1">🔄 تحديث</button>
         <button onclick="openDrugsModal()" title="إدارة صيدلية الأدوية" class="bg-teal-800 hover:bg-teal-900 text-xs px-2.5 py-1.5 rounded-lg font-semibold flex items-center gap-1">💊 الأدوية</button>
         <button onclick="cleanDuplicatePatients()" title="تنظيف التكرارات" class="bg-teal-800 hover:bg-teal-900 text-xs px-2.5 py-1.5 rounded-lg font-semibold">🧹 دمج المكرر</button>
@@ -86,6 +87,7 @@
 
       <!-- Secretary Actions -->
       <div id="secretaryNav" class="hidden flex gap-2 items-center">
+        <button onclick="syncAllToCloud()" title="مزامنة سحابية" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-2.5 py-2 rounded-lg font-bold shadow">☁️ مزامنة</button>
         <button onclick="manualInstantRefresh()" title="تحديث فوري" class="bg-indigo-800 hover:bg-indigo-900 text-white text-xs px-2.5 py-2 rounded-lg font-bold">🔄 تحديث</button>
         <button onclick="openBackdateModal()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-3 py-2 rounded-lg text-xs shadow">📁 أرشفة سابقة</button>
         <button onclick="lockApp()" class="bg-teal-900 hover:bg-black/30 text-xs px-3 py-2 rounded-lg font-semibold">🔒 قفل</button>
@@ -149,7 +151,7 @@
           <span id="dailyTotalIncome">0</span>
           <span>ل.س</span>
         </div>
-        <button onclick="manualInstantRefresh()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-2 py-1 rounded-xl text-[11px] flex items-center gap-1">
+        <button onclick="syncAllToCloud()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-2 py-1 rounded-xl text-[11px] flex items-center gap-1">
           <span id="syncStatus">🟢 محلي آمن</span>
         </button>
       </div>
@@ -588,7 +590,7 @@
     </div>
   </div>
 
-  <!-- ==================== JAVASCRIPT ENGINE WITH RESCUE & INDEXEDDB ==================== -->
+  <!-- ==================== JAVASCRIPT ENGINE ==================== -->
   <script>
     // --- KEYS & CONFIG ---
     const DEFAULT_DOC_PIN = "1234";
@@ -611,7 +613,7 @@
       { id: "d_8", name: "فيتامينات حمل (Pregnacare)", company: "مستورد", dose: "حبة يومياً" }
     ];
 
-    // --- INDEXEDDB STORAGE ENGINE (GIGABYTES CAPACITY) ---
+    // --- INDEXEDDB STORAGE ENGINE ---
     const IDB_NAME = "SyriaClinicIDB";
     const IDB_STORE = "patients_store";
 
@@ -619,9 +621,9 @@
       return new Promise((resolve, reject) => {
         const req = indexedDB.open(IDB_NAME, 1);
         req.onupgradeneeded = () => {
-          const db = req.result;
-          if (!db.objectStoreNames.contains(IDB_STORE)) {
-            db.createObjectStore(IDB_STORE, { keyPath: "id" });
+          const idb = req.result;
+          if (!idb.objectStoreNames.contains(IDB_STORE)) {
+            idb.createObjectStore(IDB_STORE, { keyPath: "id" });
           }
         };
         req.onsuccess = () => resolve(req.result);
@@ -631,9 +633,9 @@
 
     async function getPatientsFromIDB() {
       try {
-        const db = await openIDB();
+        const idb = await openIDB();
         return new Promise((resolve) => {
-          const tx = db.transaction(IDB_STORE, "readonly");
+          const tx = idb.transaction(IDB_STORE, "readonly");
           const store = tx.objectStore(IDB_STORE);
           const req = store.getAll();
           req.onsuccess = () => resolve(req.result || []);
@@ -646,8 +648,8 @@
 
     async function savePatientsToIDB(list) {
       try {
-        const db = await openIDB();
-        const tx = db.transaction(IDB_STORE, "readwrite");
+        const idb = await openIDB();
+        const tx = idb.transaction(IDB_STORE, "readwrite");
         const store = tx.objectStore(IDB_STORE);
         store.clear();
         list.forEach(p => store.put(p));
@@ -660,7 +662,7 @@
       }
     }
 
-    // --- RESCUE ENGINE (PULL FROM ALL OLD VERSIONS) ---
+    // --- RESCUE ENGINE (RETRIEVE FROM ALL HISTORICAL KEYS) ---
     function rescueExistingPatients() {
       let recovered = [];
       const keysToSearch = [
@@ -672,7 +674,6 @@
         "syria_obgyn_patients"
       ];
 
-      // Also scan any localStorage key containing 'patient'
       for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i);
         if (k && k.includes("patient") && !keysToSearch.includes(k)) {
@@ -712,7 +713,7 @@
     let whatsAppTargetPatient = null;
     let db = null;
 
-    // Zero-latency cross-tab communicator
+    // Cross-tab sync
     const syncChannel = ('BroadcastChannel' in window) ? new BroadcastChannel('clinic_sync_bus') : null;
     if (syncChannel) {
       syncChannel.onmessage = async (ev) => {
@@ -725,7 +726,6 @@
       };
     }
 
-    // Close suggestions dropdown when clicking outside
     document.addEventListener('click', (e) => {
       const container = document.getElementById('secNameFieldContainer');
       const dropdown = document.getElementById('secSuggestionsDropdown');
@@ -759,6 +759,43 @@
       }
       renderApp();
       showRealtimeToast('🔄 تم التحديث بنجاح');
+    }
+
+    // --- FULL CLOUD SYNC FUNCTION ---
+    async function syncAllToCloud() {
+      if (!db) {
+        alert("⚠️ غير متصل بسيرفر فايربيس حالياً. يرجى التأكد من اتصال الإنترنت وتفعيل السحابة.");
+        return;
+      }
+
+      showRealtimeToast("جاري فحص ورفع السجلات إلى السحابة...");
+      let successCount = 0;
+
+      for (const p of patients) {
+        try {
+          await db.collection('patients').doc(p.id).set(p, { merge: true });
+          successCount++;
+        } catch (err) {
+          console.warn("فشل رفع مريضة:", p.name, err);
+        }
+      }
+
+      // Also sync settings
+      try {
+        await db.collection('settings').doc('security').set({
+          docPin: getDocPin(),
+          secPin: getSecPin(),
+          updatedAt: Date.now()
+        }, { merge: true });
+
+        await db.collection('settings').doc('drugs').set({
+          list: drugs,
+          updatedAt: Date.now()
+        });
+      } catch (e) {}
+
+      showRealtimeToast(`✅ تمت مزامنة ${successCount} ملف مع السحابة بنجاح!`);
+      document.getElementById('syncStatus').innerText = '🟢 متصل ومزامن';
     }
 
     function getDocPin() { return localStorage.getItem(DOC_PIN_KEY) || DEFAULT_DOC_PIN; }
@@ -921,7 +958,7 @@
       closeWhatsAppModal();
     }
 
-    // --- SECRETARY SUGGESTIONS ---
+    // --- SECRETARY LIVE SEARCH ---
     function handleSecretaryLiveSearch(typedText) {
       const dropdown = document.getElementById('secSuggestionsDropdown');
       const q = normalizeArabic(typedText);
@@ -1025,7 +1062,7 @@
       return null;
     }
 
-    // --- SECRETARY INTAKE SUBMISSION ---
+    // --- SECRETARY SUBMIT ---
     async function handleSecretarySubmit(e) {
       e.preventDefault();
       const submitBtn = document.getElementById('secSubmitBtn');
@@ -2021,7 +2058,7 @@
       alert('✨ تم تصفير وحذف جميع السجلات القديمة بنجاح!');
     }
 
-    // --- FIREBASE SYNC ENGINE (HARDENED MERGE & UPLOAD) ---
+    // --- FIREBASE SYNC ENGINE (WITH TWO-WAY MERGE & OFFLINE PERSISTENCE) ---
     const firebaseConfig = {
       apiKey: "AIzaSyDBUW3lgkFWvDygfgBD4kSBRh4wx9d4h0Q",
       authDomain: "hiam-khder.firebaseapp.com",
@@ -2037,14 +2074,18 @@
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         db = firebase.firestore();
 
+        // Enable offline persistence in Firestore
+        db.enablePersistence({ synchronizeTabs: true }).catch(err => {
+          console.warn("Firestore persistence note:", err.code);
+        });
+
         db.collection('patients').orderBy('timestamp', 'desc').onSnapshot((snapshot) => {
           const cloudData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
           
-          // CRITICAL FIX: Merge cloud with local. Never let an empty cloud overwrite local patients!
+          // HARDENED MERGE: Never allow an empty cloud snapshot to delete local patients!
           const cloudIds = new Set(cloudData.map(p => p.id));
           const unsyncedLocal = patients.filter(p => p.id && !cloudIds.has(p.id));
           
-          // Upload local unsynced records to cloud if missing
           if (unsyncedLocal.length > 0) {
             unsyncedLocal.forEach(localP => {
               syncPatientToCloud(localP);
@@ -2068,14 +2109,11 @@
     }
 
     async function saveDataPermanently() {
-      // 1. Save to IndexedDB (Gigabytes Capacity)
       await savePatientsToIDB(patients);
-      
-      // 2. Safe Fallback to localStorage (without crashing on full storage)
       try {
         localStorage.setItem(PRIMARY_DB_KEY, JSON.stringify(patients));
       } catch (err) {
-        console.warn('LocalStorage backup full, data secured in IndexedDB:', err);
+        console.warn('LocalStorage backup quota reached, secured in IndexedDB:', err);
       }
     }
 
@@ -2376,7 +2414,7 @@
       else renderApp();
     }
 
-    // --- PHOTO UPLOAD ---
+    // --- PHOTO COMPRESSION ---
     function handlePhotoUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
