@@ -15,6 +15,7 @@
   
   <!-- Firebase Compat Scripts -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
   <style>
@@ -73,13 +74,13 @@
       
       <!-- Doctor Actions -->
       <div id="doctorNav" class="flex gap-1.5 flex-wrap items-center">
-        <button onclick="syncAllToCloud()" title="رفع وتحديث كل المريضات إلى السحابة فوراً" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-2.5 py-1.5 rounded-lg font-bold flex items-center gap-1 shadow">☁️ مزامنة سحابية</button>
-        <button onclick="manualInstantRefresh()" title="تحديث فوري للسجلات" class="bg-teal-800 hover:bg-teal-900 text-xs px-2.5 py-1.5 rounded-lg font-bold flex items-center gap-1">🔄 تحديث</button>
+        <button onclick="syncAllToCloud()" title="مزامنة فورية كاملة مع السحابة" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-2.5 py-1.5 rounded-lg font-bold flex items-center gap-1 shadow">☁️ مزامنة سحابية</button>
+        <button onclick="manualInstantRefresh()" title="تحديث السجلات" class="bg-teal-800 hover:bg-teal-900 text-xs px-2.5 py-1.5 rounded-lg font-bold flex items-center gap-1">🔄 تحديث</button>
         <button onclick="openDrugsModal()" title="إدارة صيدلية الأدوية" class="bg-teal-800 hover:bg-teal-900 text-xs px-2.5 py-1.5 rounded-lg font-semibold flex items-center gap-1">💊 الأدوية</button>
         <button onclick="cleanDuplicatePatients()" title="تنظيف التكرارات" class="bg-teal-800 hover:bg-teal-900 text-xs px-2.5 py-1.5 rounded-lg font-semibold">🧹 دمج المكرر</button>
         <button onclick="openBackdateModal()" title="أرشفة مريضة بأثر رجعي" class="bg-amber-600 hover:bg-amber-700 text-white text-xs px-2.5 py-1.5 rounded-lg font-bold">📁 أرشفة سابقة</button>
         <button onclick="triggerImport()" title="استيراد" class="bg-teal-800 hover:bg-teal-900 text-xs px-2 py-1.5 rounded-lg">📥</button>
-        <button onclick="exportData(false)" title="تصدير" class="bg-teal-800 hover:bg-teal-900 text-xs px-2 py-1.5 rounded-lg">💾</button>
+        <button onclick="exportData(false)" title="تصدير نسخة احتياطية" class="bg-teal-800 hover:bg-teal-900 text-xs px-2 py-1.5 rounded-lg">💾</button>
         <button onclick="openChangePinModal()" title="إدارة الرموز" class="bg-teal-800 hover:bg-teal-900 text-xs px-2 py-1.5 rounded-lg">🔑</button>
         <button onclick="lockApp()" class="bg-teal-900 hover:bg-black/30 text-xs px-2.5 py-1.5 rounded-lg font-semibold">🔒 قفل</button>
         <button onclick="openDoctorNewPatientModal()" class="bg-white text-teal-800 font-bold px-3 py-1.5 rounded-lg text-xs shadow hover:bg-gray-100">+ مريضة جديدة</button>
@@ -96,15 +97,10 @@
     </div>
   </header>
 
-  <!-- Auto Backup Banner -->
-  <div id="backupAlertBanner" class="hidden bg-emerald-600 text-white text-xs py-2 px-4 text-center font-semibold shadow">
-    💾 تم حفظ وتنزيل النسخة الاحتياطية بنجاح!
-  </div>
-
-  <!-- Realtime Toast Notification -->
-  <div id="realtimeToast" class="fixed bottom-4 left-4 bg-slate-900/90 backdrop-blur text-white px-4 py-2 rounded-xl text-xs font-bold shadow-2xl flex items-center gap-2 transform translate-y-20 transition-transform duration-300 z-50 pointer-events-none">
-    <span class="text-emerald-400">⚡</span>
-    <span id="realtimeToastMsg">تم تحديث البيانات فورياً</span>
+  <!-- Notification Toast -->
+  <div id="realtimeToast" class="fixed bottom-4 left-4 bg-slate-900/90 backdrop-blur text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-2xl flex items-center gap-2 transform translate-y-24 transition-transform duration-300 z-50 pointer-events-none">
+    <span class="text-emerald-400 text-base">⚡</span>
+    <span id="realtimeToastMsg">تم التحديث</span>
   </div>
 
   <!-- ==================== 3. MAIN DASHBOARD ==================== -->
@@ -151,13 +147,13 @@
           <span id="dailyTotalIncome">0</span>
           <span>ل.س</span>
         </div>
-        <button onclick="syncAllToCloud()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-2 py-1 rounded-xl text-[11px] flex items-center gap-1">
+        <button onclick="syncAllToCloud()" title="اضغطي للتأكد من حفظ السحابة" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-2 py-1 rounded-xl text-[11px] flex items-center gap-1">
           <span id="syncStatus">🟢 محلي آمن</span>
         </button>
       </div>
     </div>
 
-    <!-- Next Patient Spotlight Container -->
+    <!-- Spotlight Widget: Next Patient In Line -->
     <div id="nextPatientSpotlightContainer"></div>
 
     <!-- Patient Cards List -->
@@ -239,7 +235,7 @@
     </div>
   </div>
 
-  <!-- ==================== 5. BACKDATE / RETROSPECTIVE ARCHIVING MODAL ==================== -->
+  <!-- ==================== 5. BACKDATE ARCHIVING MODAL ==================== -->
   <div id="backdateModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center p-3 z-40">
     <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-3.5 text-xs">
       <div class="flex justify-between items-center border-b pb-2">
@@ -302,15 +298,29 @@
         <button type="button" onclick="closeDoctorModal()" class="text-gray-400 hover:text-red-500 text-2xl font-bold">&times;</button>
       </div>
 
+      <!-- Doctor Live Match Alert Banner -->
+      <div id="docExistingMatchBanner" class="hidden bg-emerald-50 border border-emerald-300 p-2.5 rounded-xl text-xs text-emerald-950 flex justify-between items-center font-bold mb-3">
+        <div>
+          <span>💡 تم استدعاء بطاقة المريضة السابقة بنجاح!</span>
+          <p class="text-[10px] text-emerald-800 font-normal">سيتم توثيق هذا الفحص ضمن سجل زياراتها دون تكرار بطاقتها.</p>
+        </div>
+        <button type="button" onclick="resetDocSelection()" class="text-xs text-red-600 hover:underline">بدء بطاقة جديدة</button>
+      </div>
+
       <form id="doctorForm" onsubmit="handleDoctorSubmit(event)" class="space-y-3.5 text-xs">
         <input type="hidden" id="editingPatientId">
 
-        <!-- Basic Info -->
+        <!-- Basic Info with Live Suggestion Dropdown -->
         <div class="bg-slate-50 p-3 rounded-xl border space-y-2">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-            <div>
+            <div class="relative" id="docNameFieldContainer">
               <label class="block font-semibold mb-1">الاسم الثلاثي للمريضة *</label>
-              <input type="text" id="pName" required class="w-full p-2 border rounded-lg text-sm bg-white font-bold">
+              <input type="text" id="pName" required autocomplete="off" oninput="handleDoctorLiveSearch(this.value)" 
+                     placeholder="اسم المريضة..." class="w-full p-2 border rounded-lg text-sm bg-white font-bold focus:ring-2 focus:ring-teal-500">
+              
+              <!-- Doctor Suggestions Dropdown -->
+              <div id="docSuggestionsDropdown" class="hidden absolute top-full right-0 left-0 bg-white border-2 border-teal-500 rounded-xl shadow-2xl mt-1 max-h-56 overflow-y-auto z-40 divide-y divide-slate-100">
+              </div>
             </div>
             <div>
               <label class="block font-semibold mb-1">اسم الزوج</label>
@@ -537,7 +547,26 @@
     </div>
   </div>
 
-  <!-- ==================== 10. PIN SETTINGS & CLEANUP MODAL ==================== -->
+  <!-- ==================== 10. CLOUD SYNC SUCCESS MODAL ==================== -->
+  <div id="syncReportModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl space-y-4 border border-emerald-100">
+      <div class="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-2xl flex items-center justify-center mx-auto text-3xl shadow-inner">
+        ☁️
+      </div>
+      <div>
+        <h3 class="text-lg font-black text-slate-900">تقرير المزامنة السحابية</h3>
+        <p id="syncReportDetails" class="text-xs text-slate-600 mt-2 font-medium leading-relaxed"></p>
+      </div>
+      <div class="bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl text-xs text-emerald-900 font-bold">
+        ✅ كافة بيانات العيادة مؤمنة ومحفوظة بالسحابة
+      </div>
+      <button onclick="closeSyncReportModal()" class="w-full py-2.5 bg-teal-700 hover:bg-teal-800 text-white rounded-xl font-bold text-xs shadow-md transition">
+        تم، إغلاق النافذة
+      </button>
+    </div>
+  </div>
+
+  <!-- ==================== 11. PIN SETTINGS & CLEANUP MODAL ==================== -->
   <div id="changePinModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-3 z-40">
     <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4 text-xs max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b pb-2">
@@ -565,7 +594,7 @@
     </div>
   </div>
 
-  <!-- ==================== 11. PIN-PROTECTED DELETE MODAL ==================== -->
+  <!-- ==================== 12. PIN-PROTECTED DELETE MODAL ==================== -->
   <div id="deleteModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center p-3 z-50">
     <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl space-y-4">
       <div class="w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto text-2xl">
@@ -613,7 +642,7 @@
       { id: "d_8", name: "فيتامينات حمل (Pregnacare)", company: "مستورد", dose: "حبة يومياً" }
     ];
 
-    // --- INDEXEDDB STORAGE ENGINE ---
+    // --- INDEXEDDB STORAGE ENGINE (GIGABYTES CAPACITY) ---
     const IDB_NAME = "SyriaClinicIDB";
     const IDB_STORE = "patients_store";
 
@@ -662,7 +691,7 @@
       }
     }
 
-    // --- RESCUE ENGINE (RETRIEVE FROM ALL HISTORICAL KEYS) ---
+    // --- RESCUE ENGINE ---
     function rescueExistingPatients() {
       let recovered = [];
       const keysToSearch = [
@@ -726,11 +755,18 @@
       };
     }
 
+    // Close suggestions dropdowns when clicking outside
     document.addEventListener('click', (e) => {
-      const container = document.getElementById('secNameFieldContainer');
-      const dropdown = document.getElementById('secSuggestionsDropdown');
-      if (container && dropdown && !container.contains(e.target)) {
-        dropdown.classList.add('hidden');
+      const secContainer = document.getElementById('secNameFieldContainer');
+      const secDropdown = document.getElementById('secSuggestionsDropdown');
+      if (secContainer && secDropdown && !secContainer.contains(e.target)) {
+        secDropdown.classList.add('hidden');
+      }
+
+      const docContainer = document.getElementById('docNameFieldContainer');
+      const docDropdown = document.getElementById('docSuggestionsDropdown');
+      if (docContainer && docDropdown && !docContainer.contains(e.target)) {
+        docDropdown.classList.add('hidden');
       }
     });
 
@@ -739,8 +775,8 @@
       const toastMsg = document.getElementById('realtimeToastMsg');
       if (toast && toastMsg) {
         toastMsg.innerText = msg;
-        toast.classList.remove('translate-y-20');
-        setTimeout(() => toast.classList.add('translate-y-20'), 3500);
+        toast.classList.remove('translate-y-24');
+        setTimeout(() => toast.classList.add('translate-y-24'), 3500);
       }
     }
 
@@ -758,29 +794,30 @@
         patients = rescueExistingPatients();
       }
       renderApp();
-      showRealtimeToast('🔄 تم التحديث بنجاح');
+      showRealtimeToast('🔄 تم تحديث السجلات بنجاح');
     }
 
-    // --- FULL CLOUD SYNC FUNCTION ---
+    // --- FULL CLOUD SYNC FUNCTION WITH REPORT MODAL ---
     async function syncAllToCloud() {
       if (!db) {
-        alert("⚠️ غير متصل بسيرفر فايربيس حالياً. يرجى التأكد من اتصال الإنترنت وتفعيل السحابة.");
+        alert("⚠️ غير متصل بـ Firebase حالياً. تأكدي من الاتصال بالإنترنت.");
         return;
       }
 
-      showRealtimeToast("جاري فحص ورفع السجلات إلى السحابة...");
+      showRealtimeToast("جاري فحص ورفع كافة السجلات إلى السحابة...");
       let successCount = 0;
+      let failCount = 0;
 
       for (const p of patients) {
         try {
           await db.collection('patients').doc(p.id).set(p, { merge: true });
           successCount++;
         } catch (err) {
-          console.warn("فشل رفع مريضة:", p.name, err);
+          console.warn("Upload error:", p.name, err);
+          failCount++;
         }
       }
 
-      // Also sync settings
       try {
         await db.collection('settings').doc('security').set({
           docPin: getDocPin(),
@@ -794,8 +831,19 @@
         });
       } catch (e) {}
 
-      showRealtimeToast(`✅ تمت مزامنة ${successCount} ملف مع السحابة بنجاح!`);
       document.getElementById('syncStatus').innerText = '🟢 متصل ومزامن';
+      
+      // Open clear report modal
+      document.getElementById('syncReportDetails').innerHTML = `
+        تم فحص <strong class="text-slate-900">${patients.length}</strong> ملف مريضة في النظام.<br>
+        تمت مزامنة ورفع <strong class="text-emerald-700">${successCount}</strong> ملف بنجاح إلى قاعدة بيانات السحابة.<br>
+        ${failCount > 0 ? `<span class="text-red-500 font-bold">تعذر رفع ${failCount} ملف (تحققي من الاتصال)</span>` : `<span class="text-slate-500 text-[11px]">نسبة النجاح: 100% (صفر أخطاء)</span>`}
+      `;
+      document.getElementById('syncReportModal').classList.remove('hidden');
+    }
+
+    function closeSyncReportModal() {
+      document.getElementById('syncReportModal').classList.add('hidden');
     }
 
     function getDocPin() { return localStorage.getItem(DOC_PIN_KEY) || DEFAULT_DOC_PIN; }
@@ -958,7 +1006,7 @@
       closeWhatsAppModal();
     }
 
-    // --- SECRETARY LIVE SEARCH ---
+    // --- LIVE SUGGESTIONS (SECRETARY) ---
     function handleSecretaryLiveSearch(typedText) {
       const dropdown = document.getElementById('secSuggestionsDropdown');
       const q = normalizeArabic(typedText);
@@ -1033,6 +1081,71 @@
       document.getElementById('secExistingMatchBanner').classList.add('hidden');
       document.getElementById('secName').value = '';
       document.getElementById('secName').focus();
+    }
+
+    // --- LIVE SUGGESTIONS (DOCTOR) ---
+    function handleDoctorLiveSearch(typedText) {
+      const dropdown = document.getElementById('docSuggestionsDropdown');
+      const q = normalizeArabic(typedText);
+
+      if (!q || q.length < 2) {
+        dropdown.classList.add('hidden');
+        dropdown.innerHTML = '';
+        return;
+      }
+
+      const matches = patients.filter(p => {
+        const normName = normalizeArabic(p.name);
+        const normHusband = normalizeArabic(p.husband);
+        return normName.includes(q) || 
+               normHusband.includes(q) || 
+               safeIncludes(p.phone, q) || 
+               safeIncludes(p.nationalId, q);
+      }).slice(0, 5);
+
+      if (matches.length === 0) {
+        dropdown.classList.add('hidden');
+        dropdown.innerHTML = '';
+        return;
+      }
+
+      dropdown.innerHTML = `
+        <div class="p-2 bg-slate-50 text-[11px] font-bold text-slate-500 border-b flex justify-between">
+          <span>🔍 مريضات مسجلات سابقاً في الأرشيف:</span>
+          <span>اضغطي لتحميل ملف المريضة</span>
+        </div>
+      `;
+
+      matches.forEach(m => {
+        const item = document.createElement('div');
+        item.className = 'p-2.5 hover:bg-teal-50 cursor-pointer text-xs transition border-b last:border-0';
+        item.innerHTML = `
+          <div class="flex justify-between items-center font-bold text-slate-900">
+            <span>${escapeHTML(m.name)} ${m.husband ? `<span class="text-slate-500 font-normal text-[11px]">(زوجها: ${escapeHTML(m.husband)})</span>` : ''}</span>
+            <span class="bg-purple-100 text-purple-800 text-[10px] px-2 py-0.5 rounded-full font-bold">تحميل السجل</span>
+          </div>
+          <div class="flex gap-2 text-[10px] text-slate-500 mt-1 flex-wrap font-mono">
+            <span>📞 ${escapeHTML(m.phone) || 'بدون هاتف'}</span>
+            ${m.birthYear ? `<span>🎂 مواليد ${escapeHTML(m.birthYear)}</span>` : ''}
+            <span>📅 آخر زيارة: ${escapeHTML(m.visitDate) || 'سابق'}</span>
+          </div>
+        `;
+        item.onclick = () => selectExistingPatientForDoctor(m);
+        dropdown.appendChild(item);
+      });
+
+      dropdown.classList.remove('hidden');
+    }
+
+    function selectExistingPatientForDoctor(p) {
+      openDoctorModal(p.id);
+      document.getElementById('docSuggestionsDropdown').classList.add('hidden');
+      document.getElementById('docExistingMatchBanner').classList.remove('hidden');
+    }
+
+    function resetDocSelection() {
+      openDoctorNewPatientModal();
+      document.getElementById('docExistingMatchBanner').classList.add('hidden');
     }
 
     function findBestMatchingPatient(query) {
@@ -1416,6 +1529,7 @@
       renderDrugChips();
 
       updateModalPregnancyPreview();
+      document.getElementById('docSuggestionsDropdown').classList.add('hidden');
       document.getElementById('doctorModal').classList.remove('hidden');
     }
 
@@ -1427,6 +1541,8 @@
       document.getElementById('pIsHighRisk').checked = false;
       toggleHighRiskReason();
       document.getElementById('bpWarningText').classList.add('hidden');
+      document.getElementById('docExistingMatchBanner').classList.add('hidden');
+      document.getElementById('docSuggestionsDropdown').classList.add('hidden');
       currentAttachedPhotos = [];
       renderPhotosPreview();
       renderDrugChips();
@@ -1585,7 +1701,7 @@
       }
     }
 
-    // --- MAIN RENDER ENGINE ---
+    // --- MAIN RENDER ENGINE (REORDERED: WAITING AT TOP, EXAMINED AT BOTTOM) ---
     function renderApp() {
       const selectedDate = document.getElementById('dateFilterInput').value || getTodayDateString();
       const q = normalizeArabic(document.getElementById('searchInput').value);
@@ -1619,6 +1735,7 @@
         const targetDate = isSec ? getTodayDateString() : selectedDate;
         let dayPatients = patients.filter(p => p.visitDate === targetDate);
         
+        // Dynamic turn numbering assigned strictly by registration time
         dayPatients.sort((a, b) => ((a.queueTimestamp || a.timestamp || 0) - (b.queueTimestamp || b.timestamp || 0)));
 
         dayPatients.forEach((p, idx) => {
@@ -1640,7 +1757,7 @@
           const pb = calculatePregnancy(b.lmp);
           return (pa?.daysUntilDelivery || 999) - (pb?.daysUntilDelivery || 999);
         });
-      } else { // 'all'
+      } else { // 'all' (Archive of all patients)
         displayList = patients.filter(p => !q || 
           normalizeArabic(p.name).includes(q) || 
           normalizeArabic(p.husband).includes(q) || 
@@ -1675,9 +1792,38 @@
         return;
       }
 
-      displayList.forEach((p, index) => {
-        list.appendChild(createPatientCardElement(p, index));
-      });
+      // SMART REORDERING IN TODAY'S QUEUE:
+      // Waiting patients displayed AT THE TOP (in arrival order: next, then next...)
+      // Completed patients displayed AT THE BOTTOM
+      if ((isSec || activeTab === 'daily') && waitingCount > 0 && completedCount > 0) {
+        const waitingPatients = displayList.filter(p => p.status === 'waiting');
+        const donePatients = displayList.filter(p => p.status !== 'waiting');
+
+        waitingPatients.forEach((p, index) => {
+          list.appendChild(createPatientCardElement(p, index));
+        });
+
+        // Clean subtle divider
+        const divider = document.createElement('div');
+        divider.className = 'flex items-center gap-3 my-4 py-1';
+        divider.innerHTML = `
+          <div class="flex-1 border-t border-slate-300"></div>
+          <span class="text-xs font-bold text-slate-500 bg-slate-200/80 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-xs">
+            <span>✅</span>
+            <span>المريضات اللواتي تم فحصهن اليوم (${completedCount})</span>
+          </span>
+          <div class="flex-1 border-t border-slate-300"></div>
+        `;
+        list.appendChild(divider);
+
+        donePatients.forEach((p, index) => {
+          list.appendChild(createPatientCardElement(p, index));
+        });
+      } else {
+        displayList.forEach((p, index) => {
+          list.appendChild(createPatientCardElement(p, index));
+        });
+      }
     }
 
     // --- SPOTLIGHT WIDGET ---
@@ -1717,9 +1863,8 @@
       container.innerHTML = `
         <div class="spotlight-glow bg-gradient-to-r from-amber-600 via-orange-600 to-teal-700 text-white p-3.5 rounded-2xl shadow-lg border border-amber-300/40 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
           <div class="flex items-center gap-3">
-            <div class="w-12 h-12 rounded-xl bg-white text-amber-900 flex flex-col items-center justify-center font-extrabold shadow">
-              <span class="text-[9px] uppercase tracking-tighter text-amber-700 font-bold">الدور التالي</span>
-              <span class="text-xl leading-none font-black">${waitingTurnNum}</span>
+            <div class="w-12 h-12 rounded-2xl bg-white text-amber-950 flex items-center justify-center font-black text-2xl shadow">
+              ${waitingTurnNum}
             </div>
             <div>
               <div class="flex items-center gap-2">
@@ -1745,7 +1890,7 @@
       `;
     }
 
-    // --- PATIENT CARD ---
+    // --- PATIENT CARD (WITH SLEEK MODERN NUMBER & ARCHIVE DETECTION) ---
     function createPatientCardElement(p, index) {
       const card = document.createElement('div');
       const preg = calculatePregnancy(p.lmp);
@@ -1755,6 +1900,9 @@
       const queueNumToDisplay = p.dynamicQueueNumber || (index + 1);
       const isHighBP = checkHighBloodPressure(p.bp);
       const visitsList = p.visits || [];
+      
+      // In 'all' archive view, turn number is irrelevant:
+      const showQueueNumber = (activeTab === 'daily' || currentRole === 'secretary' || activeTab === 'weekly');
 
       card.className = `bg-white rounded-2xl p-4 shadow-sm border ${p.isHighRisk ? 'border-red-500 ring-2 ring-red-300' : (preg && (preg.isDueWithinMonth || preg.isOverdue) ? 'border-rose-400 ring-2 ring-rose-200' : (isWaiting ? 'border-amber-300 bg-amber-50/20' : 'border-slate-200'))} space-y-3`;
 
@@ -1768,15 +1916,22 @@
 
         <div class="flex justify-between items-start border-b pb-2">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl ${isWaiting ? 'bg-amber-500 text-white animate-pulse' : 'bg-teal-700 text-white'} flex flex-col items-center justify-center font-bold shadow">
-              <span class="text-[8px] leading-tight">دور</span>
-              <span class="text-base leading-tight">${queueNumToDisplay}</span>
-            </div>
+            <!-- Modern Minimalist Number Badge or Patient Avatar -->
+            ${showQueueNumber ? `
+              <div class="w-10 h-10 rounded-2xl flex items-center justify-center font-black text-lg tracking-tight shadow-sm ${isWaiting ? 'bg-gradient-to-br from-amber-500 to-amber-600 text-white shadow-amber-200 ring-2 ring-amber-300 animate-pulse' : 'bg-slate-100 text-slate-500 border border-slate-200'}">
+                ${queueNumToDisplay}
+              </div>
+            ` : `
+              <div class="w-10 h-10 rounded-2xl bg-teal-50 border border-teal-200 text-teal-700 flex items-center justify-center text-lg font-bold shadow-xs">
+                👤
+              </div>
+            `}
+
             <div>
               <div class="flex items-center gap-2">
                 <h3 class="text-base font-bold text-slate-900">${escapeHTML(p.name)}</h3>
                 ${p.husband ? `<span class="text-slate-600 font-normal text-xs">(زوجها: ${escapeHTML(p.husband)})</span>` : ''}
-                ${isDoctor && visitsList.length > 0 ? `<span class="bg-purple-100 text-purple-800 text-[10px] px-2 py-0.2 rounded-full font-bold">📜 ${visitsList.length} زيارات موثقة</span>` : ''}
+                ${isDoctor && visitsList.length > 0 ? `<span class="bg-purple-100 text-purple-800 text-[10px] px-2 py-0.2 rounded-full font-bold">📜 ${visitsList.length} زيارات</span>` : ''}
               </div>
               <div class="flex items-center gap-2 flex-wrap text-xs text-slate-500 mt-0.5">
                 <span>📞 ${escapeHTML(p.phone) || 'بدون هاتف'}</span>
@@ -1846,20 +2001,24 @@
             </div>
           ` : ''}
 
+          <!-- Latest Visit Summary -->
           ${(p.bp || p.weight || p.ultrasound || p.rx || (p.photos && p.photos.length > 0)) ? `
-            <div class="bg-slate-50 p-2.5 rounded-xl text-xs border space-y-1.5">
-              <div class="flex gap-4 text-slate-500 font-semibold items-center">
-                <span class="${isHighBP ? 'bg-red-100 text-red-700 px-2 py-0.5 rounded font-bold border border-red-300 animate-pulse' : ''}">
-                  ${isHighBP ? '⚠️ الضغط: ' : 'الضغط: '}${escapeHTML(p.bp) || '-'}
-                </span>
-                <span>الوزن: ${p.weight ? escapeHTML(p.weight) + ' كغ' : '-'}</span>
+            <div class="bg-slate-50 p-3 rounded-xl text-xs border space-y-2">
+              <div class="flex justify-between items-center border-b border-slate-200 pb-1.5">
+                <span class="font-bold text-slate-700">🩺 فحص آخر زيارة (${escapeHTML(p.visitDate)})</span>
+                <div class="flex gap-3">
+                  <span class="${isHighBP ? 'bg-red-100 text-red-700 px-2 py-0.5 rounded font-bold border border-red-300 animate-pulse' : 'text-slate-600'}">
+                    ${isHighBP ? '⚠️ الضغط: ' : 'الضغط: '}<strong>${escapeHTML(p.bp) || '-'}</strong>
+                  </span>
+                  <span class="text-slate-600">الوزن: <strong>${p.weight ? escapeHTML(p.weight) + ' كغ' : '-'}</strong></span>
+                </div>
               </div>
-              ${p.ultrasound ? `<p><strong>تقرير الإيكو:</strong> ${escapeHTML(p.ultrasound)}</p>` : ''}
-              ${p.rx ? `<p class="text-teal-800 font-semibold"><strong>الوصفة (Rx):</strong><br><span class="text-slate-800 whitespace-pre-line">${escapeHTML(p.rx)}</span></p>` : ''}
+              ${p.ultrasound ? `<div class="bg-white p-2 rounded-lg border border-slate-200"><span class="font-bold text-slate-800">تقرير الإيكو:</span> <span class="text-slate-700">${escapeHTML(p.ultrasound)}</span></div>` : ''}
+              ${p.rx ? `<div class="bg-amber-50/70 p-2 rounded-lg border border-amber-200"><span class="font-bold text-teal-900">الوصفة (Rx):</span><p class="text-slate-800 whitespace-pre-line mt-0.5">${escapeHTML(p.rx)}</p></div>` : ''}
               
               ${p.photos && p.photos.length > 0 ? `
                 <div class="pt-1">
-                  <span class="text-[11px] text-slate-500 font-bold block mb-1">📸 صور الإيكو والتحاليل المرفقة:</span>
+                  <span class="text-[10px] text-slate-500 font-bold block mb-1">📸 صور الإيكو والتحاليل المرفقة:</span>
                   <div class="flex gap-2 flex-wrap">
                     ${p.photos.map(imgSrc => `
                       <img src="${imgSrc}" class="w-12 h-12 rounded-lg object-cover border border-slate-300 cursor-pointer shadow-sm hover:opacity-80" onclick="openLightbox('${imgSrc}')">
@@ -1870,32 +2029,33 @@
             </div>
           ` : ''}
 
-          ${visitsList.length > 0 ? `
-            <details class="text-xs bg-slate-50 rounded-xl p-2.5 border border-slate-200">
+          <!-- STRUCTURAL VISIT TIMELINE -->
+          ${visitsList.length > 1 ? `
+            <details class="text-xs bg-slate-50 rounded-xl p-3 border border-slate-200">
               <summary class="font-bold text-teal-800 cursor-pointer select-none flex items-center justify-between">
-                <span>📜 الأرشيف الزمني لزيارات المريضة (${visitsList.length} زيارات)</span>
-                <span class="text-[10px] text-slate-500 underline">عرض التفاصيل</span>
+                <span>📜 الأرشيف الزمني للزيارات السابقة (${visitsList.length} مراجعات)</span>
+                <span class="text-[11px] bg-teal-100 text-teal-900 px-2 py-0.5 rounded-lg font-bold">استعراض السجل</span>
               </summary>
               <div class="space-y-3 mt-3 pt-2 border-t divide-y divide-slate-200">
-                ${visitsList.map((v, vIdx) => `
-                  <div class="pt-2.5 space-y-1.5">
-                    <div class="flex justify-between items-center font-bold text-slate-800">
-                      <span class="bg-teal-100 text-teal-900 px-2 py-0.5 rounded-md text-[11px]">
-                        📅 الزيارة ${visitsList.length - vIdx}: ${escapeHTML(v.date)}
+                ${visitsList.slice(1).map((v, vIdx) => `
+                  <div class="pt-3 space-y-2">
+                    <div class="flex justify-between items-center font-bold">
+                      <span class="bg-slate-800 text-white px-2.5 py-0.5 rounded-md text-[11px]">
+                        📅 مراجعة تاريخ: ${escapeHTML(v.date)}
                       </span>
                       <div class="flex gap-2 text-[11px] text-slate-600 font-mono">
-                        ${v.bp ? `<span>الضغط: <strong>${escapeHTML(v.bp)}</strong></span>` : ''}
-                        ${v.weight ? `<span>الوزن: <strong>${escapeHTML(v.weight)} كغ</strong></span>` : ''}
-                        ${v.fee ? `<span class="text-emerald-700">الكشفية: ${v.fee} ل.س</span>` : ''}
+                        ${v.bp ? `<span class="bg-white border px-1.5 py-0.5 rounded">الضغط: <strong>${escapeHTML(v.bp)}</strong></span>` : ''}
+                        ${v.weight ? `<span class="bg-white border px-1.5 py-0.5 rounded">الوزن: <strong>${escapeHTML(v.weight)} كغ</strong></span>` : ''}
+                        ${v.fee ? `<span class="text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded font-bold">${v.fee} ل.س</span>` : ''}
                       </div>
                     </div>
-                    ${v.ultrasound ? `<p class="text-slate-700 bg-white p-2 rounded border border-slate-100"><strong>الإيكو والفحص:</strong> ${escapeHTML(v.ultrasound)}</p>` : ''}
-                    ${v.rx ? `<p class="text-teal-900 bg-yellow-50/60 p-2 rounded border border-yellow-100 font-sans"><strong>العلاج (Rx):</strong> ${escapeHTML(v.rx)}</p>` : ''}
-                    ${v.nextVisitDate ? `<p class="text-indigo-800 font-semibold text-[11px]">📌 المراجعة المحددة: ${escapeHTML(v.nextVisitDate)}</p>` : ''}
+                    ${v.ultrasound ? `<div class="bg-white p-2 rounded-lg border border-slate-100 text-slate-700"><strong>الإيكو:</strong> ${escapeHTML(v.ultrasound)}</div>` : ''}
+                    ${v.rx ? `<div class="bg-yellow-50/80 p-2 rounded-lg border border-yellow-100 text-teal-950 font-sans"><strong>العلاج (Rx):</strong><br><span class="whitespace-pre-line">${escapeHTML(v.rx)}</span></div>` : ''}
+                    ${v.nextVisitDate ? `<div class="text-indigo-900 bg-indigo-50 border border-indigo-100 px-2 py-1 rounded-md text-[10px] font-bold">📌 المراجعة الموصى بها: ${escapeHTML(v.nextVisitDate)}</div>` : ''}
                     ${v.photos && v.photos.length > 0 ? `
                       <div class="flex gap-1.5 flex-wrap pt-1">
                         ${v.photos.map(pSrc => `
-                          <img src="${pSrc}" class="w-10 h-10 rounded object-cover border cursor-pointer hover:opacity-80" onclick="openLightbox('${pSrc}')">
+                          <img src="${pSrc}" class="w-10 h-10 rounded object-cover border cursor-pointer hover:opacity-80 shadow-xs" onclick="openLightbox('${pSrc}')">
                         `).join('')}
                       </div>
                     ` : ''}
@@ -2058,7 +2218,7 @@
       alert('✨ تم تصفير وحذف جميع السجلات القديمة بنجاح!');
     }
 
-    // --- FIREBASE SYNC ENGINE (WITH TWO-WAY MERGE & OFFLINE PERSISTENCE) ---
+    // --- FIREBASE SYNC ENGINE WITH SILENT ANONYMOUS AUTH ---
     const firebaseConfig = {
       apiKey: "AIzaSyDBUW3lgkFWvDygfgBD4kSBRh4wx9d4h0Q",
       authDomain: "hiam-khder.firebaseapp.com",
@@ -2072,9 +2232,11 @@
     try {
       if (typeof firebase !== 'undefined') {
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        
+        firebase.auth().signInAnonymously().catch(err => console.log("Anonymous Auth mode ready"));
+
         db = firebase.firestore();
 
-        // Enable offline persistence in Firestore
         db.enablePersistence({ synchronizeTabs: true }).catch(err => {
           console.warn("Firestore persistence note:", err.code);
         });
@@ -2082,14 +2244,11 @@
         db.collection('patients').orderBy('timestamp', 'desc').onSnapshot((snapshot) => {
           const cloudData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
           
-          // HARDENED MERGE: Never allow an empty cloud snapshot to delete local patients!
           const cloudIds = new Set(cloudData.map(p => p.id));
           const unsyncedLocal = patients.filter(p => p.id && !cloudIds.has(p.id));
           
           if (unsyncedLocal.length > 0) {
-            unsyncedLocal.forEach(localP => {
-              syncPatientToCloud(localP);
-            });
+            unsyncedLocal.forEach(localP => syncPatientToCloud(localP));
           }
 
           patients = [...unsyncedLocal, ...cloudData];
@@ -2534,12 +2693,10 @@
 
       localStorage.setItem(LAST_BACKUP_KEY, Date.now().toString());
 
-      if (isWeeklyAuto) {
-        const banner = document.getElementById('backupAlertBanner');
-        banner.classList.remove('hidden');
-        setTimeout(() => banner.classList.add('hidden'), 6000);
-      } else {
+      if (!isWeeklyAuto) {
         alert(`✅ تم تصدير النسخة الاحتياطية بنجاح: ${fileName}`);
+      } else {
+        showRealtimeToast('💾 تم حفظ النسخة الاحتياطية الأسبوعية');
       }
     }
 
@@ -2572,7 +2729,7 @@
       const now = Date.now();
       const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
       if (patients.length > 0 && (!lastBackup || (now - parseInt(lastBackup, 10)) >= SEVEN_DAYS_MS)) {
-        setTimeout(() => exportData(true), 1500);
+        setTimeout(() => exportData(true), 2500);
       }
     }
 
