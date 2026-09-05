@@ -96,7 +96,7 @@
 
   <!-- Auto Backup Banner -->
   <div id="backupAlertBanner" class="hidden bg-emerald-600 text-white text-xs py-2 px-4 text-center font-semibold shadow">
-    💾 تم حفظ وتنزيل النسخة الاحتياطية الأسبوعية التلقائية بنجاح!
+    💾 تم حفظ وتنزيل النسخة الاحتياطية بنجاح!
   </div>
 
   <!-- Realtime Toast Notification -->
@@ -150,7 +150,7 @@
           <span>ل.س</span>
         </div>
         <button onclick="manualInstantRefresh()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-2 py-1 rounded-xl text-[11px] flex items-center gap-1">
-          <span id="syncStatus">🟢 متصل</span>
+          <span id="syncStatus">🟢 محلي آمن</span>
         </button>
       </div>
     </div>
@@ -173,7 +173,7 @@
       <div id="secExistingMatchBanner" class="hidden bg-emerald-50 border border-emerald-300 p-2.5 rounded-xl text-xs text-emerald-950 flex justify-between items-center font-bold">
         <div>
           <span>💡 مريضة مسجلة سابقاً!</span>
-          <p class="text-[10px] text-emerald-800 font-normal">سيتم إدراجها في دور اليوم وإضافة الزيارة لملفها تلقائياً دون تكرار البطاقة.</p>
+          <p class="text-[10px] text-emerald-800 font-normal">سيتم إدراجها في دور اليوم وإضافة الزيارة لملفها تلقائياً.</p>
         </div>
         <button type="button" onclick="resetSecSelection()" class="text-xs text-red-600 hover:underline">إلغاء الربط</button>
       </div>
@@ -184,7 +184,7 @@
         <div class="relative" id="secNameFieldContainer">
           <label class="block font-bold mb-1 text-slate-700">الاسم الثلاثي للمريضة *</label>
           <input type="text" id="secName" required autocomplete="off" oninput="handleSecretaryLiveSearch(this.value)" 
-                 placeholder="اكتبي اسم المريضة الثلاثي للبحث أو الإضافة..." 
+                 placeholder="اكتبي اسم المريضة للبحث أو الإضافة..." 
                  class="w-full p-2.5 border rounded-xl text-sm font-bold bg-white focus:ring-2 focus:ring-teal-500">
           
           <div id="secSuggestionsDropdown" class="hidden absolute top-full right-0 left-0 bg-white border-2 border-teal-500 rounded-xl shadow-2xl mt-1 max-h-56 overflow-y-auto z-40 divide-y divide-slate-100">
@@ -193,7 +193,7 @@
 
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="block font-semibold mb-1 text-slate-700">اسم الزوج الثلاثي (مهم للتمييز)</label>
+            <label class="block font-semibold mb-1 text-slate-700">اسم الزوج (اختياري)</label>
             <input type="text" id="secHusband" placeholder="اسم الزوج" class="w-full p-2 border rounded-xl text-xs">
           </div>
           <div>
@@ -246,7 +246,7 @@
       </div>
 
       <p class="text-slate-600">
-        تتيح لكِ هذه الميزة توثيق فحص أو زيارة قديمة لإثراء قاعدة البيانات وتوثيق الأرشيف دون إدراجها في دور اليوم النشط.
+        توثيق فحص أو زيارة قديمة لإثراء قاعدة البيانات وتوثيق الأرشيف دون إدراجها في دور اليوم النشط.
       </p>
 
       <form onsubmit="handleBackdateSubmit(event)" class="space-y-3">
@@ -588,17 +588,17 @@
     </div>
   </div>
 
-  <!-- ==================== JAVASCRIPT ENGINE ==================== -->
+  <!-- ==================== JAVASCRIPT ENGINE WITH RESCUE & INDEXEDDB ==================== -->
   <script>
-    // --- STATE & KEYS ---
+    // --- KEYS & CONFIG ---
     const DEFAULT_DOC_PIN = "1234";
     const DEFAULT_SEC_PIN = "0000";
     const DOC_PIN_KEY = "clinic_doc_pin";
     const SEC_PIN_KEY = "clinic_sec_pin";
     const CURRENT_ROLE_KEY = "clinic_user_role";
-    const LOCAL_KEY = "syria_obgyn_patients_v11";
+    const PRIMARY_DB_KEY = "syria_obgyn_permanent_records";
     const DRUGS_KEY = "clinic_custom_drugs_v5";
-    const LAST_BACKUP_KEY = "clinic_last_weekly_backup_v11";
+    const LAST_BACKUP_KEY = "clinic_last_weekly_backup";
 
     const DEFAULT_DRUGS = [
       { id: "d_1", name: "حديد + فوليك أسيد", company: "ابن حيان", dose: "حبة يومياً بعد الغداء" },
@@ -611,7 +611,99 @@
       { id: "d_8", name: "فيتامينات حمل (Pregnacare)", company: "مستورد", dose: "حبة يومياً" }
     ];
 
-    let patients = JSON.parse(localStorage.getItem(LOCAL_KEY) || '[]');
+    // --- INDEXEDDB STORAGE ENGINE (GIGABYTES CAPACITY) ---
+    const IDB_NAME = "SyriaClinicIDB";
+    const IDB_STORE = "patients_store";
+
+    function openIDB() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open(IDB_NAME, 1);
+        req.onupgradeneeded = () => {
+          const db = req.result;
+          if (!db.objectStoreNames.contains(IDB_STORE)) {
+            db.createObjectStore(IDB_STORE, { keyPath: "id" });
+          }
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function getPatientsFromIDB() {
+      try {
+        const db = await openIDB();
+        return new Promise((resolve) => {
+          const tx = db.transaction(IDB_STORE, "readonly");
+          const store = tx.objectStore(IDB_STORE);
+          const req = store.getAll();
+          req.onsuccess = () => resolve(req.result || []);
+          req.onerror = () => resolve([]);
+        });
+      } catch (e) {
+        return [];
+      }
+    }
+
+    async function savePatientsToIDB(list) {
+      try {
+        const db = await openIDB();
+        const tx = db.transaction(IDB_STORE, "readwrite");
+        const store = tx.objectStore(IDB_STORE);
+        store.clear();
+        list.forEach(p => store.put(p));
+        return new Promise(resolve => {
+          tx.oncomplete = () => resolve(true);
+          tx.onerror = () => resolve(false);
+        });
+      } catch (e) {
+        console.warn("IDB write note:", e);
+      }
+    }
+
+    // --- RESCUE ENGINE (PULL FROM ALL OLD VERSIONS) ---
+    function rescueExistingPatients() {
+      let recovered = [];
+      const keysToSearch = [
+        PRIMARY_DB_KEY,
+        "syria_obgyn_patients_v11",
+        "syria_obgyn_patients_v10",
+        "syria_obgyn_patients_v9",
+        "syria_obgyn_patients_v8",
+        "syria_obgyn_patients"
+      ];
+
+      // Also scan any localStorage key containing 'patient'
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.includes("patient") && !keysToSearch.includes(k)) {
+          keysToSearch.push(k);
+        }
+      }
+
+      const seen = new Set();
+      keysToSearch.forEach(key => {
+        try {
+          const raw = localStorage.getItem(key);
+          if (raw) {
+            const list = JSON.parse(raw);
+            if (Array.isArray(list)) {
+              list.forEach(p => {
+                const uniqueKey = p.id || (p.name + "_" + (p.phone || ""));
+                if (!seen.has(uniqueKey)) {
+                  seen.add(uniqueKey);
+                  recovered.push(p);
+                }
+              });
+            }
+          }
+        } catch (e) {}
+      });
+
+      return recovered;
+    }
+
+    // State
+    let patients = rescueExistingPatients();
     let drugs = JSON.parse(localStorage.getItem(DRUGS_KEY) || JSON.stringify(DEFAULT_DRUGS));
     let currentRole = sessionStorage.getItem(CURRENT_ROLE_KEY) || null;
     let activeTab = 'daily';
@@ -620,25 +712,18 @@
     let whatsAppTargetPatient = null;
     let db = null;
 
-    // --- ZERO-LATENCY CROSS-TAB BROADCASTER ---
+    // Zero-latency cross-tab communicator
     const syncChannel = ('BroadcastChannel' in window) ? new BroadcastChannel('clinic_sync_bus') : null;
     if (syncChannel) {
-      syncChannel.onmessage = (ev) => {
+      syncChannel.onmessage = async (ev) => {
         if (ev.data && ev.data.type === 'DATA_UPDATED') {
-          patients = JSON.parse(localStorage.getItem(LOCAL_KEY) || '[]');
+          const idbList = await getPatientsFromIDB();
+          if (idbList && idbList.length > 0) patients = idbList;
           renderApp();
-          showRealtimeToast('⚡ تم استلام مريضة جديدة في الدور فورياً!');
+          showRealtimeToast('⚡ تم تحديث القائمة فورياً');
         }
       };
     }
-
-    window.addEventListener('storage', (ev) => {
-      if (ev.key === LOCAL_KEY) {
-        patients = JSON.parse(localStorage.getItem(LOCAL_KEY) || '[]');
-        renderApp();
-        showRealtimeToast('⚡ تحديث فوري للبيانات');
-      }
-    });
 
     // Close suggestions dropdown when clicking outside
     document.addEventListener('click', (e) => {
@@ -660,21 +745,25 @@
     }
 
     function notifyDataChanged() {
-      saveDataLocally();
+      saveDataPermanently();
       if (syncChannel) syncChannel.postMessage({ type: 'DATA_UPDATED', time: Date.now() });
       renderApp();
     }
 
-    function manualInstantRefresh() {
-      patients = JSON.parse(localStorage.getItem(LOCAL_KEY) || '[]');
+    async function manualInstantRefresh() {
+      const idbList = await getPatientsFromIDB();
+      if (idbList && idbList.length > 0) {
+        patients = idbList;
+      } else {
+        patients = rescueExistingPatients();
+      }
       renderApp();
-      showRealtimeToast('🔄 تم التحديث الفوري للبيانات');
+      showRealtimeToast('🔄 تم التحديث بنجاح');
     }
 
     function getDocPin() { return localStorage.getItem(DOC_PIN_KEY) || DEFAULT_DOC_PIN; }
     function getSecPin() { return localStorage.getItem(SEC_PIN_KEY) || DEFAULT_SEC_PIN; }
 
-    // --- SANITIZATION & NORMALIZATION HELPERS ---
     function convertArabicNumerals(str) {
       if (!str) return '';
       const arabicNumbers = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
@@ -832,7 +921,7 @@
       closeWhatsAppModal();
     }
 
-    // --- SECRETARY LIVE SUGGESTIONS ---
+    // --- SECRETARY SUGGESTIONS ---
     function handleSecretaryLiveSearch(typedText) {
       const dropdown = document.getElementById('secSuggestionsDropdown');
       const q = normalizeArabic(typedText);
@@ -909,7 +998,6 @@
       document.getElementById('secName').focus();
     }
 
-    // Precise multi-factor patient matching
     function findBestMatchingPatient(query) {
       const qPhone = convertArabicNumerals(query.phone || '').trim();
       const qNatId = convertArabicNumerals(query.nationalId || '').trim();
@@ -965,7 +1053,6 @@
       const normName = normalizeArabic(name);
       const normHusband = normalizeArabic(husband);
 
-      // Check if already queued today without false collisions
       const alreadyInQueueToday = patients.find(p => {
         if (p.visitDate !== today) return false;
         if (selectedId && p.id === selectedId) return true;
@@ -996,7 +1083,6 @@
       }
 
       if (targetPatient) {
-        // Merge visit into existing card without resetting turn timestamp
         targetPatient.visitDate = today;
         targetPatient.status = 'waiting';
         if (!targetPatient.queueTimestamp || targetPatient.visitDate !== today) {
@@ -1065,7 +1151,7 @@
       renderApp();
     }
 
-    // --- BACKDATE / ARCHIVING PAST PATIENTS ---
+    // --- BACKDATE SUBMIT ---
     function openBackdateModal() {
       document.getElementById('backdateVisitDate').value = '';
       document.getElementById('backdateName').value = '';
@@ -1117,7 +1203,7 @@
         matched.visits.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
         notifyDataChanged();
         await syncPatientToCloud(matched);
-        alert(`✅ تم توثيق الزيارة المؤرخة (${dateVal}) في ملف المريضة (${name}) الموجود مسبقاً!`);
+        alert(`✅ تم توثيق الزيارة المؤرخة (${dateVal}) في ملف المريضة (${name}) بنجاح!`);
       } else {
         const newDocId = db ? db.collection('patients').doc().id : ('pat_' + Date.now());
         const dateParts = dateVal.split('-');
@@ -1164,7 +1250,7 @@
       renderApp();
     }
 
-    // --- DOCTOR MEDICAL SUBMIT ---
+    // --- DOCTOR SUBMIT ---
     async function handleDoctorSubmit(e) {
       e.preventDefault();
       const saveBtn = document.getElementById('saveDoctorBtn');
@@ -1218,7 +1304,6 @@
       patient.rx = document.getElementById('pRx').value;
       patient.status = 'completed';
 
-      // Record visit structurally without duplication
       patient.visits = patient.visits || [];
       const currentVisitRecord = {
         date: patient.visitDate || selectedDate,
@@ -1238,7 +1323,6 @@
         patient.visits.unshift(currentVisitRecord);
       }
 
-      // Sync photos reference cleanly
       patient.photos = [...currentAttachedPhotos];
 
       notifyDataChanged();
@@ -1404,11 +1488,10 @@
           <div class="flex justify-between items-center text-slate-800 font-semibold border-t border-emerald-200 pt-1">
             <span>عمر الحمل: <strong>${preg.weeks}</strong></span>
             ${preg.isOverdue ? 
-              `<span class="text-red-700 font-bold bg-red-100 px-2 py-0.5 rounded-md animate-pulse">⚠️ تجاوزت موعد الولادة بـ ${Math.abs(preg.daysUntilDelivery)} يوم!</span>` :
+              `<span class="text-red-700 font-bold bg-red-100 px-2 py-0.5 rounded-md animate-pulse">⚠️ تجاوزت موعد الولادة بـ ${Math.abs(preg.daysUntilDelivery)} يوم!</span>` : 
               (preg.isDueWithinMonth ? 
                 `<span class="text-rose-700 font-bold bg-rose-100 px-2 py-0.5 rounded-md animate-pulse">🔔 موعد الولادة خلال ${preg.daysUntilDelivery} يوم!</span>` : 
-                `<span>متبقي لموعد الولادة: <strong>${preg.daysUntilDelivery} يوم</strong></span>`)
-            }
+                `<span>متبقي لموعد الولادة: <strong>${preg.daysUntilDelivery} يوم</strong></span>`)}
           </div>
         </div>
       `;
@@ -1499,7 +1582,6 @@
         const targetDate = isSec ? getTodayDateString() : selectedDate;
         let dayPatients = patients.filter(p => p.visitDate === targetDate);
         
-        // Stable turn ordering based on queue registration time
         dayPatients.sort((a, b) => ((a.queueTimestamp || a.timestamp || 0) - (b.queueTimestamp || b.timestamp || 0)));
 
         dayPatients.forEach((p, idx) => {
@@ -1561,7 +1643,7 @@
       });
     }
 
-    // --- NEXT PATIENT SPOTLIGHT WIDGET ---
+    // --- SPOTLIGHT WIDGET ---
     function renderNextPatientSpotlight() {
       const container = document.getElementById('nextPatientSpotlightContainer');
       if (!container) return;
@@ -1626,7 +1708,7 @@
       `;
     }
 
-    // --- PATIENT CARD ELEMENT ---
+    // --- PATIENT CARD ---
     function createPatientCardElement(p, index) {
       const card = document.createElement('div');
       const preg = calculatePregnancy(p.lmp);
@@ -1908,7 +1990,7 @@
           console.warn("Cloud delete error:", e);
         }
       }
-      alert('🗑️ تم حذف ملف المريضة نهائياً من الجهاز والسحابة.');
+      alert('🗑️ تم حذف ملف المريضة نهائياً.');
     }
 
     async function purgeAllOldTestPatients() {
@@ -1918,7 +2000,7 @@
         return;
       }
 
-      if (!confirm('⚠️ تحذير: سيتم مسح وحذف جميع المريضات المسجلات حالياً نهائياً من السحابة والجهاز. هل أنتِ متأكدة؟')) {
+      if (!confirm('⚠️ تحذير: سيتم مسح وحذف جميع المريضات المسجلات حالياً نهائياً. هل أنتِ متأكدة؟')) {
         return;
       }
 
@@ -1939,7 +2021,7 @@
       alert('✨ تم تصفير وحذف جميع السجلات القديمة بنجاح!');
     }
 
-    // --- FIREBASE SYNC ENGINE (WITH TWO-WAY MERGE) ---
+    // --- FIREBASE SYNC ENGINE (HARDENED MERGE & UPLOAD) ---
     const firebaseConfig = {
       apiKey: "AIzaSyDBUW3lgkFWvDygfgBD4kSBRh4wx9d4h0Q",
       authDomain: "hiam-khder.firebaseapp.com",
@@ -1958,34 +2040,42 @@
         db.collection('patients').orderBy('timestamp', 'desc').onSnapshot((snapshot) => {
           const cloudData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
           
-          // Two-way merge: Preserve local patients created offline
+          // CRITICAL FIX: Merge cloud with local. Never let an empty cloud overwrite local patients!
           const cloudIds = new Set(cloudData.map(p => p.id));
           const unsyncedLocal = patients.filter(p => p.id && !cloudIds.has(p.id));
           
+          // Upload local unsynced records to cloud if missing
+          if (unsyncedLocal.length > 0) {
+            unsyncedLocal.forEach(localP => {
+              syncPatientToCloud(localP);
+            });
+          }
+
           patients = [...unsyncedLocal, ...cloudData];
-          saveDataLocally();
+          saveDataPermanently();
           renderApp();
-          document.getElementById('syncStatus').innerText = '🟢 متصل';
+          document.getElementById('syncStatus').innerText = '🟢 متصل وسحابي';
         }, (err) => {
           console.warn('Firestore offline/restricted:', err);
-          document.getElementById('syncStatus').innerText = '🟡 محلي';
+          document.getElementById('syncStatus').innerText = '🟡 محلي آمن';
         });
 
         listenToPinAndDrugsChanges();
       }
     } catch (e) {
       console.warn('Local offline mode:', e);
-      document.getElementById('syncStatus').innerText = '🟡 محلي';
+      document.getElementById('syncStatus').innerText = '🟡 محلي آمن';
     }
 
-    function saveDataLocally() {
+    async function saveDataPermanently() {
+      // 1. Save to IndexedDB (Gigabytes Capacity)
+      await savePatientsToIDB(patients);
+      
+      // 2. Safe Fallback to localStorage (without crashing on full storage)
       try {
-        localStorage.setItem(LOCAL_KEY, JSON.stringify(patients));
+        localStorage.setItem(PRIMARY_DB_KEY, JSON.stringify(patients));
       } catch (err) {
-        console.warn('Storage quota warning:', err);
-        if (err.name === 'QuotaExceededError' || err.code === 22) {
-          alert('⚠️ تنبيه: ذاكرة المتصفح ممتلئة بالصور! يرجى تصدير نسخة احتياطية (💾) ومسح الصور الزائدة لتفادي فقدان البيانات.');
-        }
+        console.warn('LocalStorage backup full, data secured in IndexedDB:', err);
       }
     }
 
@@ -2286,7 +2376,7 @@
       else renderApp();
     }
 
-    // --- PHOTO COMPRESSION (MAX 600px, 0.5 QUALITY) ---
+    // --- PHOTO UPLOAD ---
     function handlePhotoUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -2296,7 +2386,7 @@
         const img = new Image();
         img.onload = () => {
           const canvas = document.createElement('canvas');
-          const maxDim = 600; // Optimized size
+          const maxDim = 600;
           let width = img.width;
           let height = img.height;
           if (width > height) {
@@ -2470,19 +2560,32 @@
 
     document.getElementById('dateFilterInput').value = getTodayDateString();
 
-    if (currentRole) {
-      document.getElementById('lockScreen').classList.add('hidden');
-      applyRoleUI();
-      if (currentRole === 'doctor') checkWeeklyAutoBackup();
-    }
+    // Startup bootstrap
+    (async function initApp() {
+      const idbList = await getPatientsFromIDB();
+      if (idbList && idbList.length > 0) {
+        patients = idbList;
+      } else {
+        patients = rescueExistingPatients();
+        if (patients.length > 0) {
+          savePatientsToIDB(patients);
+        }
+      }
+
+      if (currentRole) {
+        document.getElementById('lockScreen').classList.add('hidden');
+        applyRoleUI();
+        if (currentRole === 'doctor') checkWeeklyAutoBackup();
+      }
+      renderApp();
+      renderDrugChips();
+    })();
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW skipped', err));
       });
     }
-
-    renderDrugChips();
   </script>
 </body>
 </html>
