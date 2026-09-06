@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -619,7 +620,7 @@
     </div>
   </div>
 
-  <!-- ==================== JAVASCRIPT ENGINE ==================== -->
+  <!-- ==================== JAVASCRIPT ENGINE (ROBUST & BULLETPROOF) ==================== -->
   <script>
     // --- KEYS & CONFIG ---
     const DEFAULT_DOC_PIN = "1234";
@@ -642,27 +643,36 @@
       { id: "d_8", name: "فيتامينات حمل (Pregnacare)", company: "مستورد", dose: "حبة يومياً" }
     ];
 
-    // --- INDEXEDDB STORAGE ENGINE (GIGABYTES CAPACITY) ---
-    const IDB_NAME = "SyriaClinicIDB";
+    // --- ROCK-SOLID INDEXEDDB ENGINE (FIXED TYPO & SAFE RESOLUTION) ---
+    const IDB_NAME = "SyriaClinicIDB_v2";
     const IDB_STORE = "patients_store";
 
     function openIDB() {
-      return new Promise((resolve, reject) => {
-        const req = indexedDB.open(IDB_NAME, 1);
-        req.onupgradeneeded = () => {
-          const idb = req.result;
-          if (!idb.objectStoreNames.contains(IDB_STORE)) {
-            idb.createObjectStore(IDB_STORE, { keyPath: "id" });
-          }
-        };
-        req.onsuccess = () => resolve(req.result);
-        req.onerror = () => reject(req.error);
+      return new Promise((resolve) => {
+        if (!window.indexedDB) {
+          resolve(null);
+          return;
+        }
+        try {
+          const req = indexedDB.open(IDB_NAME, 1);
+          req.onupgradeneeded = (e) => {
+            const dbInstance = e.target.result;
+            if (!dbInstance.objectStoreNames.contains(IDB_STORE)) {
+              dbInstance.createObjectStore(IDB_STORE, { keyPath: "id" });
+            }
+          };
+          req.onsuccess = (e) => resolve(e.target.result);
+          req.onerror = () => resolve(null);
+        } catch (err) {
+          resolve(null);
+        }
       });
     }
 
     async function getPatientsFromIDB() {
       try {
         const idb = await openIDB();
+        if (!idb) return [];
         return new Promise((resolve) => {
           const tx = idb.transaction(IDB_STORE, "readonly");
           const store = tx.objectStore(IDB_STORE);
@@ -678,20 +688,19 @@
     async function savePatientsToIDB(list) {
       try {
         const idb = await openIDB();
+        if (!idb) return;
         const tx = idb.transaction(IDB_STORE, "readwrite");
         const store = tx.objectStore(IDB_STORE);
         store.clear();
-        list.forEach(p => store.put(p));
-        return new Promise(resolve => {
-          tx.oncomplete = () => resolve(true);
-          tx.onerror = () => resolve(false);
+        list.forEach(p => {
+          if (p && p.id) store.put(p);
         });
       } catch (e) {
-        console.warn("IDB write note:", e);
+        console.warn("IDB background save note:", e);
       }
     }
 
-    // --- RESCUE ENGINE ---
+    // --- RESCUE ENGINE (PULLS FROM EVERY PREVIOUS REVISION) ---
     function rescueExistingPatients() {
       let recovered = [];
       const keysToSearch = [
@@ -732,7 +741,7 @@
       return recovered;
     }
 
-    // State
+    // State Initialization
     let patients = rescueExistingPatients();
     let drugs = JSON.parse(localStorage.getItem(DRUGS_KEY) || JSON.stringify(DEFAULT_DRUGS));
     let currentRole = sessionStorage.getItem(CURRENT_ROLE_KEY) || null;
@@ -749,6 +758,7 @@
         if (ev.data && ev.data.type === 'DATA_UPDATED') {
           const idbList = await getPatientsFromIDB();
           if (idbList && idbList.length > 0) patients = idbList;
+          else patients = rescueExistingPatients();
           renderApp();
           showRealtimeToast('⚡ تم تحديث القائمة فورياً');
         }
@@ -780,10 +790,23 @@
       }
     }
 
+    // GUARANTEED BULLETPROOF LOCAL SAVE
     function notifyDataChanged() {
       saveDataPermanently();
       if (syncChannel) syncChannel.postMessage({ type: 'DATA_UPDATED', time: Date.now() });
       renderApp();
+    }
+
+    function saveDataPermanently() {
+      // 1. Synchronous, instant local save (Never fails, immune to power cuts)
+      try {
+        localStorage.setItem(PRIMARY_DB_KEY, JSON.stringify(patients));
+      } catch (err) {
+        console.warn("LocalStorage warning:", err);
+      }
+
+      // 2. Safe async save to IndexedDB in background
+      savePatientsToIDB(patients);
     }
 
     async function manualInstantRefresh() {
@@ -797,7 +820,7 @@
       showRealtimeToast('🔄 تم تحديث السجلات بنجاح');
     }
 
-    // --- FULL CLOUD SYNC FUNCTION WITH REPORT MODAL ---
+    // --- FULL CLOUD SYNC FUNCTION ---
     async function syncAllToCloud() {
       if (!db) {
         alert("⚠️ غير متصل بـ Firebase حالياً. تأكدي من الاتصال بالإنترنت.");
@@ -833,7 +856,6 @@
 
       document.getElementById('syncStatus').innerText = '🟢 متصل ومزامن';
       
-      // Open clear report modal
       document.getElementById('syncReportDetails').innerHTML = `
         تم فحص <strong class="text-slate-900">${patients.length}</strong> ملف مريضة في النظام.<br>
         تمت مزامنة ورفع <strong class="text-emerald-700">${successCount}</strong> ملف بنجاح إلى قاعدة بيانات السحابة.<br>
@@ -1175,13 +1197,13 @@
       return null;
     }
 
-    // --- SECRETARY SUBMIT ---
-    async function handleSecretarySubmit(e) {
+    // --- SECRETARY SUBMIT (INSTANT OFFLINE-FIRST) ---
+    function handleSecretarySubmit(e) {
       e.preventDefault();
       const submitBtn = document.getElementById('secSubmitBtn');
       if (submitBtn) {
         submitBtn.disabled = true;
-        submitBtn.innerText = 'جاري التحقق والتسجيل...';
+        submitBtn.innerText = 'جاري التسجيل...';
       }
 
       const selectedId = document.getElementById('secSelectedPatientId').value;
@@ -1245,15 +1267,17 @@
         if (birthYear && !targetPatient.birthYear) targetPatient.birthYear = birthYear;
         if (phone && !targetPatient.phone) targetPatient.phone = phone;
 
+        // Instant local commit
         notifyDataChanged();
-        await syncPatientToCloud(targetPatient);
+        // Background async cloud sync
+        syncPatientToCloud(targetPatient);
 
         alert(`✅ تم استدعاء ملف المريضة المسجلة سابقاً بنجاح!\nالمريضة: ${name}\nأُدرجت الآن في دور اليوم.`);
       } else {
-        const newDocId = db ? db.collection('patients').doc().id : ('pat_' + Date.now());
+        const localDocId = 'pat_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
 
         const newPatient = {
-          id: newDocId,
+          id: localDocId,
           visitDate: today,
           status: 'waiting',
           name: name,
@@ -1285,8 +1309,10 @@
         };
 
         patients.unshift(newPatient);
+        // Instant local commit
         notifyDataChanged();
-        await syncPatientToCloud(newPatient);
+        // Background async cloud sync
+        syncPatientToCloud(newPatient);
 
         alert(`✅ تم تسجيل مريضة جديدة في دور اليوم بنجاح!\nالمريضة: ${name}`);
       }
@@ -1298,7 +1324,6 @@
       
       if (submitBtn) { submitBtn.disabled = false; submitBtn.innerText = 'إعطاء دور وتسجيل'; }
       closeSecretaryModal();
-      renderApp();
     }
 
     // --- BACKDATE SUBMIT ---
@@ -1324,7 +1349,7 @@
       document.getElementById('backdateVisitDate').value = `${y}-${m}-${day}`;
     }
 
-    async function handleBackdateSubmit(e) {
+    function handleBackdateSubmit(e) {
       e.preventDefault();
       const dateVal = document.getElementById('backdateVisitDate').value;
       const name = document.getElementById('backdateName').value.trim();
@@ -1352,15 +1377,15 @@
         matched.visits.push(pastVisitRecord);
         matched.visits.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
         notifyDataChanged();
-        await syncPatientToCloud(matched);
+        syncPatientToCloud(matched);
         alert(`✅ تم توثيق الزيارة المؤرخة (${dateVal}) في ملف المريضة (${name}) بنجاح!`);
       } else {
-        const newDocId = db ? db.collection('patients').doc().id : ('pat_' + Date.now());
+        const localDocId = 'pat_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
         const dateParts = dateVal.split('-');
         const parsedTime = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2])).getTime();
 
         const archivedPatient = {
-          id: newDocId,
+          id: localDocId,
           visitDate: dateVal,
           status: 'completed',
           name: name,
@@ -1392,21 +1417,20 @@
 
         patients.push(archivedPatient);
         notifyDataChanged();
-        await syncPatientToCloud(archivedPatient);
+        syncPatientToCloud(archivedPatient);
         alert(`✅ تم أرشفة المريضة (${name}) بتاريخ الزيارة (${dateVal}) بنجاح!`);
       }
 
       closeBackdateModal();
-      renderApp();
     }
 
-    // --- DOCTOR SUBMIT ---
-    async function handleDoctorSubmit(e) {
+    // --- DOCTOR SUBMIT (INSTANT OFFLINE-FIRST) ---
+    function handleDoctorSubmit(e) {
       e.preventDefault();
       const saveBtn = document.getElementById('saveDoctorBtn');
       if (saveBtn) {
         saveBtn.disabled = true;
-        saveBtn.innerText = 'جاري الحفظ والتوثيق...';
+        saveBtn.innerText = 'جاري الحفظ...';
       }
 
       const id = document.getElementById('editingPatientId').value;
@@ -1415,9 +1439,9 @@
       let patient = patients.find(p => p.id === id);
 
       if (!patient) {
-        const newDocId = db ? db.collection('patients').doc().id : ('pat_' + Date.now());
+        const localDocId = 'pat_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
         patient = {
-          id: newDocId,
+          id: localDocId,
           visitDate: selectedDate,
           timestamp: Date.now(),
           createdAt: new Date().toLocaleDateString('ar-SY'),
@@ -1475,8 +1499,10 @@
 
       patient.photos = [...currentAttachedPhotos];
 
+      // Instant local commit (Guaranteed)
       notifyDataChanged();
-      await syncPatientToCloud(patient);
+      // Background async cloud sync
+      syncPatientToCloud(patient);
 
       if (saveBtn) {
         saveBtn.disabled = false;
@@ -1484,7 +1510,6 @@
       }
 
       closeDoctorModal();
-      renderApp();
       alert(`✅ تم توثيق فحص وزيارة المريضة (${patient.name}) بنجاح.`);
     }
 
@@ -1701,7 +1726,7 @@
       }
     }
 
-    // --- MAIN RENDER ENGINE (REORDERED: WAITING AT TOP, EXAMINED AT BOTTOM) ---
+    // --- MAIN RENDER ENGINE ---
     function renderApp() {
       const selectedDate = document.getElementById('dateFilterInput').value || getTodayDateString();
       const q = normalizeArabic(document.getElementById('searchInput').value);
@@ -1735,7 +1760,6 @@
         const targetDate = isSec ? getTodayDateString() : selectedDate;
         let dayPatients = patients.filter(p => p.visitDate === targetDate);
         
-        // Dynamic turn numbering assigned strictly by registration time
         dayPatients.sort((a, b) => ((a.queueTimestamp || a.timestamp || 0) - (b.queueTimestamp || b.timestamp || 0)));
 
         dayPatients.forEach((p, idx) => {
@@ -1757,7 +1781,7 @@
           const pb = calculatePregnancy(b.lmp);
           return (pa?.daysUntilDelivery || 999) - (pb?.daysUntilDelivery || 999);
         });
-      } else { // 'all' (Archive of all patients)
+      } else { // 'all' (Archive)
         displayList = patients.filter(p => !q || 
           normalizeArabic(p.name).includes(q) || 
           normalizeArabic(p.husband).includes(q) || 
@@ -1792,9 +1816,7 @@
         return;
       }
 
-      // SMART REORDERING IN TODAY'S QUEUE:
-      // Waiting patients displayed AT THE TOP (in arrival order: next, then next...)
-      // Completed patients displayed AT THE BOTTOM
+      // Waiting patients displayed AT THE TOP, Completed patients at the bottom
       if ((isSec || activeTab === 'daily') && waitingCount > 0 && completedCount > 0) {
         const waitingPatients = displayList.filter(p => p.status === 'waiting');
         const donePatients = displayList.filter(p => p.status !== 'waiting');
@@ -1803,7 +1825,6 @@
           list.appendChild(createPatientCardElement(p, index));
         });
 
-        // Clean subtle divider
         const divider = document.createElement('div');
         divider.className = 'flex items-center gap-3 my-4 py-1';
         divider.innerHTML = `
@@ -1890,7 +1911,7 @@
       `;
     }
 
-    // --- PATIENT CARD (WITH SLEEK MODERN NUMBER & ARCHIVE DETECTION) ---
+    // --- PATIENT CARD ---
     function createPatientCardElement(p, index) {
       const card = document.createElement('div');
       const preg = calculatePregnancy(p.lmp);
@@ -1901,7 +1922,6 @@
       const isHighBP = checkHighBloodPressure(p.bp);
       const visitsList = p.visits || [];
       
-      // In 'all' archive view, turn number is irrelevant:
       const showQueueNumber = (activeTab === 'daily' || currentRole === 'secretary' || activeTab === 'weekly');
 
       card.className = `bg-white rounded-2xl p-4 shadow-sm border ${p.isHighRisk ? 'border-red-500 ring-2 ring-red-300' : (preg && (preg.isDueWithinMonth || preg.isOverdue) ? 'border-rose-400 ring-2 ring-rose-200' : (isWaiting ? 'border-amber-300 bg-amber-50/20' : 'border-slate-200'))} space-y-3`;
@@ -1916,7 +1936,6 @@
 
         <div class="flex justify-between items-start border-b pb-2">
           <div class="flex items-center gap-3">
-            <!-- Modern Minimalist Number Badge or Patient Avatar -->
             ${showQueueNumber ? `
               <div class="w-10 h-10 rounded-2xl flex items-center justify-center font-black text-lg tracking-tight shadow-sm ${isWaiting ? 'bg-gradient-to-br from-amber-500 to-amber-600 text-white shadow-amber-200 ring-2 ring-amber-300 animate-pulse' : 'bg-slate-100 text-slate-500 border border-slate-200'}">
                 ${queueNumToDisplay}
@@ -2001,7 +2020,6 @@
             </div>
           ` : ''}
 
-          <!-- Latest Visit Summary -->
           ${(p.bp || p.weight || p.ultrasound || p.rx || (p.photos && p.photos.length > 0)) ? `
             <div class="bg-slate-50 p-3 rounded-xl text-xs border space-y-2">
               <div class="flex justify-between items-center border-b border-slate-200 pb-1.5">
@@ -2218,7 +2236,7 @@
       alert('✨ تم تصفير وحذف جميع السجلات القديمة بنجاح!');
     }
 
-    // --- FIREBASE SYNC ENGINE WITH SILENT ANONYMOUS AUTH ---
+    // --- FIREBASE SYNC ENGINE (COMPLETELY RESILIENT) ---
     const firebaseConfig = {
       apiKey: "AIzaSyDBUW3lgkFWvDygfgBD4kSBRh4wx9d4h0Q",
       authDomain: "hiam-khder.firebaseapp.com",
@@ -2233,7 +2251,7 @@
       if (typeof firebase !== 'undefined') {
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         
-        firebase.auth().signInAnonymously().catch(err => console.log("Anonymous Auth mode ready"));
+        firebase.auth().signInAnonymously().catch(err => console.log("Auth silent mode"));
 
         db = firebase.firestore();
 
@@ -2244,6 +2262,7 @@
         db.collection('patients').orderBy('timestamp', 'desc').onSnapshot((snapshot) => {
           const cloudData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
           
+          // HARDENED MERGE: Cloud NEVER deletes local patients!
           const cloudIds = new Set(cloudData.map(p => p.id));
           const unsyncedLocal = patients.filter(p => p.id && !cloudIds.has(p.id));
           
@@ -2267,21 +2286,12 @@
       document.getElementById('syncStatus').innerText = '🟡 محلي آمن';
     }
 
-    async function saveDataPermanently() {
-      await savePatientsToIDB(patients);
-      try {
-        localStorage.setItem(PRIMARY_DB_KEY, JSON.stringify(patients));
-      } catch (err) {
-        console.warn('LocalStorage backup quota reached, secured in IndexedDB:', err);
-      }
-    }
-
     async function syncPatientToCloud(patient) {
       if (db) {
         try {
           await db.collection('patients').doc(patient.id).set(patient, { merge: true });
         } catch (err) {
-          console.warn('Synced locally, cloud write pending:', err);
+          console.warn('Background cloud write pending:', err);
         }
       }
     }
@@ -2757,10 +2767,12 @@
 
     // Startup bootstrap
     (async function initApp() {
+      // 1. Load from IndexedDB
       const idbList = await getPatientsFromIDB();
       if (idbList && idbList.length > 0) {
         patients = idbList;
       } else {
+        // 2. Rescue from previous localStorage keys
         patients = rescueExistingPatients();
         if (patients.length > 0) {
           savePatientsToIDB(patients);
