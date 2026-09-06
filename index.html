@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#0f766e">
-  <title>عيادة النسائية والتوليد - السجل الطبي والصيدلية</title>
+  <title>عيادة الدكتورة هيام خضر</title>
   
   <link rel="manifest" href="./manifest.json">
   <link rel="stylesheet" href="./css/styles.css">
@@ -113,7 +113,7 @@
         📅 سجل اليوميات
       </button>
       <button onclick="setActiveTab('weekly')" id="tabWeekly" class="px-3 py-2 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-slate-100 border">
-        📊 سجل الأسبوع (مقسم بالأيام)
+        📊 سجل الأسبوع 
       </button>
       <button onclick="setActiveTab('dueMonth')" id="tabDueMonth" class="px-3 py-2 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-slate-100 border">
         🤰 ولادات هذا الشهر <span id="dueThisMonthCount" class="bg-rose-500 text-white px-1.5 py-0.2 rounded-full text-[10px] mr-1 hidden">0</span>
@@ -196,7 +196,7 @@
             <input type="text" id="secHusband" placeholder="اسم الزوج" class="w-full p-2 border rounded-xl text-xs">
           </div>
           <div>
-            <label class="block font-semibold mb-1 text-slate-700">الرقم الوطني (11 رقم)</label>
+            <label class="block font-semibold mb-1 text-slate-700">الرقم الوطني </label>
             <input type="text" id="secNationalId" maxlength="11" placeholder="الرقم الوطني" class="w-full p-2 border rounded-xl text-xs font-mono">
           </div>
         </div>
@@ -210,7 +210,7 @@
             <input type="number" id="secBirthYear" min="1930" max="2030" placeholder="مثال: 1998" oninput="updateSecAgePreview()" class="w-full p-2 border rounded-xl text-xs font-mono">
           </div>
           <div>
-            <label class="block font-semibold mb-1 text-slate-700">رقم الهاتف (09xxxxxxxx)</label>
+            <label class="block font-semibold mb-1 text-slate-700">رقم الهاتف </label>
             <input type="tel" id="secPhone" maxlength="10" placeholder="09xxxxxxxx" 
                    class="w-full p-2 border rounded-xl text-xs font-mono" dir="ltr" oninput="formatSyrianPhone(this)">
           </div>
