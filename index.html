@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#0f766e">
-  <title>عيادة الدكتورة هيام خضر</title>
+  <title>عيادة النسائية والتوليد - د.هيام خضر</title>
   
   <link rel="manifest" href="./manifest.json">
   <link rel="stylesheet" href="./css/styles.css">
@@ -39,8 +39,8 @@
         🩺
       </div>
       <div>
-        <h2 class="text-xl font-bold text-slate-900">عيادة النسائية والتوليد</h2>
-        <p class="text-xs text-slate-500 mt-1">أدخلي رمز الدخول (الدكتورة هيام خضر أو الاستقبال)</p>
+        <h2 class="text-xl font-bold text-slate-900">عيادة د.هيام خضر</h2>
+        <p class="text-xs text-slate-500 mt-1">أدخلي رمز الدخول (الطبيبة أو الاستقبال)</p>
       </div>
 
       <div>
@@ -54,7 +54,7 @@
       </button>
 
       <div class="text-[11px] text-slate-400 border-t pt-3 space-y-1">
-        <p>رمز د. هيام خضر: <span class="font-bold text-teal-700">1234</span></p>
+        <p>رمز الطبيبة: <span class="font-bold text-teal-700">1234</span></p>
         <p>رمز السكرتيرة: <span class="font-bold text-indigo-600">0000</span></p>
       </div>
     </div>
@@ -68,7 +68,7 @@
       <div class="flex items-center gap-2">
         <span class="text-2xl">🩺</span>
         <div>
-          <h1 class="text-base md:text-lg font-bold leading-tight">سجل عيادة د.هيام خضر</h1>
+          <h1 class="text-base md:text-lg font-bold leading-tight">سجل د.هيام خضر</h1>
           <span id="roleBadge" class="text-[10px] bg-teal-900 text-teal-200 px-2 py-0.5 rounded-full font-bold"></span>
         </div>
       </div>
@@ -113,7 +113,7 @@
         📅 سجل اليوميات
       </button>
       <button onclick="setActiveTab('weekly')" id="tabWeekly" class="px-3 py-2 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-slate-100 border">
-        📊 سجل الأسبوع 
+        📊 سجل الأسبوع (مقسم بالأيام)
       </button>
       <button onclick="setActiveTab('dueMonth')" id="tabDueMonth" class="px-3 py-2 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-slate-100 border">
         🤰 ولادات هذا الشهر <span id="dueThisMonthCount" class="bg-rose-500 text-white px-1.5 py-0.2 rounded-full text-[10px] mr-1 hidden">0</span>
@@ -196,7 +196,7 @@
             <input type="text" id="secHusband" placeholder="اسم الزوج" class="w-full p-2 border rounded-xl text-xs">
           </div>
           <div>
-            <label class="block font-semibold mb-1 text-slate-700">الرقم الوطني </label>
+            <label class="block font-semibold mb-1 text-slate-700">الرقم الوطني (11 رقم)</label>
             <input type="text" id="secNationalId" maxlength="11" placeholder="الرقم الوطني" class="w-full p-2 border rounded-xl text-xs font-mono">
           </div>
         </div>
@@ -210,7 +210,7 @@
             <input type="number" id="secBirthYear" min="1930" max="2030" placeholder="مثال: 1998" oninput="updateSecAgePreview()" class="w-full p-2 border rounded-xl text-xs font-mono">
           </div>
           <div>
-            <label class="block font-semibold mb-1 text-slate-700">رقم الهاتف </label>
+            <label class="block font-semibold mb-1 text-slate-700">رقم الهاتف (09xxxxxxxx)</label>
             <input type="tel" id="secPhone" maxlength="10" placeholder="09xxxxxxxx" 
                    class="w-full p-2 border rounded-xl text-xs font-mono" dir="ltr" oninput="formatSyrianPhone(this)">
           </div>
@@ -604,7 +604,7 @@
       <div>
         <h3 class="text-base font-bold text-slate-900">تأكيد حذف ملف المريضة</h3>
         <p id="deleteModalPatientName" class="text-xs text-red-600 font-bold mt-1"></p>
-        <p class="text-[11px] text-slate-500 mt-1">لحذف هذا الملف من السيرفر نهائياً، أدخلي رمز أمان الطبيبة:</p>
+        <p class="text-[11px] text-slate-500 mt-1">لحذف هذا الملف نهائياً ومنع عودته، أدخلي رمز أمان الطبيبة:</p>
       </div>
 
       <div>
@@ -620,7 +620,7 @@
     </div>
   </div>
 
-  <!-- ==================== JAVASCRIPT ENGINE (ROBUST & BULLETPROOF) ==================== -->
+  <!-- ==================== JAVASCRIPT ENGINE ==================== -->
   <script>
     // --- KEYS & CONFIG ---
     const DEFAULT_DOC_PIN = "1234";
@@ -628,7 +628,8 @@
     const DOC_PIN_KEY = "clinic_doc_pin";
     const SEC_PIN_KEY = "clinic_sec_pin";
     const CURRENT_ROLE_KEY = "clinic_user_role";
-    const PRIMARY_DB_KEY = "syria_obgyn_permanent_records";
+    const PRIMARY_DB_KEY = "syria_obgyn_permanent_records_v12";
+    const DELETED_IDS_KEY = "clinic_deleted_tombstones_v12";
     const DRUGS_KEY = "clinic_custom_drugs_v5";
     const LAST_BACKUP_KEY = "clinic_last_weekly_backup";
 
@@ -643,8 +644,36 @@
       { id: "d_8", name: "فيتامينات حمل (Pregnacare)", company: "مستورد", dose: "حبة يومياً" }
     ];
 
-    // --- ROCK-SOLID INDEXEDDB ENGINE (FIXED TYPO & SAFE RESOLUTION) ---
-    const IDB_NAME = "SyriaClinicIDB_v2";
+    // --- BLACKLIST (TOMBSTONES) TO PREVENT RESURRECTION ---
+    function getDeletedIds() {
+      try {
+        return new Set(JSON.parse(localStorage.getItem(DELETED_IDS_KEY) || '[]'));
+      } catch (e) {
+        return new Set();
+      }
+    }
+
+    function addDeletedId(id) {
+      if (!id) return;
+      const set = getDeletedIds();
+      set.add(id);
+      localStorage.setItem(DELETED_IDS_KEY, JSON.stringify([...set]));
+    }
+
+    // --- CLEAN PURGE OF LEGACY KEYS (CUTS THE ZOMBIE LOOP) ---
+    function purgeLegacyKeysOnce() {
+      const legacyKeys = [
+        "syria_obgyn_patients_v11",
+        "syria_obgyn_patients_v10",
+        "syria_obgyn_patients_v9",
+        "syria_obgyn_patients_v8",
+        "syria_obgyn_patients"
+      ];
+      legacyKeys.forEach(k => localStorage.removeItem(k));
+    }
+
+    // --- ROCK-SOLID INDEXEDDB ENGINE ---
+    const IDB_NAME = "SyriaClinicIDB_v12";
     const IDB_STORE = "patients_store";
 
     function openIDB() {
@@ -700,49 +729,26 @@
       }
     }
 
-    // --- RESCUE ENGINE (PULLS FROM EVERY PREVIOUS REVISION) ---
-    function rescueExistingPatients() {
-      let recovered = [];
-      const keysToSearch = [
-        PRIMARY_DB_KEY,
-        "syria_obgyn_patients_v11",
-        "syria_obgyn_patients_v10",
-        "syria_obgyn_patients_v9",
-        "syria_obgyn_patients_v8",
-        "syria_obgyn_patients"
-      ];
-
-      for (let i = 0; i < localStorage.length; i++) {
-        const k = localStorage.key(i);
-        if (k && k.includes("patient") && !keysToSearch.includes(k)) {
-          keysToSearch.push(k);
-        }
+    // --- SAFE INITIAL LOAD ---
+    function loadInitialPatients() {
+      const deletedIds = getDeletedIds();
+      let raw = localStorage.getItem(PRIMARY_DB_KEY);
+      if (!raw) {
+        raw = localStorage.getItem("syria_obgyn_permanent_records");
       }
-
-      const seen = new Set();
-      keysToSearch.forEach(key => {
+      if (raw) {
         try {
-          const raw = localStorage.getItem(key);
-          if (raw) {
-            const list = JSON.parse(raw);
-            if (Array.isArray(list)) {
-              list.forEach(p => {
-                const uniqueKey = p.id || (p.name + "_" + (p.phone || ""));
-                if (!seen.has(uniqueKey)) {
-                  seen.add(uniqueKey);
-                  recovered.push(p);
-                }
-              });
-            }
+          const list = JSON.parse(raw);
+          if (Array.isArray(list)) {
+            return list.filter(p => p && p.id && !deletedIds.has(p.id));
           }
         } catch (e) {}
-      });
-
-      return recovered;
+      }
+      return [];
     }
 
     // State Initialization
-    let patients = rescueExistingPatients();
+    let patients = loadInitialPatients();
     let drugs = JSON.parse(localStorage.getItem(DRUGS_KEY) || JSON.stringify(DEFAULT_DRUGS));
     let currentRole = sessionStorage.getItem(CURRENT_ROLE_KEY) || null;
     let activeTab = 'daily';
@@ -751,14 +757,21 @@
     let whatsAppTargetPatient = null;
     let db = null;
 
+    // Purge zombie keys on boot
+    purgeLegacyKeysOnce();
+
     // Cross-tab sync
     const syncChannel = ('BroadcastChannel' in window) ? new BroadcastChannel('clinic_sync_bus') : null;
     if (syncChannel) {
       syncChannel.onmessage = async (ev) => {
         if (ev.data && ev.data.type === 'DATA_UPDATED') {
+          const deletedIds = getDeletedIds();
           const idbList = await getPatientsFromIDB();
-          if (idbList && idbList.length > 0) patients = idbList;
-          else patients = rescueExistingPatients();
+          if (idbList && idbList.length > 0) {
+            patients = idbList.filter(p => p && p.id && !deletedIds.has(p.id));
+          } else {
+            patients = loadInitialPatients();
+          }
           renderApp();
           showRealtimeToast('⚡ تم تحديث القائمة فورياً');
         }
@@ -790,7 +803,6 @@
       }
     }
 
-    // GUARANTEED BULLETPROOF LOCAL SAVE
     function notifyDataChanged() {
       saveDataPermanently();
       if (syncChannel) syncChannel.postMessage({ type: 'DATA_UPDATED', time: Date.now() });
@@ -798,23 +810,25 @@
     }
 
     function saveDataPermanently() {
-      // 1. Synchronous, instant local save (Never fails, immune to power cuts)
+      const deletedIds = getDeletedIds();
+      patients = patients.filter(p => p && p.id && !deletedIds.has(p.id));
+      
       try {
         localStorage.setItem(PRIMARY_DB_KEY, JSON.stringify(patients));
       } catch (err) {
         console.warn("LocalStorage warning:", err);
       }
 
-      // 2. Safe async save to IndexedDB in background
       savePatientsToIDB(patients);
     }
 
     async function manualInstantRefresh() {
+      const deletedIds = getDeletedIds();
       const idbList = await getPatientsFromIDB();
       if (idbList && idbList.length > 0) {
-        patients = idbList;
+        patients = idbList.filter(p => p && p.id && !deletedIds.has(p.id));
       } else {
-        patients = rescueExistingPatients();
+        patients = loadInitialPatients();
       }
       renderApp();
       showRealtimeToast('🔄 تم تحديث السجلات بنجاح');
@@ -828,6 +842,9 @@
       }
 
       showRealtimeToast("جاري فحص ورفع كافة السجلات إلى السحابة...");
+      const deletedIds = getDeletedIds();
+      patients = patients.filter(p => p && p.id && !deletedIds.has(p.id));
+
       let successCount = 0;
       let failCount = 0;
 
@@ -1197,7 +1214,7 @@
       return null;
     }
 
-    // --- SECRETARY SUBMIT (INSTANT OFFLINE-FIRST) ---
+    // --- SECRETARY SUBMIT ---
     function handleSecretarySubmit(e) {
       e.preventDefault();
       const submitBtn = document.getElementById('secSubmitBtn');
@@ -1267,9 +1284,7 @@
         if (birthYear && !targetPatient.birthYear) targetPatient.birthYear = birthYear;
         if (phone && !targetPatient.phone) targetPatient.phone = phone;
 
-        // Instant local commit
         notifyDataChanged();
-        // Background async cloud sync
         syncPatientToCloud(targetPatient);
 
         alert(`✅ تم استدعاء ملف المريضة المسجلة سابقاً بنجاح!\nالمريضة: ${name}\nأُدرجت الآن في دور اليوم.`);
@@ -1309,9 +1324,7 @@
         };
 
         patients.unshift(newPatient);
-        // Instant local commit
         notifyDataChanged();
-        // Background async cloud sync
         syncPatientToCloud(newPatient);
 
         alert(`✅ تم تسجيل مريضة جديدة في دور اليوم بنجاح!\nالمريضة: ${name}`);
@@ -1424,7 +1437,7 @@
       closeBackdateModal();
     }
 
-    // --- DOCTOR SUBMIT (INSTANT OFFLINE-FIRST) ---
+    // --- DOCTOR SUBMIT ---
     function handleDoctorSubmit(e) {
       e.preventDefault();
       const saveBtn = document.getElementById('saveDoctorBtn');
@@ -1499,9 +1512,7 @@
 
       patient.photos = [...currentAttachedPhotos];
 
-      // Instant local commit (Guaranteed)
       notifyDataChanged();
-      // Background async cloud sync
       syncPatientToCloud(patient);
 
       if (saveBtn) {
@@ -1678,6 +1689,9 @@
 
     // --- CLEAN DUPLICATES ---
     async function cleanDuplicatePatients() {
+      const deletedIds = getDeletedIds();
+      patients = patients.filter(p => p && p.id && !deletedIds.has(p.id));
+
       const seen = new Map();
       const toDeleteFromCloud = [];
       const cleanList = [];
@@ -1698,7 +1712,10 @@
               if (!primary.visits.some(v => v.date === pv.date)) primary.visits.push(pv);
             });
           }
-          if (p.id) toDeleteFromCloud.push(p.id);
+          if (p.id) {
+            toDeleteFromCloud.push(p.id);
+            addDeletedId(p.id);
+          }
         }
       });
 
@@ -2020,6 +2037,7 @@
             </div>
           ` : ''}
 
+          <!-- Latest Visit Summary -->
           ${(p.bp || p.weight || p.ultrasound || p.rx || (p.photos && p.photos.length > 0)) ? `
             <div class="bg-slate-50 p-3 rounded-xl text-xs border space-y-2">
               <div class="flex justify-between items-center border-b border-slate-200 pb-1.5">
@@ -2168,7 +2186,7 @@
       });
     }
 
-    // --- SECURE DELETION ---
+    // --- SECURE PERMANENT DELETION (NO RESURRECTION) ---
     function requestDeletePatient(id, name) {
       patientToDeleteId = id;
       document.getElementById('deleteModalPatientName').innerText = `المريضة: ${name}`;
@@ -2193,11 +2211,16 @@
 
       if (!patientToDeleteId) return;
       const targetId = patientToDeleteId;
-      
+
+      // 1. Add ID to permanent blacklist
+      addDeletedId(targetId);
+
+      // 2. Remove locally
       patients = patients.filter(p => p.id !== targetId);
       notifyDataChanged();
       closeDeleteModal();
 
+      // 3. Delete from cloud permanently
       if (db) {
         try {
           await db.collection('patients').doc(targetId).delete();
@@ -2205,7 +2228,8 @@
           console.warn("Cloud delete error:", e);
         }
       }
-      alert('🗑️ تم حذف ملف المريضة نهائياً.');
+
+      alert('🗑️ تم حذف ملف المريضة نهائياً ولن تعود للظهور.');
     }
 
     async function purgeAllOldTestPatients() {
@@ -2218,6 +2242,10 @@
       if (!confirm('⚠️ تحذير: سيتم مسح وحذف جميع المريضات المسجلات حالياً نهائياً. هل أنتِ متأكدة؟')) {
         return;
       }
+
+      patients.forEach(p => {
+        if (p && p.id) addDeletedId(p.id);
+      });
 
       if (db) {
         try {
@@ -2233,10 +2261,10 @@
       patients = [];
       notifyDataChanged();
       closeChangePinModal();
-      alert('✨ تم تصفير وحذف جميع السجلات القديمة بنجاح!');
+      alert('✨ تم تصفير وحذف جميع السجلات القديمة نهائياً!');
     }
 
-    // --- FIREBASE SYNC ENGINE (COMPLETELY RESILIENT) ---
+    // --- FIREBASE SYNC ENGINE (FILTERED WITH TOMBSTONES) ---
     const firebaseConfig = {
       apiKey: "AIzaSyDBUW3lgkFWvDygfgBD4kSBRh4wx9d4h0Q",
       authDomain: "hiam-khder.firebaseapp.com",
@@ -2260,11 +2288,13 @@
         });
 
         db.collection('patients').orderBy('timestamp', 'desc').onSnapshot((snapshot) => {
-          const cloudData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+          const deletedIds = getDeletedIds();
+          const cloudData = snapshot.docs
+            .map(doc => ({ ...doc.data(), id: doc.id }))
+            .filter(p => p && p.id && !deletedIds.has(p.id)); // Drop deleted ghosts
           
-          // HARDENED MERGE: Cloud NEVER deletes local patients!
           const cloudIds = new Set(cloudData.map(p => p.id));
-          const unsyncedLocal = patients.filter(p => p.id && !cloudIds.has(p.id));
+          const unsyncedLocal = patients.filter(p => p && p.id && !cloudIds.has(p.id) && !deletedIds.has(p.id));
           
           if (unsyncedLocal.length > 0) {
             unsyncedLocal.forEach(localP => syncPatientToCloud(localP));
@@ -2287,6 +2317,8 @@
     }
 
     async function syncPatientToCloud(patient) {
+      const deletedIds = getDeletedIds();
+      if (!patient || !patient.id || deletedIds.has(patient.id)) return;
       if (db) {
         try {
           await db.collection('patients').doc(patient.id).set(patient, { merge: true });
@@ -2767,13 +2799,12 @@
 
     // Startup bootstrap
     (async function initApp() {
-      // 1. Load from IndexedDB
+      const deletedIds = getDeletedIds();
       const idbList = await getPatientsFromIDB();
       if (idbList && idbList.length > 0) {
-        patients = idbList;
+        patients = idbList.filter(p => p && p.id && !deletedIds.has(p.id));
       } else {
-        // 2. Rescue from previous localStorage keys
-        patients = rescueExistingPatients();
+        patients = loadInitialPatients();
         if (patients.length > 0) {
           savePatientsToIDB(patients);
         }
