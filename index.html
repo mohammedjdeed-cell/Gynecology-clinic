@@ -743,11 +743,11 @@
     let whatsAppTargetPatient = null;
     let db = null;
 
-    // Cross-tab sync
+  // Cross-tab sync
     const syncChannel = ('BroadcastChannel' in window) ? new BroadcastChannel('clinic_sync_bus') : null;
     if (syncChannel) {
       syncChannel.onmessage = async (ev) => {
-        if (ev.data && ev.data.type === 'DATA_UPDATED') {
+        if (ev.data && ev.data.type === 'USER_ACTION_UPDATED') {
           const deletedIds = getDeletedIds();
           const idbList = await getPatientsFromIDB();
           if (idbList && idbList.length > 0) {
@@ -787,10 +787,9 @@
 
     function notifyDataChanged() {
       saveDataPermanently();
-      if (syncChannel) syncChannel.postMessage({ type: 'DATA_UPDATED', time: Date.now() });
+      if (syncChannel) syncChannel.postMessage({ type: 'USER_ACTION_UPDATED', time: Date.now() });
       renderApp();
     }
-
     function saveDataPermanently() {
       const deletedIds = getDeletedIds();
       patients = patients.filter(p => p && p.id && !deletedIds.has(p.id));
@@ -2278,7 +2277,7 @@
       alert('✨ تم تصفير وحذف جميع السجلات القديمة نهائياً!');
     }
 
-    // --- FIREBASE SYNC ENGINE (WITH AUTO-DEDUPLICATION) ---
+   // --- FIREBASE SYNC ENGINE (ROBUST MULTI-DEVICE SUPPORT) ---
     const firebaseConfig = {
       apiKey: "AIzaSyDBUW3lgkFWvDygfgBD4kSBRh4wx9d4h0Q",
       authDomain: "hiam-khder.firebaseapp.com",
@@ -2289,6 +2288,8 @@
       measurementId: "G-7Y5WLJWL6H"
     };
 
+    let isInitialSyncDone = false;
+
     try {
       if (typeof firebase !== 'undefined') {
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
@@ -2297,41 +2298,65 @@
 
         db = firebase.firestore();
 
+        // Safe persistence initialization across mobile and desktop
         db.enablePersistence({ synchronizeTabs: true }).catch(err => {
-          console.warn("Firestore persistence note:", err.code);
+          if (err.code === 'failed-precondition') {
+            console.warn("Firestore: Persistence enabled in another tab/device.");
+          } else if (err.code === 'unimplemented') {
+            console.warn("Firestore: Browser doesn't support persistence.");
+          } else {
+            console.warn("Firestore persistence note:", err);
+          }
         });
 
-        db.collection('patients').orderBy('timestamp', 'desc').onSnapshot((snapshot) => {
+        // Real-time listener without strict orderBy to avoid dropping records
+        db.collection('patients').onSnapshot((snapshot) => {
           const deletedIds = getDeletedIds();
-          const cloudData = snapshot.docs
-            .map(doc => ({ ...doc.data(), id: doc.id }))
-            .filter(p => p && p.id && !deletedIds.has(p.id));
           
-          const cloudIds = new Set(cloudData.map(p => p.id));
-          const unsyncedLocal = patients.filter(p => p && p.id && !cloudIds.has(p.id) && !deletedIds.has(p.id));
-          
-          if (unsyncedLocal.length > 0) {
-            unsyncedLocal.forEach(localP => syncPatientToCloud(localP));
+          const incomingCloudPatients = [];
+          snapshot.forEach(doc => {
+            const data = doc.data();
+            if (data && doc.id && !deletedIds.has(doc.id)) {
+              incomingCloudPatients.push({ ...data, id: doc.id });
+            }
+          });
+
+          const cloudMap = new Map(incomingCloudPatients.map(p => [p.id, p]));
+
+          // Upload local patients ONLY once at startup (prevents loop between devices)
+          if (!isInitialSyncDone) {
+            const localOnlyPatients = patients.filter(localP => 
+              localP && localP.id && !deletedIds.has(localP.id) && !cloudMap.has(localP.id)
+            );
+
+            if (localOnlyPatients.length > 0) {
+              localOnlyPatients.forEach(p => syncPatientToCloud(p));
+            }
+            isInitialSyncDone = true;
           }
 
-          patients = [...unsyncedLocal, ...cloudData];
-          
-          // Automatic in-memory deduplication
-          cleanDuplicatePatients(false);
+          // Merge: cloud version takes priority, local-only pending records kept
+          const localPending = patients.filter(p => !cloudMap.has(p.id) && !deletedIds.has(p.id));
+          patients = [...localPending, ...incomingCloudPatients];
 
+          // Save silently without triggering syncChannel cascades
           saveDataPermanently();
           renderApp();
-          document.getElementById('syncStatus').innerText = '🟢 متصل ومزامن';
+          
+          const statusEl = document.getElementById('syncStatus');
+          if (statusEl) statusEl.innerText = '🟢 متصل ومزامن';
         }, (err) => {
           console.warn('Firestore offline/restricted:', err);
-          document.getElementById('syncStatus').innerText = '🟡 محلي آمن';
+          const statusEl = document.getElementById('syncStatus');
+          if (statusEl) statusEl.innerText = '🟡 محلي آمن';
         });
 
         listenToPinAndDrugsChanges();
       }
     } catch (e) {
       console.warn('Local offline mode:', e);
-      document.getElementById('syncStatus').innerText = '🟡 محلي آمن';
+      const statusEl = document.getElementById('syncStatus');
+      if (statusEl) statusEl.innerText = '🟡 محلي آمن';
     }
 
     async function syncPatientToCloud(patient) {
