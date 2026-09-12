@@ -2277,7 +2277,7 @@
       alert('✨ تم تصفير وحذف جميع السجلات القديمة نهائياً!');
     }
 
-   // --- FIREBASE SYNC ENGINE (ROBUST MULTI-DEVICE SUPPORT) ---
+  // --- FIREBASE SYNC ENGINE (OPTIMIZED FOR WEAK SYRIAN NETWORKS) ---
     const firebaseConfig = {
       apiKey: "AIzaSyDBUW3lgkFWvDygfgBD4kSBRh4wx9d4h0Q",
       authDomain: "hiam-khder.firebaseapp.com",
@@ -2298,55 +2298,58 @@
 
         db = firebase.firestore();
 
-        // Safe persistence initialization across mobile and desktop
-        db.enablePersistence({ synchronizeTabs: true }).catch(err => {
-          if (err.code === 'failed-precondition') {
-            console.warn("Firestore: Persistence enabled in another tab/device.");
-          } else if (err.code === 'unimplemented') {
-            console.warn("Firestore: Browser doesn't support persistence.");
-          } else {
-            console.warn("Firestore persistence note:", err);
-          }
+        // 1. Force Long-Polling: Essential for Syriatel/MTN/ADSL to bypass blocked/stalled WebSockets
+        db.settings({
+          experimentalForceLongPolling: true,
+          merge: true
         });
 
-        // Real-time listener without strict orderBy to avoid dropping records
-        db.collection('patients').onSnapshot((snapshot) => {
+        // 2. Safe Persistence: Ensures offline-first without freezing on multi-tab locks
+        db.enablePersistence({ synchronizeTabs: true }).catch(err => {
+          console.warn("Persistence note:", err.code);
+        });
+
+        // 3. Lightweight incremental listener (uses docChanges to download only what changed!)
+        db.collection('patients').onSnapshot({ includeMetadataChanges: false }, (snapshot) => {
           const deletedIds = getDeletedIds();
-          
-          const incomingCloudPatients = [];
-          snapshot.forEach(doc => {
-            const data = doc.data();
-            if (data && doc.id && !deletedIds.has(doc.id)) {
-              incomingCloudPatients.push({ ...data, id: doc.id });
+          let hasNewChanges = false;
+
+          snapshot.docChanges().forEach((change) => {
+            const docData = change.doc.data();
+            const docId = change.doc.id;
+
+            if (deletedIds.has(docId)) return;
+
+            if (change.type === "added" || change.type === "modified") {
+              const incomingPatient = { ...docData, id: docId };
+              const existingIdx = patients.findIndex(p => p.id === docId);
+
+              if (existingIdx >= 0) {
+                // Keep local photos if incoming cloud payload omitted them for bandwidth saving
+                if ((!incomingPatient.photos || incomingPatient.photos.length === 0) && patients[existingIdx].photos) {
+                  incomingPatient.photos = patients[existingIdx].photos;
+                }
+                patients[existingIdx] = incomingPatient;
+              } else {
+                patients.unshift(incomingPatient);
+              }
+              hasNewChanges = true;
+            } else if (change.type === "removed") {
+              patients = patients.filter(p => p.id !== docId);
+              hasNewChanges = true;
             }
           });
 
-          const cloudMap = new Map(incomingCloudPatients.map(p => [p.id, p]));
-
-          // Upload local patients ONLY once at startup (prevents loop between devices)
-          if (!isInitialSyncDone) {
-            const localOnlyPatients = patients.filter(localP => 
-              localP && localP.id && !deletedIds.has(localP.id) && !cloudMap.has(localP.id)
-            );
-
-            if (localOnlyPatients.length > 0) {
-              localOnlyPatients.forEach(p => syncPatientToCloud(p));
-            }
+          if (hasNewChanges || !isInitialSyncDone) {
             isInitialSyncDone = true;
+            saveDataPermanently();
+            renderApp();
           }
 
-          // Merge: cloud version takes priority, local-only pending records kept
-          const localPending = patients.filter(p => !cloudMap.has(p.id) && !deletedIds.has(p.id));
-          patients = [...localPending, ...incomingCloudPatients];
-
-          // Save silently without triggering syncChannel cascades
-          saveDataPermanently();
-          renderApp();
-          
           const statusEl = document.getElementById('syncStatus');
           if (statusEl) statusEl.innerText = '🟢 متصل ومزامن';
         }, (err) => {
-          console.warn('Firestore offline/restricted:', err);
+          console.warn('Firestore connection warning:', err);
           const statusEl = document.getElementById('syncStatus');
           if (statusEl) statusEl.innerText = '🟡 محلي آمن';
         });
@@ -2354,20 +2357,29 @@
         listenToPinAndDrugsChanges();
       }
     } catch (e) {
-      console.warn('Local offline mode:', e);
+      console.warn('Local fallback mode:', e);
       const statusEl = document.getElementById('syncStatus');
       if (statusEl) statusEl.innerText = '🟡 محلي آمن';
     }
-
-    async function syncPatientToCloud(patient) {
+   async function syncPatientToCloud(patient) {
       const deletedIds = getDeletedIds();
       if (!patient || !patient.id || deletedIds.has(patient.id)) return;
-      if (db) {
-        try {
-          await db.collection('patients').doc(patient.id).set(patient, { merge: true });
-        } catch (err) {
-          console.warn('Background cloud write pending:', err);
-        }
+      if (!db) return;
+
+      // Create an ultra-compressed payload for weak connections
+      // If photos are too large (>200KB total), omit them from real-time sync so text syncs instantly (<1KB)
+      const lightPatient = { ...patient };
+      const photosSize = JSON.stringify(lightPatient.photos || []).length;
+      
+      if (photosSize > 250000) { // If larger than ~250KB
+        // Strip out photos for instant network sync; photos remain safely stored in local IndexedDB
+        delete lightPatient.photos;
+      }
+
+      try {
+        await db.collection('patients').doc(patient.id).set(lightPatient, { merge: true });
+      } catch (err) {
+        console.warn('Background cloud write pending (offline queue will sync when connected):', err);
       }
     }
 
