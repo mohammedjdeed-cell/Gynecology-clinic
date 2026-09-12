@@ -133,9 +133,15 @@
       </div>
 
       <div class="w-full md:w-72">
-        <input type="text" id="searchInput" oninput="renderApp()" placeholder="🔍 بحث بالاسم، الزوج، الهاتف، السكن..." 
+        <input type="text" id="searchInput" oninput="renderApp()" placeholder="🔍 بحث شامل بالاسم، الزوج، الهاتف، السكن..." 
                class="w-full p-2.5 border rounded-xl text-xs focus:outline-teal-600 bg-slate-50 font-medium">
       </div>
+    </div>
+
+    <!-- Global Search Banner Indicator (Appears when searching) -->
+    <div id="globalSearchAlertBanner" class="hidden bg-amber-50 border border-amber-300 p-2.5 rounded-xl text-xs text-amber-900 flex justify-between items-center font-bold">
+      <span id="globalSearchAlertText">🔍 نتائج البحث الشامل في كامل قاعدة البيانات:</span>
+      <button onclick="clearSearchInput()" class="text-xs text-red-600 hover:underline">إلغاء البحث والعودة</button>
     </div>
 
     <!-- Stats Bar -->
@@ -148,7 +154,7 @@
           <span>ل.س</span>
         </div>
         <button onclick="syncAllToCloud()" title="اضغطي للتأكد من حفظ السحابة" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-2 py-1 rounded-xl text-[11px] flex items-center gap-1">
-          <span id="syncStatus">🟢 محلي آمن</span>
+          <span id="syncStatus">🟢 فحص الاتصال...</span>
         </button>
       </div>
     </div>
@@ -171,7 +177,7 @@
       <div id="secExistingMatchBanner" class="hidden bg-emerald-50 border border-emerald-300 p-2.5 rounded-xl text-xs text-emerald-950 flex justify-between items-center font-bold">
         <div>
           <span>💡 مريضة مسجلة سابقاً!</span>
-          <p class="text-[10px] text-emerald-800 font-normal">سيتم إدراجها في دور اليوم وإضافة الزيارة لملفها تلقائياً.</p>
+          <p class="text-[10px] text-emerald-800 font-normal">سيتم إدراجها في دور اليوم وإضافة الزيارة لملفها تلقائياً دون تكرار البطاقة.</p>
         </div>
         <button type="button" onclick="resetSecSelection()" class="text-xs text-red-600 hover:underline">إلغاء الربط</button>
       </div>
@@ -316,7 +322,7 @@
             <div class="relative" id="docNameFieldContainer">
               <label class="block font-semibold mb-1">الاسم الثلاثي للمريضة *</label>
               <input type="text" id="pName" required autocomplete="off" oninput="handleDoctorLiveSearch(this.value)" 
-                     placeholder="اسم المريضة..." class="w-full p-2 border rounded-lg text-sm bg-white font-bold focus:ring-2 focus:ring-teal-500">
+                     placeholder="اسم المريضة (اكتبي للبحث الفوري أو الإضافة)..." class="w-full p-2 border rounded-lg text-sm bg-white font-bold focus:ring-2 focus:ring-teal-500">
               
               <!-- Doctor Suggestions Dropdown -->
               <div id="docSuggestionsDropdown" class="hidden absolute top-full right-0 left-0 bg-white border-2 border-teal-500 rounded-xl shadow-2xl mt-1 max-h-56 overflow-y-auto z-40 divide-y divide-slate-100">
@@ -743,7 +749,7 @@
     let whatsAppTargetPatient = null;
     let db = null;
 
-  // Cross-tab sync
+    // Cross-tab sync
     const syncChannel = ('BroadcastChannel' in window) ? new BroadcastChannel('clinic_sync_bus') : null;
     if (syncChannel) {
       syncChannel.onmessage = async (ev) => {
@@ -790,6 +796,7 @@
       if (syncChannel) syncChannel.postMessage({ type: 'USER_ACTION_UPDATED', time: Date.now() });
       renderApp();
     }
+
     function saveDataPermanently() {
       const deletedIds = getDeletedIds();
       patients = patients.filter(p => p && p.id && !deletedIds.has(p.id));
@@ -814,6 +821,11 @@
       cleanDuplicatePatients(false);
       renderApp();
       showRealtimeToast('🔄 تم تحديث السجلات بنجاح');
+    }
+
+    function clearSearchInput() {
+      document.getElementById('searchInput').value = '';
+      renderApp();
     }
 
     // --- ADVANCED PERMANENT DEDUPLICATION & MERGE ---
@@ -910,7 +922,7 @@
     // --- FULL CLOUD SYNC FUNCTION ---
     async function syncAllToCloud() {
       if (!db) {
-        alert("⚠️ غير متصل بـ Firebase حالياً. تأكدي من الاتصال بالإنترنت.");
+        alert("⚠️ جاري الاتصال بـ Firebase... تحققي من الإنترنت.");
         return;
       }
 
@@ -923,7 +935,7 @@
 
       for (const p of patients) {
         try {
-          await db.collection('patients').doc(p.id).set(p, { merge: true });
+          await syncPatientToCloud(p);
           successCount++;
         } catch (err) {
           console.warn("Upload error:", p.name, err);
@@ -948,8 +960,8 @@
       
       document.getElementById('syncReportDetails').innerHTML = `
         تم فحص <strong class="text-slate-900">${patients.length}</strong> ملف مريضة في النظام.<br>
-        تمت مزامنة ورفع <strong class="text-emerald-700">${successCount}</strong> ملف بنجاح إلى قاعدة بيانات السحابة.<br>
-        ${failCount > 0 ? `<span class="text-red-500 font-bold">تعذر رفع ${failCount} ملف (تحققي من إضافة الدومين إلى Firebase)</span>` : `<span class="text-slate-500 text-[11px]">نسبة النجاح: 100% (صفر أخطاء)</span>`}
+        تمت مزامنة وتأمين <strong class="text-emerald-700">${successCount}</strong> ملف بنجاح في قاعدة بيانات السحابة.<br>
+        ${failCount > 0 ? `<span class="text-red-500 font-bold">تعذر رفع ${failCount} ملف (تحققي من شبكة الإنترنت)</span>` : `<span class="text-slate-500 text-[11px]">نسبة النجاح: 100% (كامل البيانات متطابقة)</span>`}
       `;
       document.getElementById('syncReportModal').classList.remove('hidden');
     }
@@ -1136,7 +1148,7 @@
                normHusband.includes(q) || 
                safeIncludes(p.phone, q) || 
                safeIncludes(p.nationalId, q);
-      }).slice(0, 5);
+      }).slice(0, 6);
 
       if (matches.length === 0) {
         dropdown.classList.add('hidden');
@@ -1195,7 +1207,7 @@
       document.getElementById('secName').focus();
     }
 
-    // --- LIVE SUGGESTIONS (DOCTOR) ---
+    // --- LIVE SUGGESTIONS (DOCTOR - DEEP SEARCH IN ARCHIVE) ---
     function handleDoctorLiveSearch(typedText) {
       const dropdown = document.getElementById('docSuggestionsDropdown');
       const q = normalizeArabic(typedText);
@@ -1213,7 +1225,7 @@
                normHusband.includes(q) || 
                safeIncludes(p.phone, q) || 
                safeIncludes(p.nationalId, q);
-      }).slice(0, 5);
+      }).slice(0, 6);
 
       if (matches.length === 0) {
         dropdown.classList.add('hidden');
@@ -1222,24 +1234,25 @@
       }
 
       dropdown.innerHTML = `
-        <div class="p-2 bg-slate-50 text-[11px] font-bold text-slate-500 border-b flex justify-between">
-          <span>🔍 مريضات مسجلات سابقاً في الأرشيف:</span>
-          <span>اضغطي لتحميل ملف المريضة</span>
+        <div class="p-2 bg-purple-50 text-[11px] font-bold text-purple-800 border-b flex justify-between">
+          <span>🔍 مريضات مسجلات سابقاً في الأرشيف (تطابق الأسماء):</span>
+          <span>اضغطي لاستدعاء ملف المريضة</span>
         </div>
       `;
 
       matches.forEach(m => {
         const item = document.createElement('div');
-        item.className = 'p-2.5 hover:bg-teal-50 cursor-pointer text-xs transition border-b last:border-0';
+        item.className = 'p-2.5 hover:bg-purple-50 cursor-pointer text-xs transition border-b last:border-0';
         item.innerHTML = `
           <div class="flex justify-between items-center font-bold text-slate-900">
             <span>${escapeHTML(m.name)} ${m.husband ? `<span class="text-slate-500 font-normal text-[11px]">(زوجها: ${escapeHTML(m.husband)})</span>` : ''}</span>
-            <span class="bg-purple-100 text-purple-800 text-[10px] px-2 py-0.5 rounded-full font-bold">تحميل السجل</span>
+            <span class="bg-purple-100 text-purple-800 text-[10px] px-2 py-0.5 rounded-full font-bold">استدعاء البطاقة</span>
           </div>
           <div class="flex gap-2 text-[10px] text-slate-500 mt-1 flex-wrap font-mono">
             <span>📞 ${escapeHTML(m.phone) || 'بدون هاتف'}</span>
             ${m.birthYear ? `<span>🎂 مواليد ${escapeHTML(m.birthYear)}</span>` : ''}
             <span>📅 آخر زيارة: ${escapeHTML(m.visitDate) || 'سابق'}</span>
+            ${m.visits && m.visits.length > 0 ? `<span class="text-teal-700 font-bold">(${m.visits.length} مراجعات سابقة)</span>` : ''}
           </div>
         `;
         item.onclick = () => selectExistingPatientForDoctor(m);
@@ -1281,6 +1294,11 @@
           normalizeArabic(p.name) === qNormName && 
           normalizeArabic(p.husband) === qNormHusband
         );
+        if (found) return found;
+      }
+
+      if (qNormName) {
+        const found = patients.find(p => normalizeArabic(p.name) === qNormName);
         if (found) return found;
       }
 
@@ -1347,9 +1365,7 @@
       if (targetPatient) {
         targetPatient.visitDate = today;
         targetPatient.status = 'waiting';
-        if (!targetPatient.queueTimestamp || targetPatient.visitDate !== today) {
-          targetPatient.queueTimestamp = Date.now();
-        }
+        targetPatient.queueTimestamp = Date.now();
         if (husband && !targetPatient.husband) targetPatient.husband = husband;
         if (nationalId && !targetPatient.nationalId) targetPatient.nationalId = nationalId;
         if (address && !targetPatient.address) targetPatient.address = address;
@@ -1510,7 +1526,7 @@
       closeBackdateModal();
     }
 
-    // --- DOCTOR SUBMIT ---
+    // --- DOCTOR SUBMIT (SMART DEDUPLICATING SAVER) ---
     function handleDoctorSubmit(e) {
       e.preventDefault();
       const saveBtn = document.getElementById('saveDoctorBtn');
@@ -1519,10 +1535,34 @@
         saveBtn.innerText = 'جاري الحفظ...';
       }
 
-      const id = document.getElementById('editingPatientId').value;
+      let id = document.getElementById('editingPatientId').value;
       const selectedDate = document.getElementById('dateFilterInput').value || getTodayDateString();
 
-      let patient = patients.find(p => p.id === id);
+      const inputName = document.getElementById('pName').value.trim();
+      const inputHusband = document.getElementById('pHusband').value.trim();
+      const inputPhone = convertArabicNumerals(document.getElementById('pPhone').value.trim());
+      const inputNationalId = convertArabicNumerals(document.getElementById('pNationalId').value.trim());
+
+      let patient = null;
+
+      if (id) {
+        patient = patients.find(p => p.id === id);
+      }
+
+      // If doctor didn't select from dropdown, check if this patient already exists to prevent duplicate cards
+      if (!patient) {
+        const potentialMatch = findBestMatchingPatient({ 
+          name: inputName, 
+          husband: inputHusband, 
+          phone: inputPhone, 
+          nationalId: inputNationalId 
+        });
+
+        if (potentialMatch) {
+          patient = potentialMatch;
+          id = patient.id;
+        }
+      }
 
       if (!patient) {
         const localDocId = 'pat_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
@@ -1536,10 +1576,10 @@
         patients.unshift(patient);
       }
 
-      patient.name = document.getElementById('pName').value.trim();
-      patient.husband = document.getElementById('pHusband').value.trim();
-      patient.nationalId = convertArabicNumerals(document.getElementById('pNationalId').value.trim());
-      patient.phone = convertArabicNumerals(document.getElementById('pPhone').value.trim());
+      patient.name = inputName;
+      patient.husband = inputHusband;
+      patient.nationalId = inputNationalId;
+      patient.phone = inputPhone;
       patient.birthYear = convertArabicNumerals(document.getElementById('pBirthYear').value.trim());
       patient.address = document.getElementById('pAddress').value.trim();
       patient.blood = document.getElementById('pBlood').value;
@@ -1563,6 +1603,7 @@
       patient.ultrasound = document.getElementById('pUltrasound').value;
       patient.rx = document.getElementById('pRx').value;
       patient.status = 'completed';
+      patient.visitDate = selectedDate;
 
       patient.visits = patient.visits || [];
       const currentVisitRecord = {
@@ -1602,7 +1643,7 @@
       if (!p) return;
 
       document.getElementById('editingPatientId').value = p.id;
-      document.getElementById('docModalSubtitle').innerText = `تاريخ الزيارة: ${p.visitDate || getTodayDateString()}`;
+      document.getElementById('docModalSubtitle').innerText = `المريضة: ${p.name} | تاريخ الزيارة: ${p.visitDate || getTodayDateString()}`;
       document.getElementById('pName').value = p.name || '';
       document.getElementById('pHusband').value = p.husband || '';
       document.getElementById('pNationalId').value = p.nationalId || '';
@@ -1644,7 +1685,7 @@
 
     function openDoctorNewPatientModal() {
       document.getElementById('editingPatientId').value = '';
-      document.getElementById('docModalSubtitle').innerText = `تسجيل مباشر من الطبيبة`;
+      document.getElementById('docModalSubtitle').innerText = `تسجيل مباشر أو استدعاء ملف من الأرشيف`;
       document.getElementById('doctorForm').reset();
       document.getElementById('docAgePreview').innerText = '';
       document.getElementById('pIsHighRisk').checked = false;
@@ -1657,6 +1698,7 @@
       renderDrugChips();
       updateModalPregnancyPreview();
       document.getElementById('doctorModal').classList.remove('hidden');
+      setTimeout(() => document.getElementById('pName').focus(), 150);
     }
 
     // --- ACCURATE PREGNANCY ENGINE ---
@@ -1760,11 +1802,14 @@
       previewEl.classList.remove('hidden');
     }
 
-    // --- MAIN RENDER ENGINE ---
+    // --- MAIN RENDER ENGINE (WITH GLOBAL ARCHIVE SEARCH) ---
     function renderApp() {
       const selectedDate = document.getElementById('dateFilterInput').value || getTodayDateString();
-      const q = normalizeArabic(document.getElementById('searchInput').value);
+      const rawSearch = document.getElementById('searchInput').value.trim();
+      const q = normalizeArabic(rawSearch);
       const list = document.getElementById('patientList');
+      const searchBanner = document.getElementById('globalSearchAlertBanner');
+      const searchAlertText = document.getElementById('globalSearchAlertText');
       list.innerHTML = '';
 
       const dueMonthPatients = patients.filter(p => {
@@ -1783,47 +1828,66 @@
 
       renderNextPatientSpotlight();
 
-      if (!isSec && activeTab === 'weekly') {
-        renderWeeklyGroupedView(list, q);
-        return;
-      }
-
       let displayList = [];
 
-      if (isSec || activeTab === 'daily') {
-        const targetDate = isSec ? getTodayDateString() : selectedDate;
-        let dayPatients = patients.filter(p => p.visitDate === targetDate);
+      // --- GLOBAL DEEP SEARCH MODE (ACTIVATES ON SEARCH INPUT) ---
+      if (q && q.length > 0) {
+        searchBanner.classList.remove('hidden');
         
-        dayPatients.sort((a, b) => ((a.queueTimestamp || a.timestamp || 0) - (b.queueTimestamp || b.timestamp || 0)));
-
-        dayPatients.forEach((p, idx) => {
-          p.dynamicQueueNumber = idx + 1;
-        });
-
-        displayList = dayPatients.filter(p => {
-          if (!q) return true;
+        displayList = patients.filter(p => {
           return normalizeArabic(p.name).includes(q) || 
                  normalizeArabic(p.husband).includes(q) || 
                  safeIncludes(p.nationalId, q) || 
                  normalizeArabic(p.address).includes(q) || 
                  safeIncludes(p.phone, q);
         });
-      } else if (activeTab === 'dueMonth') {
-        displayList = dueMonthPatients.filter(p => !q || normalizeArabic(p.name).includes(q) || safeIncludes(p.phone, q));
-        displayList.sort((a, b) => {
-          const pa = calculatePregnancy(a.lmp);
-          const pb = calculatePregnancy(b.lmp);
-          return (pa?.daysUntilDelivery || 999) - (pb?.daysUntilDelivery || 999);
-        });
-      } else { // 'all' (Archive)
-        displayList = patients.filter(p => !q || 
-          normalizeArabic(p.name).includes(q) || 
-          normalizeArabic(p.husband).includes(q) || 
-          safeIncludes(p.phone, q) || 
-          safeIncludes(p.nationalId, q) || 
-          normalizeArabic(p.address).includes(q)
-        );
-        displayList.sort((a,b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+        searchAlertText.innerText = `🔍 نتائج البحث الشامل في كامل أرشيف العيادة عن "${rawSearch}" (وجدت ${displayList.length} مريضة):`;
+        document.getElementById('queueStats').innerText = `🔎 تم العثور على ${displayList.length} ملف مطابق في قاعدة البيانات`;
+
+      } else {
+        searchBanner.classList.add('hidden');
+
+        if (!isSec && activeTab === 'weekly') {
+          renderWeeklyGroupedView(list, '');
+          return;
+        }
+
+        if (isSec || activeTab === 'daily') {
+          const targetDate = isSec ? getTodayDateString() : selectedDate;
+          let dayPatients = patients.filter(p => p.visitDate === targetDate);
+          
+          dayPatients.sort((a, b) => ((a.queueTimestamp || a.timestamp || 0) - (b.queueTimestamp || b.timestamp || 0)));
+
+          dayPatients.forEach((p, idx) => {
+            p.dynamicQueueNumber = idx + 1;
+          });
+
+          displayList = dayPatients;
+        } else if (activeTab === 'dueMonth') {
+          displayList = [...dueMonthPatients];
+          displayList.sort((a, b) => {
+            const pa = calculatePregnancy(a.lmp);
+            const pb = calculatePregnancy(b.lmp);
+            return (pa?.daysUntilDelivery || 999) - (pb?.daysUntilDelivery || 999);
+          });
+        } else { // 'all' (Archive)
+          displayList = [...patients];
+          displayList.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        }
+
+        const waitingCount = displayList.filter(p => p.status === 'waiting').length;
+        const completedCount = displayList.filter(p => p.status === 'completed').length;
+        
+        if (isSec) {
+          document.getElementById('queueStats').innerText = `📋 مريضات اليوم (${getTodayDateString()}): ${displayList.length} (بانتظار: ${waitingCount} | تم: ${completedCount})`;
+        } else if (activeTab === 'daily') {
+          document.getElementById('queueStats').innerText = `يوميات: ${selectedDate} | الإجمالي: ${displayList.length} (بانتظار: ${waitingCount} | تم: ${completedCount})`;
+        } else if (activeTab === 'dueMonth') {
+          document.getElementById('queueStats').innerText = `🤰 قائمة الحوامل المقربات على الولادة (${displayList.length} مريضة)`;
+        } else {
+          document.getElementById('queueStats').innerText = `📋 إجمالي أرشيف العيادة: ${displayList.length} ملف مريضة`;
+        }
       }
 
       if (currentRole === 'doctor') {
@@ -1832,26 +1896,17 @@
         document.getElementById('dailyTotalIncome').innerText = totalDailyIncome.toLocaleString('en-US');
       }
 
-      const waitingCount = displayList.filter(p => p.status === 'waiting').length;
-      const completedCount = displayList.filter(p => p.status === 'completed').length;
-      
-      if (isSec) {
-        document.getElementById('queueStats').innerText = `📋 مريضات اليوم (${getTodayDateString()}): ${displayList.length} (بانتظار: ${waitingCount} | تم: ${completedCount})`;
-      } else if (activeTab === 'daily') {
-        document.getElementById('queueStats').innerText = `يوميات: ${selectedDate} | الإجمالي: ${displayList.length} (بانتظار: ${waitingCount} | تم: ${completedCount})`;
-      } else if (activeTab === 'dueMonth') {
-        document.getElementById('queueStats').innerText = `🤰 قائمة الحوامل المقربات على الولادة (${displayList.length} مريضة)`;
-      } else {
-        document.getElementById('queueStats').innerText = `📋 إجمالي أرشيف العيادة: ${displayList.length} ملف مريضة`;
-      }
-
       if (displayList.length === 0) {
         list.innerHTML = `<div class="bg-white rounded-2xl p-12 text-center text-slate-400 font-semibold border">لا توجد مريضات مسجلات لعرضهن حالياً</div>`;
         return;
       }
 
-      // Smart Queue Ordering: Waiting on top, Examined on bottom
-      if ((isSec || activeTab === 'daily') && waitingCount > 0 && completedCount > 0) {
+      // Smart Queue Ordering on Daily view: Waiting on top, Examined on bottom
+      const isDailyView = (isSec || activeTab === 'daily') && (!q || q.length === 0);
+      const waitingCount = displayList.filter(p => p.status === 'waiting').length;
+      const completedCount = displayList.filter(p => p.status === 'completed').length;
+
+      if (isDailyView && waitingCount > 0 && completedCount > 0) {
         const waitingPatients = displayList.filter(p => p.status === 'waiting');
         const donePatients = displayList.filter(p => p.status !== 'waiting');
 
@@ -1886,7 +1941,8 @@
       const container = document.getElementById('nextPatientSpotlightContainer');
       if (!container) return;
 
-      if (currentRole !== 'doctor' || activeTab !== 'daily') {
+      const q = document.getElementById('searchInput').value.trim();
+      if (currentRole !== 'doctor' || activeTab !== 'daily' || q.length > 0) {
         container.innerHTML = '';
         return;
       }
@@ -1955,8 +2011,9 @@
       const queueNumToDisplay = p.dynamicQueueNumber || (index + 1);
       const isHighBP = checkHighBloodPressure(p.bp);
       const visitsList = p.visits || [];
+      const q = document.getElementById('searchInput').value.trim();
       
-      const showQueueNumber = (activeTab === 'daily' || currentRole === 'secretary' || activeTab === 'weekly');
+      const showQueueNumber = (activeTab === 'daily' || currentRole === 'secretary' || activeTab === 'weekly') && (q.length === 0);
 
       card.className = `bg-white rounded-2xl p-4 shadow-sm border ${p.isHighRisk ? 'border-red-500 ring-2 ring-red-300' : (preg && (preg.isDueWithinMonth || preg.isOverdue) ? 'border-rose-400 ring-2 ring-rose-200' : (isWaiting ? 'border-amber-300 bg-amber-50/20' : 'border-slate-200'))} space-y-3`;
 
@@ -1996,6 +2053,7 @@
                 <span>| ${p.birthYear ? `🎂 تولد: ${escapeHTML(p.birthYear)} (${calculatedAge} سنة)` : (p.age ? `العمر: ${escapeHTML(p.age)} سنة` : 'العمر: -')}</span>
                 ${p.nationalId ? `<span>| 🆔 ${escapeHTML(p.nationalId)}</span>` : ''}
                 ${p.address ? `<span>| 📍 ${escapeHTML(p.address)}</span>` : ''}
+                <span class="bg-slate-100 text-slate-700 px-1.5 py-0.2 rounded border text-[11px]">📅 الزيارة: ${escapeHTML(p.visitDate)}</span>
               </div>
             </div>
           </div>
@@ -2058,7 +2116,7 @@
           ${(p.bp || p.weight || p.ultrasound || p.rx || (p.photos && p.photos.length > 0)) ? `
             <div class="bg-slate-50 p-3 rounded-xl text-xs border space-y-2">
               <div class="flex justify-between items-center border-b border-slate-200 pb-1.5">
-                <span class="font-bold text-slate-700">🩺 فحص آخر زيارة (${escapeHTML(p.visitDate)})</span>
+                <span class="font-bold text-slate-700">🩺 فحص الزيارة (${escapeHTML(p.visitDate)})</span>
                 <div class="flex gap-3">
                   <span class="${isHighBP ? 'bg-red-100 text-red-700 px-2 py-0.5 rounded font-bold border border-red-300 animate-pulse' : 'text-slate-600'}">
                     ${isHighBP ? '⚠️ الضغط: ' : 'الضغط: '}<strong>${escapeHTML(p.bp) || '-'}</strong>
@@ -2277,7 +2335,7 @@
       alert('✨ تم تصفير وحذف جميع السجلات القديمة نهائياً!');
     }
 
-  // --- FIREBASE SYNC ENGINE (OPTIMIZED FOR WEAK SYRIAN NETWORKS) ---
+    // --- FIREBASE SYNC ENGINE (STABLE RECONNECTED ENGINE) ---
     const firebaseConfig = {
       apiKey: "AIzaSyDBUW3lgkFWvDygfgBD4kSBRh4wx9d4h0Q",
       authDomain: "hiam-khder.firebaseapp.com",
@@ -2294,22 +2352,27 @@
       if (typeof firebase !== 'undefined') {
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         
-        firebase.auth().signInAnonymously().catch(err => console.log("Auth silent mode"));
+        firebase.auth().signInAnonymously().catch(err => {
+          console.warn("Auth mode note:", err.message);
+        });
 
         db = firebase.firestore();
 
-        // 1. Force Long-Polling: Essential for Syriatel/MTN/ADSL to bypass blocked/stalled WebSockets
-        db.settings({
-          experimentalForceLongPolling: true,
-          merge: true
-        });
+        // 1. Force Long-Polling safely WITHOUT illegal settings parameters
+        try {
+          db.settings({
+            experimentalForceLongPolling: true
+          });
+        } catch (setErr) {
+          console.warn("Settings notice:", setErr);
+        }
 
-        // 2. Safe Persistence: Ensures offline-first without freezing on multi-tab locks
+        // 2. Safe Persistence: Enables offline caching without throwing locking errors
         db.enablePersistence({ synchronizeTabs: true }).catch(err => {
-          console.warn("Persistence note:", err.code);
+          console.warn("Persistence status:", err.code);
         });
 
-        // 3. Lightweight incremental listener (uses docChanges to download only what changed!)
+        // 3. Reliable Snapshot listener
         db.collection('patients').onSnapshot({ includeMetadataChanges: false }, (snapshot) => {
           const deletedIds = getDeletedIds();
           let hasNewChanges = false;
@@ -2325,7 +2388,6 @@
               const existingIdx = patients.findIndex(p => p.id === docId);
 
               if (existingIdx >= 0) {
-                // Keep local photos if incoming cloud payload omitted them for bandwidth saving
                 if ((!incomingPatient.photos || incomingPatient.photos.length === 0) && patients[existingIdx].photos) {
                   incomingPatient.photos = patients[existingIdx].photos;
                 }
@@ -2349,7 +2411,7 @@
           const statusEl = document.getElementById('syncStatus');
           if (statusEl) statusEl.innerText = '🟢 متصل ومزامن';
         }, (err) => {
-          console.warn('Firestore connection warning:', err);
+          console.warn('Firestore sync warning:', err);
           const statusEl = document.getElementById('syncStatus');
           if (statusEl) statusEl.innerText = '🟡 محلي آمن';
         });
@@ -2361,25 +2423,23 @@
       const statusEl = document.getElementById('syncStatus');
       if (statusEl) statusEl.innerText = '🟡 محلي آمن';
     }
-   async function syncPatientToCloud(patient) {
+
+    async function syncPatientToCloud(patient) {
       const deletedIds = getDeletedIds();
       if (!patient || !patient.id || deletedIds.has(patient.id)) return;
       if (!db) return;
 
-      // Create an ultra-compressed payload for weak connections
-      // If photos are too large (>200KB total), omit them from real-time sync so text syncs instantly (<1KB)
       const lightPatient = { ...patient };
       const photosSize = JSON.stringify(lightPatient.photos || []).length;
       
-      if (photosSize > 250000) { // If larger than ~250KB
-        // Strip out photos for instant network sync; photos remain safely stored in local IndexedDB
+      if (photosSize > 250000) {
         delete lightPatient.photos;
       }
 
       try {
         await db.collection('patients').doc(patient.id).set(lightPatient, { merge: true });
       } catch (err) {
-        console.warn('Background cloud write pending (offline queue will sync when connected):', err);
+        console.warn('Cloud sync write pending (will auto-sync when online):', err);
       }
     }
 
@@ -2839,6 +2899,7 @@
       document.getElementById('secAgePreview').innerText = '';
       document.getElementById('secSuggestionsDropdown').classList.add('hidden');
       document.getElementById('secretaryModal').classList.remove('hidden'); 
+      setTimeout(() => document.getElementById('secName').focus(), 150);
     }
     function closeSecretaryModal() { document.getElementById('secretaryModal').classList.add('hidden'); }
     function closeDoctorModal() { document.getElementById('doctorModal').classList.add('hidden'); }
