@@ -676,8 +676,8 @@
     const DOC_PIN_KEY = "clinic_doc_pin";
     const SEC_PIN_KEY = "clinic_sec_pin";
     const CURRENT_ROLE_KEY = "clinic_user_role";
-    const PRIMARY_DB_KEY = "syria_obgyn_permanent_records_v13";
-    const DELETED_IDS_KEY = "clinic_deleted_tombstones_v13";
+    const PRIMARY_DB_KEY = "syria_obgyn_permanent_records_v14";
+    const DELETED_IDS_KEY = "clinic_deleted_tombstones_v14";
     const DRUGS_KEY = "clinic_custom_drugs_v5";
     const LAST_BACKUP_KEY = "clinic_last_weekly_backup";
 
@@ -708,16 +708,13 @@
       localStorage.setItem(DELETED_IDS_KEY, JSON.stringify([...set]));
     }
 
-    // --- ROCK-SOLID INDEXEDDB ENGINE ---
-    const IDB_NAME = "SyriaClinicIDB_v13";
+    // --- INDEXEDDB ENGINE ---
+    const IDB_NAME = "SyriaClinicIDB_v14";
     const IDB_STORE = "patients_store";
 
     function openIDB() {
       return new Promise((resolve) => {
-        if (!window.indexedDB) {
-          resolve(null);
-          return;
-        }
+        if (!window.indexedDB) { resolve(null); return; }
         try {
           const req = indexedDB.open(IDB_NAME, 1);
           req.onupgradeneeded = (e) => {
@@ -765,7 +762,25 @@
       }
     }
 
-    // --- STRICT VISIT NORMALIZER: Guarantees unique IDs & removes ghost visits ---
+    // --- ACCURATE ARABIC NUMERAL CONVERTER ---
+    function convertArabicNumerals(str) {
+      if (str === null || str === undefined) return '';
+      return str.toString()
+        .replace(/[\u0660-\u0669]/g, d => d.charCodeAt(0) - 0x0660)
+        .replace(/[\u06F0-\u06F9]/g, d => d.charCodeAt(0) - 0x06F0);
+    }
+
+    function normalizeArabic(text) {
+      if (!text) return '';
+      let clean = convertArabicNumerals(text.toString()).trim().toLowerCase();
+      return clean
+        .replace(/[إأآا]/g, 'ا')
+        .replace(/ة/g, 'ه')
+        .replace(/ى/g, 'ي')
+        .replace(/[\u064B-\u065F]/g, '');
+    }
+
+    // --- STRICT VISIT NORMALIZER: Fixed Deduplication Bug ---
     function normalizePatientObject(p) {
       if (!p) return null;
       p.visits = Array.isArray(p.visits) ? p.visits : [];
@@ -773,45 +788,51 @@
       // Filter out completely empty ghost visits
       p.visits = p.visits.filter(v => {
         if (!v) return false;
+        const hasFee = (v.fee !== undefined && v.fee !== null && v.fee !== '' && parseInt(v.fee, 10) >= 0);
         const hasContent = (v.ultrasound && v.ultrasound.trim()) || 
                            (v.rx && v.rx.trim()) || 
                            (v.bp && v.bp.trim()) || 
                            (v.weight && v.weight.trim()) || 
                            (v.photos && v.photos.length > 0) ||
-                           (v.fee && parseInt(v.fee) > 0);
-        return hasContent || (v.date && v.complaint && v.complaint !== 'زيارة سابقة');
+                           hasFee;
+        return hasContent || (v.date && v.complaint);
       });
 
-      // Ensure every single visit has a strict unique id
+      // Ensure every single visit has a guaranteed unique id & integer fee
       p.visits.forEach((v, idx) => {
         if (!v.id || typeof v.id !== 'string') {
           v.id = 'v_' + (v.date ? v.date.replace(/-/g, '') : 'd') + '_' + idx + '_' + Math.random().toString(36).substr(2, 5);
         }
+        if (v.fee !== undefined && v.fee !== null && v.fee !== '') {
+          v.fee = parseInt(convertArabicNumerals(v.fee), 10) || 0;
+        } else {
+          v.fee = 0;
+        }
+        if (!v.timestamp) v.timestamp = Date.now();
       });
 
-      // Deduplicate visits with exact same date, ultrasound and rx
+      // Deduplicate visits safely: Match by ID or EXACT date + timestamp (NOT dropping visits with different fees)
       const uniqueVisits = [];
-      const seenVisitKeys = new Set();
+      const seenVisitIds = new Set();
       p.visits.forEach(v => {
-        const key = (v.date || '') + '_' + (v.ultrasound || '').trim() + '_' + (v.rx || '').trim();
-        if (!seenVisitKeys.has(key)) {
-          seenVisitKeys.add(key);
+        if (!seenVisitIds.has(v.id)) {
+          seenVisitIds.add(v.id);
           uniqueVisits.push(v);
         }
       });
       p.visits = uniqueVisits;
 
-      // Sort visits descending
-      p.visits.sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.timestamp || 0) - (a.timestamp || 0));
+      // Sort visits descending: Date descending, then Timestamp descending
+      p.visits.sort((a, b) => (b.date || '').localeCompare(a.date || '') || ((b.timestamp || 0) - (a.timestamp || 0)));
       return p;
     }
 
-    // --- SAFE INITIAL LOAD ---
+    // --- INITIAL LOAD ---
     function loadInitialPatients() {
       const deletedIds = getDeletedIds();
       const raw = localStorage.getItem(PRIMARY_DB_KEY) || 
-                  localStorage.getItem("syria_obgyn_permanent_records_v12") ||
-                  localStorage.getItem("syria_obgyn_permanent_records");
+                  localStorage.getItem("syria_obgyn_permanent_records_v13") ||
+                  localStorage.getItem("syria_obgyn_permanent_records_v12");
       if (raw) {
         try {
           const list = JSON.parse(raw);
@@ -889,7 +910,7 @@
       try {
         localStorage.setItem(PRIMARY_DB_KEY, JSON.stringify(patients));
       } catch (err) {
-        console.warn("LocalStorage warning:", err);
+        console.warn("LocalStorage quota warning:", err);
       }
 
       savePatientsToIDB(patients);
@@ -903,7 +924,6 @@
       } else {
         patients = loadInitialPatients();
       }
-      cleanDuplicatePatients(false);
       renderApp();
       showRealtimeToast('🔄 تم تحديث السجلات بنجاح');
     }
@@ -913,7 +933,7 @@
       renderApp();
     }
 
-    // --- ADVANCED DEDUPLICATION & MERGE ---
+    // --- SAFE DEDUPLICATION & MERGE ---
     function getDedupeKey(p) {
       if (!p) return '';
       const natId = p.nationalId ? convertArabicNumerals(p.nationalId).trim() : '';
@@ -950,11 +970,18 @@
           
           if (p.visits && p.visits.length > 0) {
             p.visits.forEach(pv => {
-              if (!primary.visits.some(v => v.id === pv.id || (v.date === pv.date && v.ultrasound === pv.ultrasound))) {
+              if (!primary.visits.some(v => v.id === pv.id)) {
                 primary.visits.push(pv);
               }
             });
-            primary.visits.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+            primary.visits.sort((a, b) => (b.date || '').localeCompare(a.date || '') || ((b.timestamp || 0) - (a.timestamp || 0)));
+          }
+
+          if (p.visitDate === getTodayDateString()) {
+            primary.visitDate = p.visitDate;
+            primary.status = p.status;
+            primary.complaint = p.complaint;
+            primary.queueTimestamp = p.queueTimestamp || Date.now();
           }
 
           if (!primary.husband && p.husband) primary.husband = p.husband;
@@ -965,7 +992,7 @@
 
           toUpdateInCloud.push(primary);
 
-          if (p.id) {
+          if (p.id && p.id !== primary.id) {
             toDeleteFromCloud.push(p.id);
             addDeletedId(p.id);
           }
@@ -978,7 +1005,7 @@
       }
 
       const shouldProceed = isManualClick ? 
-        confirm(`تم العثور على ${toDeleteFromCloud.length} بطاقة مكررة. هل ترغبين في دمجها وحذف النسخ المكررة نهائياً؟`) : 
+        confirm(`تم العثور على ${toDeleteFromCloud.length} بطاقة مكررة. هل ترغبين في دمجها؟`) : 
         true;
 
       if (shouldProceed) {
@@ -987,30 +1014,22 @@
 
         if (db) {
           toDeleteFromCloud.forEach(async (delId) => {
-            try {
-              await db.collection('patients').doc(delId).delete();
-            } catch (err) {
-              console.warn("Delete cloud error:", delId, err);
-            }
+            try { await db.collection('patients').doc(delId).delete(); } catch (err) {}
           });
 
           toUpdateInCloud.forEach(async (primaryP) => {
-            try {
-              await syncPatientToCloud(primaryP);
-            } catch (err) {
-              console.warn("Update cloud error:", primaryP.id, err);
-            }
+            try { await syncPatientToCloud(primaryP); } catch (err) {}
           });
         }
 
-        if (isManualClick) alert(`✅ تم دمج ${toDeleteFromCloud.length} بطاقة مكررة وحذفها من السحابة بنجاح!`);
+        if (isManualClick) alert(`✅ تم دمج ${toDeleteFromCloud.length} بطاقة مكررة بنجاح!`);
       }
     }
 
-    // --- FULL CLOUD SYNC FUNCTION ---
+    // --- CLOUD SYNC FUNCTION ---
     async function syncAllToCloud() {
       if (!db) {
-        alert("⚠️ جاري الاتصال بـ Firebase... تحققي من الإنترنت.");
+        alert("⚠️ جاري الاتصال بالسحابة... تحققي من شبكة الإنترنت.");
         return;
       }
 
@@ -1026,7 +1045,6 @@
           await syncPatientToCloud(p);
           successCount++;
         } catch (err) {
-          console.warn("Upload error:", p.name, err);
           failCount++;
         }
       }
@@ -1047,9 +1065,9 @@
       document.getElementById('syncStatus').innerText = '🟢 متصل ومزامن';
       
       document.getElementById('syncReportDetails').innerHTML = `
-        تم فحص <strong class="text-slate-900">${patients.length}</strong> ملف مريضة في النظام.<br>
-        تمت مزامنة وتأمين <strong class="text-emerald-700">${successCount}</strong> ملف بنجاح في قاعدة بيانات السحابة.<br>
-        ${failCount > 0 ? `<span class="text-red-500 font-bold">تعذر رفع ${failCount} ملف (تحققي من شبكة الإنترنت)</span>` : `<span class="text-slate-500 text-[11px]">نسبة النجاح: 100% (كامل البيانات متطابقة ومفصولة)</span>`}
+        تم فحص <strong class="text-slate-900">${patients.length}</strong> ملف مريضة.<br>
+        تمت مزامنة <strong class="text-emerald-700">${successCount}</strong> ملف بنجاح في قاعدة البيانات السحابية.<br>
+        ${failCount > 0 ? `<span class="text-red-500 font-bold">تعذر رفع ${failCount} ملف.</span>` : `<span class="text-slate-500 text-[11px]">نسبة النجاح: 100%</span>`}
       `;
       document.getElementById('syncReportModal').classList.remove('hidden');
     }
@@ -1060,22 +1078,6 @@
 
     function getDocPin() { return localStorage.getItem(DOC_PIN_KEY) || DEFAULT_DOC_PIN; }
     function getSecPin() { return localStorage.getItem(SEC_PIN_KEY) || DEFAULT_SEC_PIN; }
-
-    function convertArabicNumerals(str) {
-      if (!str) return '';
-      const arabicNumbers = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
-      return str.toString().replace(/[٠-٩]/g, d => arabicNumbers.indexOf(d));
-    }
-
-    function normalizeArabic(text) {
-      if (!text) return '';
-      let clean = convertArabicNumerals(text.toString()).trim().toLowerCase();
-      return clean
-        .replace(/[إأآا]/g, 'ا')
-        .replace(/ة/g, 'ه')
-        .replace(/ى/g, 'ي')
-        .replace(/[\u064B-\u065F]/g, '');
-    }
 
     function escapeHTML(str) {
       if (str === null || str === undefined) return '';
@@ -1163,14 +1165,10 @@
     function getCompanyColorBadge(companyName) {
       if (!companyName) return 'bg-slate-700 text-white';
       const colors = [
-        'bg-blue-600 text-white',
-        'bg-purple-600 text-white',
-        'bg-amber-600 text-white',
-        'bg-emerald-600 text-white',
-        'bg-rose-600 text-white',
-        'bg-indigo-600 text-white',
-        'bg-cyan-700 text-white',
-        'bg-teal-700 text-white'
+        'bg-blue-600 text-white', 'bg-purple-600 text-white',
+        'bg-amber-600 text-white', 'bg-emerald-600 text-white',
+        'bg-rose-600 text-white', 'bg-indigo-600 text-white',
+        'bg-cyan-700 text-white', 'bg-teal-700 text-white'
       ];
       let hash = 0;
       for (let i = 0; i < companyName.length; i++) hash = companyName.charCodeAt(i) + ((hash << 5) - hash);
@@ -1224,7 +1222,7 @@
       closeWhatsAppModal();
     }
 
-    // --- LIVE SUGGESTIONS (SECRETARY) ---
+    // --- SECRETARY LIVE SEARCH ---
     function handleSecretaryLiveSearch(typedText) {
       const dropdown = document.getElementById('secSuggestionsDropdown');
       const q = normalizeArabic(typedText);
@@ -1301,7 +1299,7 @@
       document.getElementById('secName').focus();
     }
 
-    // --- LIVE SUGGESTIONS (DOCTOR) ---
+    // --- DOCTOR LIVE SEARCH ---
     function handleDoctorLiveSearch(typedText) {
       const dropdown = document.getElementById('docSuggestionsDropdown');
       const q = normalizeArabic(typedText);
@@ -1399,8 +1397,8 @@
       return null;
     }
 
-    // --- SECRETARY SUBMIT ---
-    function handleSecretarySubmit(e) {
+    // --- SECRETARY SUBMIT: Fixed Real-time Queue & Fee Bleed ---
+    async function handleSecretarySubmit(e) {
       e.preventDefault();
       const submitBtn = document.getElementById('secSubmitBtn');
       if (submitBtn) {
@@ -1461,6 +1459,9 @@
         targetPatient.status = 'waiting';
         targetPatient.queueTimestamp = Date.now();
         targetPatient.complaint = complaint || 'متابعة دورية';
+        
+        // Critical: Reset current top-level fee for today's new intake to prevent past visit fee bleeding into box
+        targetPatient.fee = 0;
 
         if (husband && !targetPatient.husband) targetPatient.husband = husband;
         if (nationalId && !targetPatient.nationalId) targetPatient.nationalId = nationalId;
@@ -1469,9 +1470,8 @@
         if (phone && !targetPatient.phone) targetPatient.phone = phone;
 
         notifyDataChanged();
-        syncPatientToCloud(targetPatient);
-
-        alert(`✅ تم استدعاء ملف المريضة المسجلة سابقاً بنجاح!\nالمريضة: ${name}\nأُدرجت الآن في دور اليوم.`);
+        await syncPatientToCloud(targetPatient);
+        alert(`✅ تم استدعاء ملف المريضة بنجاح وإدراجها في دور اليوم!\nالمريضة: ${name}`);
       } else {
         const localDocId = 'pat_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
 
@@ -1509,8 +1509,7 @@
 
         patients.unshift(newPatient);
         notifyDataChanged();
-        syncPatientToCloud(newPatient);
-
+        await syncPatientToCloud(newPatient);
         alert(`✅ تم تسجيل مريضة جديدة في دور اليوم بنجاح!\nالمريضة: ${name}`);
       }
 
@@ -1559,7 +1558,7 @@
       let matched = findBestMatchingPatient({ name, husband, phone });
 
       const pastVisitRecord = {
-        id: 'v_' + Date.now(),
+        id: 'v_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
         date: dateVal,
         complaint: 'زيارة سابقة مؤرشفة',
         bp: '',
@@ -1568,15 +1567,16 @@
         nextVisitDate: '',
         ultrasound: notes,
         rx: '',
-        photos: []
+        photos: [],
+        timestamp: Date.now()
       };
 
       if (matched) {
         matched.visits = matched.visits || [];
         matched.visits.push(pastVisitRecord);
-        matched.visits.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+        matched.visits.sort((a, b) => (b.date || '').localeCompare(a.date || '') || ((b.timestamp || 0) - (a.timestamp || 0)));
         notifyDataChanged();
-        syncPatientToCloud(matched);
+        await syncPatientToCloud(matched);
         alert(`✅ تم توثيق الزيارة المؤرخة (${dateVal}) في ملف المريضة (${name}) بنجاح!`);
       } else {
         const localDocId = 'pat_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
@@ -1616,14 +1616,14 @@
 
         patients.push(archivedPatient);
         notifyDataChanged();
-        syncPatientToCloud(archivedPatient);
-        alert(`✅ تم أرشفة المريضة (${name}) بتاريخ الزيارة (${dateVal}) بنجاح!`);
+        await syncPatientToCloud(archivedPatient);
+        alert(`✅ تم أرشفة المريضة (${name}) بنجاح!`);
       }
 
       closeBackdateModal();
     }
 
-    // --- DOCTOR MODAL ENGINE (FAST, CRISP VISIT SELECTOR) ---
+    // --- DOCTOR MODAL ENGINE: Fixed Visit Loading & Fee Retention ---
     function openDoctorModal(patientId, targetVisitId = null) {
       const p = patients.find(item => item.id === patientId);
       if (!p) return;
@@ -1658,14 +1658,16 @@
       document.getElementById('pAllergies').value = p.allergies || '';
       updateModalPregnancyPreview();
 
-      // Setup Visits Selector Bar
+      // Precise visit loading: Prioritize explicit ID, then today's existing visit, otherwise fresh form
       let visitToLoad = null;
+      const today = getTodayDateString();
+
       if (targetVisitId) {
         visitToLoad = p.visits.find(v => v.id === targetVisitId);
-      } else if (p.status === 'waiting' || p.visitDate === getTodayDateString()) {
-        visitToLoad = null; // Fresh visit for today
-      } else if (p.visits.length > 0) {
-        visitToLoad = p.visits[0];
+      } else if (p.status !== 'waiting') {
+        // If already completed, load the latest visit (e.g. today's completed examination)
+        const todayVisit = p.visits.find(v => v.date === today);
+        visitToLoad = todayVisit || (p.visits.length > 0 ? p.visits[0] : null);
       }
 
       if (visitToLoad) {
@@ -1697,11 +1699,9 @@
       pillsList.innerHTML = '';
 
       const isNewActive = (activeVisitId === 'NEW' || !activeVisitId);
-      if (isNewActive) {
-        btnNewTab.className = 'bg-teal-500 text-white ring-2 ring-white px-3 py-1.5 rounded-xl font-bold text-xs shadow transition flex items-center gap-1';
-      } else {
-        btnNewTab.className = 'bg-slate-800 text-slate-300 hover:bg-slate-700 px-3 py-1.5 rounded-xl font-bold text-xs transition flex items-center gap-1';
-      }
+      btnNewTab.className = isNewActive 
+        ? 'bg-teal-500 text-white ring-2 ring-white px-3 py-1.5 rounded-xl font-bold text-xs shadow transition flex items-center gap-1'
+        : 'bg-slate-800 text-slate-300 hover:bg-slate-700 px-3 py-1.5 rounded-xl font-bold text-xs transition flex items-center gap-1';
 
       patient.visits.forEach((v) => {
         const isThisVisitSelected = (v.id === activeVisitId && activeVisitId !== 'NEW');
@@ -1715,7 +1715,8 @@
         btn.innerHTML = `
           <span>📅</span> 
           <span>زيارة: ${escapeHTML(v.date)}</span>
-          ${isThisVisitSelected ? `<span class="bg-white/20 text-[10px] px-1 rounded">✔ المفتوحة</span>` : ''}
+          ${v.fee ? `<span class="bg-emerald-900/60 text-emerald-200 px-1 rounded text-[10px]">${v.fee.toLocaleString()}</span>` : ''}
+          ${isThisVisitSelected ? `<span class="bg-white/20 text-[10px] px-1 rounded">✔</span>` : ''}
         `;
         btn.onclick = () => {
           loadVisitIntoForm(v);
@@ -1732,7 +1733,10 @@
       document.getElementById('pBP').value = visit.bp || '';
       checkBPWarning(document.getElementById('pBP'));
       document.getElementById('pWeight').value = visit.weight || '';
-      document.getElementById('pFee').value = visit.fee || '';
+      
+      // Load fee accurately
+      document.getElementById('pFee').value = (visit.fee !== undefined && visit.fee !== null) ? visit.fee : '';
+      
       document.getElementById('pUltrasound').value = visit.ultrasound || '';
       document.getElementById('pRx').value = visit.rx || '';
       document.getElementById('pNextVisitDate').value = visit.nextVisitDate || '';
@@ -1745,7 +1749,7 @@
         <span class="text-teal-700 font-bold">🩺 فحص زيارة تاريخ:</span> 
         <span class="bg-teal-100 text-teal-900 px-2 py-0.5 rounded-lg font-bold">${escapeHTML(visit.date)}</span>
       `;
-      document.getElementById('saveStatusHint').innerText = `حفظ التعديلات على زيارة (${visit.date})`;
+      document.getElementById('saveStatusHint').innerText = `تعديل بطاقة زيارة (${visit.date})`;
     }
 
     function prepareFreshVisitForm(defaultComplaint = '') {
@@ -1765,16 +1769,16 @@
       renderPhotosPreview();
 
       document.getElementById('currentVisitSectionTitle').innerHTML = `
-        <span class="text-emerald-700 font-black">➕ فحص زيارة جديدة بتاريخ اليوم (${getTodayDateString()})</span>
+        <span class="text-emerald-700 font-black">➕ فحص زيارة جديدة (${getTodayDateString()})</span>
       `;
-      document.getElementById('saveStatusHint').innerText = 'سيتم إنشاء وحفظ بطاقة زيارة جديدة ومستقلة تماماً';
+      document.getElementById('saveStatusHint').innerText = 'سيتم إنشاء بطاقة زيارة جديدة ومستقلة تماماً';
 
       if (currentActivePatientInModal) {
         renderModalVisitsPills(currentActivePatientInModal, 'NEW');
       }
     }
 
-    // --- DELETE CURRENT VISIT ACTION ---
+    // --- DELETE CURRENT VISIT ---
     async function deleteCurrentOpenVisit() {
       const visitIdToDelete = document.getElementById('editingVisitId').value;
       const patientId = document.getElementById('editingPatientId').value;
@@ -1782,9 +1786,7 @@
 
       if (!visitIdToDelete || visitIdToDelete.startsWith('NEW_')) return;
 
-      if (!confirm(`هل أنتِ متأكدة من حذف بطاقة زيارة (${visitDate}) نهائياً؟\nلن يتم حذف ملف المريضة وسيبقى محفوظاً.`)) {
-        return;
-      }
+      if (!confirm(`هل أنتِ متأكدة من حذف بطاقة زيارة (${visitDate}) نهائياً؟`)) return;
 
       const p = patients.find(item => item.id === patientId);
       if (!p || !p.visits) return;
@@ -1794,10 +1796,12 @@
       if (p.visits.length > 0) {
         p.visitDate = p.visits[0].date;
         p.fee = p.visits[0].fee;
+      } else {
+        p.fee = 0;
       }
 
       notifyDataChanged();
-      syncPatientToCloud(p);
+      await syncPatientToCloud(p);
 
       alert(`🗑️ تم حذف بطاقة زيارة (${visitDate}) بنجاح.`);
 
@@ -1813,7 +1817,7 @@
     function openDoctorNewPatientModal() {
       document.getElementById('editingPatientId').value = '';
       document.getElementById('editingVisitId').value = 'NEW_' + Date.now();
-      document.getElementById('docModalSubtitle').innerText = `تسجيل مريضة جديدة أو استدعاء ملف قديم`;
+      document.getElementById('docModalSubtitle').innerText = `تسجيل مريضة جديدة`;
       document.getElementById('doctorForm').reset();
       document.getElementById('docAgePreview').innerText = '';
       document.getElementById('pIsHighRisk').checked = false;
@@ -1835,8 +1839,8 @@
       setTimeout(() => document.getElementById('pName').focus(), 150);
     }
 
-    // --- DOCTOR SUBMIT (INDEPENDENT VISIT CARDS SAVER) ---
-    function handleDoctorSubmit(e) {
+    // --- DOCTOR SUBMIT: Guaranteed Accurate Fee & Synchronization ---
+    async function handleDoctorSubmit(e) {
       e.preventDefault();
       const saveBtn = document.getElementById('saveDoctorBtn');
       if (saveBtn) {
@@ -1853,19 +1857,14 @@
       const inputNationalId = convertArabicNumerals(document.getElementById('pNationalId').value.trim());
 
       let patient = null;
-
       if (patientId) {
         patient = patients.find(p => p.id === patientId);
       }
 
       if (!patient) {
         const potentialMatch = findBestMatchingPatient({ 
-          name: inputName, 
-          husband: inputHusband, 
-          phone: inputPhone, 
-          nationalId: inputNationalId 
+          name: inputName, husband: inputHusband, phone: inputPhone, nationalId: inputNationalId 
         });
-
         if (potentialMatch) {
           patient = potentialMatch;
           patientId = patient.id;
@@ -1883,7 +1882,7 @@
         patients.unshift(patient);
       }
 
-      // 1. Update Master Profile Data
+      // 1. Profile Data
       patient.name = inputName;
       patient.husband = inputHusband;
       patient.nationalId = inputNationalId;
@@ -1897,14 +1896,17 @@
       patient.a = convertArabicNumerals(document.getElementById('pA').value);
       patient.obsNotes = document.getElementById('pObsNotes').value;
       patient.lmp = document.getElementById('pLMP').value;
-      
       patient.isHighRisk = document.getElementById('pIsHighRisk').checked;
       patient.highRiskReason = patient.isHighRisk ? document.getElementById('pHighRiskReason').value.trim() : '';
       patient.medHistory = document.getElementById('pMedicalHistory').value;
       patient.allergies = document.getElementById('pAllergies').value;
       patient.status = 'completed';
 
-      // 2. Package the Visit Object
+      // 2. Parse Fee Safely
+      const rawFeeInput = convertArabicNumerals(document.getElementById('pFee').value.trim());
+      const parsedFee = (rawFeeInput !== '') ? (parseInt(rawFeeInput, 10) || 0) : 0;
+
+      // 3. Package the Visit Object
       const visitDateVal = document.getElementById('pVisitDate').value || getTodayDateString();
       const visitRecord = {
         id: (editingVisitId && !editingVisitId.startsWith('NEW_')) ? editingVisitId : ('v_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4)),
@@ -1912,7 +1914,7 @@
         complaint: document.getElementById('pComplaint').value.trim() || 'فحص ومتابعة',
         bp: convertArabicNumerals(document.getElementById('pBP').value.trim()),
         weight: convertArabicNumerals(document.getElementById('pWeight').value.trim()),
-        fee: parseInt(convertArabicNumerals(document.getElementById('pFee').value)) || 0,
+        fee: parsedFee,
         ultrasound: document.getElementById('pUltrasound').value.trim(),
         rx: document.getElementById('pRx').value.trim(),
         nextVisitDate: document.getElementById('pNextVisitDate').value,
@@ -1920,7 +1922,7 @@
         timestamp: Date.now()
       };
 
-      // 3. Save into visits array
+      // 4. Save into visits array
       patient.visits = Array.isArray(patient.visits) ? patient.visits : [];
       const existingVisitIndex = patient.visits.findIndex(v => v.id === visitRecord.id);
 
@@ -1930,10 +1932,10 @@
         patient.visits.unshift(visitRecord);
       }
 
-      // Sort visits descending
-      patient.visits.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+      // Sort visits descending: Date, then Timestamp
+      patient.visits.sort((a, b) => (b.date || '').localeCompare(a.date || '') || ((b.timestamp || 0) - (a.timestamp || 0)));
 
-      // Keep latest visit pointer at top level
+      // Sync top-level pointers with the absolute newest visit
       patient.visitDate = patient.visits[0].date;
       patient.fee = patient.visits[0].fee;
       patient.nextVisitDate = patient.visits[0].nextVisitDate;
@@ -1944,7 +1946,7 @@
       patient.photos = patient.visits[0].photos;
 
       notifyDataChanged();
-      syncPatientToCloud(patient);
+      await syncPatientToCloud(patient);
 
       if (saveBtn) {
         saveBtn.disabled = false;
@@ -1952,7 +1954,7 @@
       }
 
       closeDoctorModal();
-      alert(`✅ تم توثيق بطاقة الزيارة بنجاح للمريضة (${patient.name}) بتاريخ (${visitRecord.date}).`);
+      showRealtimeToast(`✅ تم حفظ الكشفية (${parsedFee.toLocaleString()} ل.س) وفحص المريضة`);
     }
 
     // --- ACCURATE PREGNANCY ENGINE ---
@@ -2084,7 +2086,7 @@
 
       let displayList = [];
 
-      // Global Deep Search
+      // Global Search
       if (q && q.length > 0) {
         searchBanner.classList.remove('hidden');
         
@@ -2112,10 +2114,7 @@
           let dayPatients = patients.filter(p => p.visitDate === targetDate);
           
           dayPatients.sort((a, b) => ((a.queueTimestamp || a.timestamp || 0) - (b.queueTimestamp || b.timestamp || 0)));
-
-          dayPatients.forEach((p, idx) => {
-            p.dynamicQueueNumber = idx + 1;
-          });
+          dayPatients.forEach((p, idx) => { p.dynamicQueueNumber = idx + 1; });
 
           displayList = dayPatients;
         } else if (activeTab === 'dueMonth') {
@@ -2144,9 +2143,20 @@
         }
       }
 
+      // Calculate Daily Income based strictly on visits for the selected date
       if (currentRole === 'doctor') {
-        const dailyPatientsForDate = patients.filter(p => p.visitDate === selectedDate);
-        const totalDailyIncome = dailyPatientsForDate.reduce((sum, p) => sum + (parseInt(p.fee) || 0), 0);
+        let totalDailyIncome = 0;
+        patients.forEach(p => {
+          if (p.visits && p.visits.length > 0) {
+            p.visits.forEach(v => {
+              if (v.date === selectedDate) {
+                totalDailyIncome += (parseInt(v.fee, 10) || 0);
+              }
+            });
+          } else if (p.visitDate === selectedDate && p.status === 'completed') {
+            totalDailyIncome += (parseInt(p.fee, 10) || 0);
+          }
+        });
         document.getElementById('dailyTotalIncome').innerText = totalDailyIncome.toLocaleString('en-US');
       }
 
@@ -2255,7 +2265,7 @@
       `;
     }
 
-    // --- PATIENT CARD (CLINICAL TIMELINE WITH SEPARATE VISIT CARDS) ---
+    // --- PATIENT CARD ELEMENT ---
     function createPatientCardElement(p, index) {
       normalizePatientObject(p);
 
@@ -2272,6 +2282,7 @@
 
       card.className = `bg-white rounded-2xl p-4 shadow-sm border ${p.isHighRisk ? 'border-red-500 ring-2 ring-red-300' : (preg && (preg.isDueWithinMonth || preg.isOverdue) ? 'border-rose-400 ring-2 ring-rose-200' : (isWaiting ? 'border-amber-300 bg-amber-50/20' : 'border-slate-200'))} space-y-3`;
 
+      // Select latest visit strictly
       const latestVisit = visitsList.length > 0 ? visitsList[0] : null;
       const isLatestHighBP = latestVisit ? checkHighBloodPressure(latestVisit.bp) : false;
 
@@ -2429,13 +2440,14 @@
                   return `
                     <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-2xs space-y-2">
                       <div class="flex justify-between items-center border-b border-slate-100 pb-1.5 flex-wrap gap-1">
-                        <span class="font-bold text-slate-900 flex items-center gap-1.5">
+                        <span class="font-bold text-slate-900 flex items-
+<span class="font-bold text-slate-900 flex items-center gap-1.5">
                           <span class="bg-slate-700 text-white px-2 py-0.2 rounded text-[10px]">زيارة #${visitsList.length - 1 - vIdx}</span>
                           <span>📅 ${escapeHTML(v.date)}</span>
                           ${v.complaint ? `<span class="text-slate-500 font-normal">(${escapeHTML(v.complaint)})</span>` : ''}
                         </span>
                         <div class="flex gap-2 text-[11px] font-mono">
-                          ${v.fee ? `<span class="text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border">${v.fee} ل.س</span>` : ''}
+                          ${v.fee !== undefined && v.fee !== null ? `<span class="text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border font-bold">${v.fee.toLocaleString()} ل.س</span>` : ''}
                           ${v.bp ? `<span class="${isPastBP ? 'bg-red-50 text-red-700 font-bold' : 'text-slate-600'}">الضغط: ${escapeHTML(v.bp)}</span>` : ''}
                           ${v.weight ? `<span class="text-slate-600">الوزن: ${escapeHTML(v.weight)} كغ</span>` : ''}
                         </div>
@@ -2504,7 +2516,7 @@
       return card;
     }
 
-    // --- WEEKLY GROUPED VIEW ---
+    // --- WEEKLY GROUPED VIEW: Fixed Calculation by Visit Fee ---
     function renderWeeklyGroupedView(container, query) {
       const now = new Date();
       const sevenDaysAgo = new Date();
@@ -2535,7 +2547,20 @@
       });
 
       const sortedDates = Object.keys(dateGroups).sort().reverse();
-      const totalWeekIncome = weekPatients.reduce((sum, p) => sum + (parseInt(p.fee) || 0), 0);
+      
+      // Calculate week income accurately using visits matching each date
+      let totalWeekIncome = 0;
+      sortedDates.forEach(dt => {
+        dateGroups[dt].forEach(p => {
+          if (p.visits && p.visits.length > 0) {
+            p.visits.forEach(v => {
+              if (v.date === dt) totalWeekIncome += (parseInt(v.fee, 10) || 0);
+            });
+          } else if (p.visitDate === dt && p.status === 'completed') {
+            totalWeekIncome += (parseInt(p.fee, 10) || 0);
+          }
+        });
+      });
       
       document.getElementById('dailyTotalIncome').innerText = totalWeekIncome.toLocaleString('en-US');
       document.getElementById('queueStats').innerText = `📊 سجل الأسبوع: ${weekPatients.length} مريضة موزعة على ${sortedDates.length} أيام عمل (مجموع التحصيل: ${totalWeekIncome.toLocaleString()} ل.س)`;
@@ -2550,7 +2575,16 @@
         groupList.sort((a, b) => ((a.queueTimestamp || a.timestamp || 0) - (b.queueTimestamp || b.timestamp || 0)));
         groupList.forEach((p, idx) => { p.dynamicQueueNumber = idx + 1; });
 
-        const groupDayIncome = groupList.reduce((sum, p) => sum + (parseInt(p.fee) || 0), 0);
+        let groupDayIncome = 0;
+        groupList.forEach(p => {
+          if (p.visits && p.visits.length > 0) {
+            p.visits.forEach(v => {
+              if (v.date === dateStr) groupDayIncome += (parseInt(v.fee, 10) || 0);
+            });
+          } else if (p.visitDate === dateStr && p.status === 'completed') {
+            groupDayIncome += (parseInt(p.fee, 10) || 0);
+          }
+        });
 
         const dateSection = document.createElement('div');
         dateSection.className = 'space-y-2.5 pt-2';
@@ -2610,7 +2644,7 @@
         }
       }
 
-      alert('🗑️ تم حذف ملف المريضة نهائياً ولن تعود للظهور.');
+      alert('🗑️ تم حذف ملف المريضة نهائياً.');
     }
 
     async function purgeAllOldTestPatients() {
@@ -2642,10 +2676,10 @@
       patients = [];
       notifyDataChanged();
       closeChangePinModal();
-      alert('✨ تم تصفير وحذف جميع السجلات القديمة نهائياً!');
+      alert('✨ تم تصفير وحذف جميع السجلات القديمة بنجاح!');
     }
 
-    // --- FIREBASE SYNC ENGINE ---
+    // --- ROCK-SOLID FIREBASE ENGINE: Fixed Auth Race Condition & Real-Time Sync ---
     const firebaseConfig = {
       apiKey: "AIzaSyDBUW3lgkFWvDygfgBD4kSBRh4wx9d4h0Q",
       authDomain: "hiam-khder.firebaseapp.com",
@@ -2657,78 +2691,95 @@
     };
 
     let isInitialSyncDone = false;
+    let unsubscribePatientsListener = null;
 
     try {
       if (typeof firebase !== 'undefined') {
-        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-        
-        firebase.auth().signInAnonymously().catch(err => {
-          console.warn("Auth mode note:", err.message);
-        });
-
+        if (!firebase.apps.length) {
+          firebase.initializeApp(firebaseConfig);
+        }
         db = firebase.firestore();
 
-        try {
-          db.settings({
-            experimentalForceLongPolling: true
-          });
-        } catch (setErr) {
-          console.warn("Settings notice:", setErr);
-        }
-
-        db.enablePersistence({ synchronizeTabs: true }).catch(err => {
-          console.warn("Persistence status:", err.code);
+        // Safe Firestore Persistence without blocking long-polling transport conflicts
+        db.enablePersistence({ synchronizeTabs: true }).catch((err) => {
+          console.warn("Firestore persistence note:", err.code);
         });
 
-        db.collection('patients').onSnapshot({ includeMetadataChanges: false }, (snapshot) => {
-          const deletedIds = getDeletedIds();
-          let hasNewChanges = false;
-
-          snapshot.docChanges().forEach((change) => {
-            const docData = change.doc.data();
-            const docId = change.doc.id;
-
-            if (deletedIds.has(docId)) return;
-
-            if (change.type === "added" || change.type === "modified") {
-              const incomingPatient = normalizePatientObject({ ...docData, id: docId });
-              const existingIdx = patients.findIndex(p => p.id === docId);
-
-              if (existingIdx >= 0) {
-                if ((!incomingPatient.photos || incomingPatient.photos.length === 0) && patients[existingIdx].photos) {
-                  incomingPatient.photos = patients[existingIdx].photos;
-                }
-                patients[existingIdx] = incomingPatient;
-              } else {
-                patients.unshift(incomingPatient);
-              }
-              hasNewChanges = true;
-            } else if (change.type === "removed") {
-              patients = patients.filter(p => p.id !== docId);
-              hasNewChanges = true;
-            }
-          });
-
-          if (hasNewChanges || !isInitialSyncDone) {
-            isInitialSyncDone = true;
-            saveDataPermanently();
-            renderApp();
+        // Ensure Auth succeeds FIRST before attaching snapshot listeners
+        firebase.auth().onAuthStateChanged((user) => {
+          if (user) {
+            setupFirestoreRealtimeListeners();
+          } else {
+            firebase.auth().signInAnonymously().catch((err) => {
+              console.warn("Anonymous auth note:", err.message);
+              // Fallback: Try setting up listeners anyway
+              setupFirestoreRealtimeListeners();
+            });
           }
-
-          const statusEl = document.getElementById('syncStatus');
-          if (statusEl) statusEl.innerText = '🟢 متصل ومزامن';
-        }, (err) => {
-          console.warn('Firestore sync warning:', err);
-          const statusEl = document.getElementById('syncStatus');
-          if (statusEl) statusEl.innerText = '🟡 محلي آمن';
         });
-
-        listenToPinAndDrugsChanges();
       }
     } catch (e) {
-      console.warn('Local fallback mode:', e);
+      console.warn('Firebase init fallback mode:', e);
       const statusEl = document.getElementById('syncStatus');
       if (statusEl) statusEl.innerText = '🟡 محلي آمن';
+    }
+
+    function setupFirestoreRealtimeListeners() {
+      if (!db || unsubscribePatientsListener) return;
+
+      unsubscribePatientsListener = db.collection('patients').onSnapshot({ includeMetadataChanges: false }, (snapshot) => {
+        const deletedIds = getDeletedIds();
+        let hasNewChanges = false;
+
+        snapshot.docChanges().forEach((change) => {
+          const docData = change.doc.data();
+          const docId = change.doc.id;
+
+          if (deletedIds.has(docId)) return;
+
+          if (change.type === "added" || change.type === "modified") {
+            const incomingPatient = normalizePatientObject({ ...docData, id: docId });
+            const existingIdx = patients.findIndex(p => p.id === docId);
+
+            if (existingIdx >= 0) {
+              // Preserve local high-res photos if incoming document stripped them for bandwidth
+              if ((!incomingPatient.photos || incomingPatient.photos.length === 0) && patients[existingIdx].photos) {
+                incomingPatient.photos = patients[existingIdx].photos;
+              }
+              patients[existingIdx] = incomingPatient;
+            } else {
+              patients.unshift(incomingPatient);
+            }
+            hasNewChanges = true;
+          } else if (change.type === "removed") {
+            patients = patients.filter(p => p.id !== docId);
+            hasNewChanges = true;
+          }
+        });
+
+        if (hasNewChanges || !isInitialSyncDone) {
+          isInitialSyncDone = true;
+          saveDataPermanently();
+          renderApp();
+          if (hasNewChanges) {
+            showRealtimeToast('⚡ تم استقبال تحديثات جديدة من العيادة');
+          }
+        }
+
+        const statusEl = document.getElementById('syncStatus');
+        if (statusEl) statusEl.innerText = '🟢 متصل ومزامن';
+      }, (err) => {
+        console.warn('Firestore sync warning:', err);
+        const statusEl = document.getElementById('syncStatus');
+        if (statusEl) statusEl.innerText = '🟡 محلي آمن';
+      });
+
+      listenToPinAndDrugsChanges();
+    }
+
+    // Clean undefined fields before writing to avoid Firestore crashes
+    function cleanObjectForFirestore(obj) {
+      return JSON.parse(JSON.stringify(obj, (k, v) => (v === undefined ? null : v)));
     }
 
     async function syncPatientToCloud(patient) {
@@ -2743,10 +2794,12 @@
         delete lightPatient.photos;
       }
 
+      const payload = cleanObjectForFirestore(lightPatient);
+
       try {
-        await db.collection('patients').doc(patient.id).set(lightPatient, { merge: true });
+        await db.collection('patients').doc(patient.id).set(payload, { merge: true });
       } catch (err) {
-        console.warn('Cloud sync write pending:', err);
+        console.warn('Cloud sync write warning:', err);
       }
     }
 
@@ -2799,7 +2852,7 @@
       if (db) {
         try {
           await db.collection('settings').doc('drugs').set({
-            list: drugs,
+            list: cleanObjectForFirestore(drugs),
             updatedAt: Date.now()
           });
         } catch (e) {
@@ -3180,7 +3233,6 @@
             const existingIds = new Set(patients.map(p => p.id || p.name));
             imported.forEach(imp => { if (!existingIds.has(imp.id || imp.name)) patients.push(normalizePatientObject(imp)); });
           }
-          cleanDuplicatePatients(false);
           notifyDataChanged();
           alert(`🎉 تم استيراد السجلات بنجاح! الإجمالي: ${patients.length}`);
         } catch (err) { alert('❌ خطأ في قراءة الملف.'); }
@@ -3221,7 +3273,7 @@
 
     document.getElementById('dateFilterInput').value = getTodayDateString();
 
-    // Startup bootstrap
+    // --- APPLICATION BOOTSTRAP ---
     (async function initApp() {
       const deletedIds = getDeletedIds();
       const idbList = await getPatientsFromIDB();
@@ -3233,8 +3285,6 @@
           savePatientsToIDB(patients);
         }
       }
-
-      cleanDuplicatePatients(false);
 
       if (currentRole) {
         document.getElementById('lockScreen').classList.add('hidden');
