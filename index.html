@@ -294,60 +294,54 @@
   </div>
 
   <!-- ==================== 6. DOCTOR MEDICAL MODAL ==================== -->
-  <div id="doctorModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-3 z-30">
-    <div class="bg-white rounded-2xl max-w-2xl w-full p-5 max-h-[92vh] overflow-y-auto shadow-2xl">
+ <!-- ==================== 6. DOCTOR MEDICAL MODAL (ENHANCED) ==================== -->
+  <div id="doctorModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center p-3 z-40 backdrop-blur-xs">
+    <div class="bg-white rounded-3xl max-w-3xl w-full p-5 max-h-[94vh] overflow-y-auto shadow-2xl border border-teal-100">
+      
+      <!-- Header -->
       <div class="flex justify-between items-center mb-3 pb-2 border-b">
         <div>
-          <h2 class="text-base font-bold text-teal-800">🩺 الملف الطبي وفحص الزيارة</h2>
-          <p id="docModalSubtitle" class="text-xs text-slate-500 font-semibold"></p>
+          <h2 class="text-base font-bold text-teal-900 flex items-center gap-1.5">
+            <span>🩺</span> <span>الملف الطبي الشامل وفحص الزيارات</span>
+          </h2>
+          <p id="docModalSubtitle" class="text-xs text-slate-500 font-bold mt-0.5"></p>
         </div>
-        <button type="button" onclick="closeDoctorModal()" class="text-gray-400 hover:text-red-500 text-2xl font-bold">&times;</button>
+        <button type="button" onclick="closeDoctorModal()" class="text-gray-400 hover:text-red-500 text-2xl font-bold p-1">&times;</button>
       </div>
 
-      <!-- Doctor Live Match Alert Banner -->
-      <div id="docExistingMatchBanner" class="hidden bg-emerald-50 border border-emerald-300 p-2.5 rounded-xl text-xs text-emerald-950 flex justify-between items-center font-bold mb-3">
-        <div>
-          <span>💡 تم استدعاء بطاقة المريضة بنجاح!</span>
-          <p class="text-[10px] text-emerald-800 font-normal">يمكنكِ تدوين فحص جديد لليوم أو استعراض وتعديل أي زيارة سابقة أدناه.</p>
-        </div>
-        <button type="button" onclick="resetDocSelection()" class="text-xs text-red-600 hover:underline">بدء بطاقة جديدة</button>
-      </div>
-
-      <form id="doctorForm" onsubmit="handleDoctorSubmit(event)" class="space-y-3.5 text-xs">
+      <form id="doctorForm" onsubmit="handleDoctorSubmit(event)" class="space-y-3 text-xs">
         <input type="hidden" id="editingPatientId">
-        <input type="hidden" id="editingVisitId" value="">
+        <input type="hidden" id="editingVisitId" value="NEW">
 
         <!-- PART 1: MASTER PATIENT PROFILE -->
-        <details open class="bg-slate-50 p-3 rounded-xl border space-y-2 group">
+        <details class="bg-slate-50 p-3 rounded-2xl border border-slate-200 space-y-2 group">
           <summary class="font-bold text-teal-900 cursor-pointer select-none flex justify-between items-center text-xs">
-            <span>👤 1. بيانات المريضة الثابتة وسوابقها</span>
-            <span class="text-[10px] text-slate-500 group-open:rotate-180 transition">▼</span>
+            <span class="flex items-center gap-1.5">👤 <span>البيانات الشخصية الثابتة والسوابق التوليدية</span></span>
+            <span class="text-[11px] bg-teal-100 text-teal-800 px-2 py-0.5 rounded-lg group-open:rotate-180 transition">تعديل الملف الثابت ▼</span>
           </summary>
 
-          <div class="pt-2 space-y-2">
+          <div class="pt-2 space-y-2 border-t border-slate-200 mt-2">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
               <div class="relative" id="docNameFieldContainer">
                 <label class="block font-semibold mb-1">الاسم الثلاثي للمريضة *</label>
                 <input type="text" id="pName" required autocomplete="off" oninput="handleDoctorLiveSearch(this.value)" 
-                       placeholder="اسم المريضة (اكتبي للبحث أو الإضافة)..." class="w-full p-2 border rounded-lg text-sm bg-white font-bold focus:ring-2 focus:ring-teal-500">
-                
-                <div id="docSuggestionsDropdown" class="hidden absolute top-full right-0 left-0 bg-white border-2 border-teal-500 rounded-xl shadow-2xl mt-1 max-h-56 overflow-y-auto z-40 divide-y divide-slate-100">
-                </div>
+                       placeholder="اسم المريضة..." class="w-full p-2 border rounded-xl text-sm bg-white font-bold focus:ring-2 focus:ring-teal-500">
+                <div id="docSuggestionsDropdown" class="hidden absolute top-full right-0 left-0 bg-white border-2 border-teal-500 rounded-xl shadow-2xl mt-1 max-h-56 overflow-y-auto z-40 divide-y divide-slate-100"></div>
               </div>
               <div>
                 <label class="block font-semibold mb-1">اسم الزوج</label>
-                <input type="text" id="pHusband" placeholder="اسم الزوج الثلاثي" class="w-full p-2 border rounded-lg text-sm bg-white">
+                <input type="text" id="pHusband" placeholder="اسم الزوج" class="w-full p-2 border rounded-xl text-sm bg-white">
               </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
               <div>
                 <label class="block font-semibold mb-1">الرقم الوطني</label>
-                <input type="text" id="pNationalId" maxlength="11" placeholder="الرقم الوطني" class="w-full p-2 border rounded-lg font-mono text-xs bg-white">
+                <input type="text" id="pNationalId" maxlength="11" placeholder="الرقم الوطني" class="w-full p-2 border rounded-xl font-mono text-xs bg-white">
               </div>
               <div>
                 <label class="block font-semibold mb-1">الهاتف السوري</label>
-                <input type="tel" id="pPhone" maxlength="10" placeholder="09xxxxxxxx" class="w-full p-2 border rounded-lg font-mono text-xs bg-white" dir="ltr" oninput="formatSyrianPhone(this)">
+                <input type="tel" id="pPhone" maxlength="10" placeholder="09xxxxxxxx" class="w-full p-2 border rounded-xl font-mono text-xs bg-white" dir="ltr" oninput="formatSyrianPhone(this)">
               </div>
               <div>
                 <div class="flex justify-between items-center mb-1">
@@ -355,8 +349,8 @@
                   <span id="docAgePreview" class="text-teal-700 font-bold text-[10px]"></span>
                 </div>
                 <div class="flex gap-1">
-                  <input type="number" id="pBirthYear" min="1930" max="2030" placeholder="1998" oninput="updateDocAgePreview()" class="w-1/2 p-2 border rounded-lg text-xs bg-white font-mono">
-                  <select id="pBlood" class="w-1/2 p-2 border rounded-lg text-xs font-bold bg-white">
+                  <input type="number" id="pBirthYear" min="1930" max="2030" placeholder="1998" oninput="updateDocAgePreview()" class="w-1/2 p-2 border rounded-xl text-xs bg-white font-mono">
+                  <select id="pBlood" class="w-1/2 p-2 border rounded-xl text-xs font-bold bg-white">
                     <option value="غير محدد">الزمرة</option>
                     <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
                     <option>O+</option><option>O-</option><option>AB+</option><option>AB-</option>
@@ -367,43 +361,43 @@
 
             <div>
               <label class="block font-semibold mb-1">عنوان السكن / المنطقة</label>
-              <input type="text" id="pAddress" placeholder="المدينة، الحي، الشارع..." class="w-full p-2 border rounded-lg text-xs bg-white">
+              <input type="text" id="pAddress" placeholder="المدينة، الحي، الشارع..." class="w-full p-2 border rounded-xl text-xs bg-white">
             </div>
 
-            <!-- Obstetric GPA & Medical -->
+            <!-- GPA -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-2 pt-1">
-              <div class="bg-rose-50/70 p-2.5 rounded-lg border border-rose-100">
+              <div class="bg-rose-50/70 p-2.5 rounded-xl border border-rose-100">
                 <span class="block font-bold text-rose-900 mb-1">السوابق التوليدية (GPA):</span>
                 <div class="grid grid-cols-4 gap-1 text-center mb-1">
-                  <div><label class="block text-[10px] font-bold">G</label><input type="number" id="pG" value="0" min="0" class="w-full p-1 border rounded text-center font-bold bg-white"></div>
-                  <div><label class="block text-[10px] font-bold">VD</label><input type="number" id="pVD" value="0" min="0" class="w-full p-1 border rounded text-center font-bold bg-white"></div>
-                  <div><label class="block text-[10px] font-bold">CS</label><input type="number" id="pCS" value="0" min="0" class="w-full p-1 border rounded text-center font-bold bg-white"></div>
-                  <div><label class="block text-[10px] font-bold">A</label><input type="number" id="pA" value="0" min="0" class="w-full p-1 border rounded text-center font-bold bg-white"></div>
+                  <div><label class="block text-[10px] font-bold">G</label><input type="number" id="pG" value="0" min="0" class="w-full p-1 border rounded-lg text-center font-bold bg-white"></div>
+                  <div><label class="block text-[10px] font-bold">VD</label><input type="number" id="pVD" value="0" min="0" class="w-full p-1 border rounded-lg text-center font-bold bg-white"></div>
+                  <div><label class="block text-[10px] font-bold">CS</label><input type="number" id="pCS" value="0" min="0" class="w-full p-1 border rounded-lg text-center font-bold bg-white"></div>
+                  <div><label class="block text-[10px] font-bold">A</label><input type="number" id="pA" value="0" min="0" class="w-full p-1 border rounded-lg text-center font-bold bg-white"></div>
                 </div>
-                <input type="text" id="pObsNotes" placeholder="ملاحظات الولادات السابقة..." class="w-full p-1.5 border rounded text-[11px] bg-white">
+                <input type="text" id="pObsNotes" placeholder="ملاحظات الولادات السابقة..." class="w-full p-1.5 border rounded-lg text-[11px] bg-white">
               </div>
 
               <div class="space-y-1.5">
-                <input type="text" id="pMedicalHistory" placeholder="أمراض مزمنة / سوابق جراحية..." class="w-full p-2 border rounded-lg bg-white">
-                <input type="text" id="pAllergies" placeholder="تحسس دوائي..." class="w-full p-2 border rounded-lg text-red-600 font-bold bg-white">
+                <input type="text" id="pMedicalHistory" placeholder="أمراض مزمنة / سوابق جراحية..." class="w-full p-2 border rounded-xl bg-white">
+                <input type="text" id="pAllergies" placeholder="تحسس دوائي..." class="w-full p-2 border rounded-xl text-red-600 font-bold bg-white">
               </div>
             </div>
 
             <!-- High Risk & LMP -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-2 pt-1">
-              <div class="bg-red-50 p-2 rounded-lg border border-red-200">
+              <div class="bg-red-50 p-2 rounded-xl border border-red-200">
                 <div class="flex items-center gap-1.5 mb-1">
                   <input type="checkbox" id="pIsHighRisk" onchange="toggleHighRiskReason()" class="w-3.5 h-3.5 text-red-600 rounded">
                   <label for="pIsHighRisk" class="font-bold text-red-800 text-[11px] cursor-pointer">🚨 حمل عالي الخطورة</label>
                 </div>
                 <div id="highRiskReasonGroup" class="hidden">
-                  <input type="text" id="pHighRiskReason" placeholder="سبب الخطورة..." class="w-full p-1.5 border border-red-300 rounded text-xs bg-white text-red-900 font-semibold">
+                  <input type="text" id="pHighRiskReason" placeholder="سبب الخطورة..." class="w-full p-1.5 border border-red-300 rounded-lg text-xs bg-white text-red-900 font-semibold">
                 </div>
               </div>
 
-              <div class="bg-teal-50 p-2 rounded-lg border border-teal-100">
+              <div class="bg-teal-50 p-2 rounded-xl border border-teal-100">
                 <label class="block font-bold text-teal-900 text-[11px] mb-1">أول يوم من آخر دورة (LMP):</label>
-                <input type="date" id="pLMP" oninput="updateModalPregnancyPreview()" onchange="updateModalPregnancyPreview()" class="w-full p-1.5 border rounded font-bold bg-white text-xs">
+                <input type="date" id="pLMP" oninput="updateModalPregnancyPreview()" onchange="updateModalPregnancyPreview()" class="w-full p-1.5 border rounded-lg font-bold bg-white text-xs">
               </div>
             </div>
 
@@ -411,61 +405,68 @@
           </div>
         </details>
 
-        <!-- PART 2: VISITS SWITCHER / SELECTOR -->
-        <div id="modalVisitsNavContainer" class="hidden bg-slate-900 text-white p-3 rounded-2xl space-y-2 shadow-md border border-slate-700">
+        <!-- PART 2: VISITS NAVIGATION PILLS BAR -->
+        <div id="modalVisitsNavContainer" class="bg-slate-900 text-white p-3 rounded-2xl space-y-2 shadow-md border border-slate-700">
           <div class="flex justify-between items-center flex-wrap gap-2">
             <span class="text-xs font-bold flex items-center gap-1.5">
-              <span>🗂️ بطاقات زيارات المريضة:</span>
+              <span>🗂️ بطاقات الزيارات المؤرشفة:</span>
               <span id="modalVisitsCountBadge" class="bg-teal-600 text-white px-2 py-0.5 rounded-full text-[10px] font-bold">0</span>
             </span>
-            <button type="button" id="btnNewVisitTab" onclick="prepareFreshVisitForm()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-xl font-bold text-xs shadow-sm transition flex items-center gap-1">
-              <span>➕</span> <span>فحص زيارة جديدة بتاريخ اليوم</span>
+            <button type="button" id="btnNewVisitTab" onclick="switchToNewVisitMode()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 rounded-xl font-bold text-xs shadow-md transition flex items-center gap-1.5 ring-2 ring-emerald-400/50">
+              <span>➕</span> <span>فتح بطاقة زيارة جديدة لليوم</span>
             </button>
           </div>
           <div id="modalVisitsPillsList" class="flex gap-2 overflow-x-auto pb-1 pt-1 text-xs">
-            <!-- Dynamic visit pills inserted here -->
+            <!-- Dynamic pills inserted here -->
           </div>
         </div>
 
-        <!-- PART 3: CURRENT SELECTED VISIT EXAMINATION -->
+        <!-- PART 3: MODE STATUS BANNER (CRITICAL VISUAL CLARITY) -->
+        <div id="visitModeBanner" class="p-2.5 rounded-xl text-xs font-bold flex justify-between items-center transition">
+          <div class="flex items-center gap-2" id="visitModeBannerText">
+            <!-- Dynamic Banner Text -->
+          </div>
+          <button type="button" id="btnDuplicateToNew" onclick="duplicateCurrentToNewVisit()" class="hidden bg-white/90 hover:bg-white text-slate-800 text-[11px] px-2.5 py-1 rounded-lg shadow-xs font-bold transition">
+            📋 نسخ محتوى هذه الزيارة إلى زيارة جديدة لليوم
+          </button>
+        </div>
+
+        <!-- PART 4: CURRENT VISIT FORM -->
         <div class="bg-amber-50/60 p-3.5 rounded-2xl border-2 border-amber-300 space-y-3 shadow-xs">
           <div class="flex justify-between items-center border-b border-amber-200 pb-2 flex-wrap gap-2">
-            <h3 id="currentVisitSectionTitle" class="font-bold text-amber-950 text-xs flex items-center gap-1.5">
-              <span>🩺</span> <span>فحص الزيارة</span>
-            </h3>
             <div class="flex items-center gap-2">
-              <label class="font-bold text-slate-700 text-xs">تاريخ الزيارة:</label>
-              <input type="date" id="pVisitDate" class="p-1.5 border rounded-xl font-bold bg-white text-xs text-amber-950 shadow-xs">
-              <button type="button" id="btnDeleteCurrentVisit" onclick="deleteCurrentOpenVisit()" class="hidden bg-red-100 hover:bg-red-200 text-red-700 text-[11px] font-bold px-2.5 py-1 rounded-lg border border-red-300 transition" title="حذف هذه الزيارة فقط">
-                🗑️ حذف هذه الزيارة
-              </button>
+              <label class="font-bold text-slate-800 text-xs">تاريخ هذا الفحص:</label>
+              <input type="date" id="pVisitDate" onchange="handleVisitDateChanged()" class="p-1.5 border rounded-xl font-bold bg-white text-xs text-amber-950 shadow-xs focus:ring-2 focus:ring-teal-500">
             </div>
+            <button type="button" id="btnDeleteCurrentVisit" onclick="deleteCurrentOpenVisit()" class="hidden bg-red-100 hover:bg-red-200 text-red-700 text-[11px] font-bold px-2.5 py-1 rounded-lg border border-red-300 transition" title="حذف هذه الزيارة فقط">
+              🗑️ حذف هذه الزيارة
+            </button>
           </div>
 
           <div>
             <label class="block font-semibold mb-1 text-slate-700">سبب الزيارة أو الشكوى</label>
-            <input type="text" id="pComplaint" placeholder="متابعة دورية، ألم أسفل البطن، إيكو..." class="w-full p-2 border rounded-xl text-xs bg-white">
+            <input type="text" id="pComplaint" placeholder="متابعة دورية، تصوير إيكو، فحص روتيني..." class="w-full p-2 border rounded-xl text-xs bg-white">
           </div>
 
           <div class="grid grid-cols-3 gap-2">
             <div>
               <label class="block font-semibold mb-0.5 text-slate-700">الضغط الشرياني</label>
-              <input type="text" id="pBP" placeholder="120/80" oninput="checkBPWarning(this)" class="w-full p-2 border rounded-xl bg-white">
+              <input type="text" id="pBP" placeholder="120/80" oninput="checkBPWarning(this)" class="w-full p-2 border rounded-xl bg-white text-xs">
               <span id="bpWarningText" class="text-[10px] text-red-600 font-bold mt-0.5 hidden block">⚠️ ضغط مرتفع</span>
             </div>
             <div>
               <label class="block font-semibold mb-0.5 text-slate-700">الوزن (كغ)</label>
-              <input type="text" id="pWeight" placeholder="الوزن" class="w-full p-2 border rounded-xl bg-white">
+              <input type="text" id="pWeight" placeholder="مثال: 65" class="w-full p-2 border rounded-xl bg-white text-xs">
             </div>
             <div>
-              <label class="block font-semibold mb-0.5 text-slate-700">الكشفية (ل.س)</label>
-              <input type="number" id="pFee" placeholder="الكشفية" class="w-full p-2 border rounded-xl bg-white font-mono text-emerald-700 font-bold">
+              <label class="block font-semibold mb-0.5 text-slate-700">الكشفية المقبوضة (ل.س)</label>
+              <input type="number" id="pFee" placeholder="مثال: 1000" class="w-full p-2 border rounded-xl bg-white font-mono text-emerald-700 font-bold text-xs focus:ring-2 focus:ring-emerald-500">
             </div>
           </div>
 
           <div>
-            <label class="block font-semibold mb-1 text-slate-700">تقرير الإيكو والفحص السريري لهذه الزيارة</label>
-            <textarea id="pUltrasound" rows="2" placeholder="تقرير الفحص السريري والإيكو..." class="w-full p-2 border rounded-xl text-sm bg-white"></textarea>
+            <label class="block font-semibold mb-1 text-slate-700">تقرير الإيكو والفحص السريري</label>
+            <textarea id="pUltrasound" rows="2" placeholder="تقرير الفحص السريري والإيكو لهذه الزيارة..." class="w-full p-2 border rounded-xl text-sm bg-white"></textarea>
           </div>
 
           <!-- Next Appointment -->
@@ -479,7 +480,7 @@
             </div>
           </div>
 
-          <!-- Photos for this visit -->
+          <!-- Photos -->
           <div class="space-y-1.5 pt-1">
             <div class="flex justify-between items-center">
               <span class="font-bold text-slate-800 text-xs">📸 صور إيكو وتحاليل هذه الزيارة:</span>
@@ -493,7 +494,7 @@
             </div>
           </div>
 
-          <!-- Prescription for this visit -->
+          <!-- Prescription -->
           <div class="space-y-1.5 pt-1">
             <div class="flex justify-between items-center flex-wrap gap-1">
               <span class="font-bold text-slate-800 text-xs">💊 الوصفة الطبية والعلاج (Rx):</span>
@@ -502,23 +503,20 @@
               </button>
             </div>
             <div id="quickDrugsContainer" class="flex gap-1.5 flex-wrap py-1"></div>
-            <textarea id="pRx" rows="3" placeholder="العلاج والتعليمات الخاصة بهذه الزيارة..." class="w-full p-2.5 border rounded-xl text-sm bg-yellow-50/70 font-sans"></textarea>
+            <textarea id="pRx" rows="3" placeholder="العلاج والتعليمات لهذه الزيارة..." class="w-full p-2.5 border rounded-xl text-sm bg-yellow-50/70 font-sans"></textarea>
           </div>
         </div>
 
+        <!-- Submit Bar -->
         <div class="flex justify-between items-center pt-2 border-t">
-          <span id="saveStatusHint" class="text-xs text-slate-500 font-semibold">توثيق بطاقة الزيارة الحالية في سجل المريضة</span>
-          <div class="flex gap-2">
-            <button type="button" onclick="closeDoctorModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-xl font-bold">إلغاء</button>
-            <button type="submit" id="saveDoctorBtn" class="px-5 py-2 bg-teal-700 hover:bg-teal-800 text-white rounded-xl font-bold shadow">
-              💾 حفظ الزيارة واكتمال الفحص
-            </button>
-          </div>
+          <button type="button" onclick="closeDoctorModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-xl font-bold">إلغاء</button>
+          <button type="submit" id="saveDoctorBtn" class="px-6 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-bold text-xs shadow-lg transition flex items-center gap-1.5">
+            <span>💾</span> <span id="saveDoctorBtnText">حفظ الزيارة واكتمال الفحص</span>
+          </button>
         </div>
       </form>
     </div>
   </div>
-
   <!-- ==================== 7. DRUG MANAGEMENT MODAL ==================== -->
   <div id="drugsModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center p-3 z-50">
     <div class="bg-white rounded-2xl max-w-lg w-full p-5 shadow-2xl space-y-3.5 text-xs max-h-[90vh] overflow-y-auto">
@@ -1623,8 +1621,47 @@
       closeBackdateModal();
     }
 
-    // --- DOCTOR MODAL ENGINE: Fixed Visit Loading & Fee Retention ---
-    function openDoctorModal(patientId, targetVisitId = null) {
+  // --- FOOLPROOF VISIT MODE MANAGEMENT ---
+    let currentVisitMode = 'NEW'; // 'NEW' or 'EDIT'
+
+    function updateVisitModeUI() {
+      const banner = document.getElementById('visitModeBanner');
+      const bannerText = document.getElementById('visitModeBannerText');
+      const btnDuplicate = document.getElementById('btnDuplicateToNew');
+      const btnSaveText = document.getElementById('saveDoctorBtnText');
+      const saveBtn = document.getElementById('saveDoctorBtn');
+      const btnDelete = document.getElementById('btnDeleteCurrentVisit');
+
+      if (currentVisitMode === 'NEW') {
+        banner.className = 'bg-emerald-100 border border-emerald-300 text-emerald-950 p-2.5 rounded-xl text-xs font-bold flex justify-between items-center shadow-xs';
+        bannerText.innerHTML = `<span>🟢 وضع: تسجيل زيارة جديدة لليوم (ستُحفظ كبطاقة مستقلة برقم وتاريخ منفصل)</span>`;
+        btnDuplicate.classList.add('hidden');
+        btnDelete.classList.add('hidden');
+        btnSaveText.innerText = '➕ حفظ كـ زيارة جديدة مستقلة';
+        saveBtn.className = 'px-6 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-bold text-xs shadow-lg transition flex items-center gap-1.5';
+      } else {
+        const vDate = document.getElementById('pVisitDate').value;
+        banner.className = 'bg-amber-100 border border-amber-300 text-amber-950 p-2.5 rounded-xl text-xs font-bold flex justify-between items-center shadow-xs';
+        bannerText.innerHTML = `<span>✏️ وضع: تعديل زيارة سابقة بتاريخ (${escapeHTML(vDate)})</span>`;
+        btnDuplicate.classList.remove('hidden');
+        btnDelete.classList.remove('hidden');
+        btnSaveText.innerText = `💾 حفظ التعديلات على زيارة (${vDate})`;
+        saveBtn.className = 'px-6 py-2.5 bg-indigo-700 hover:bg-indigo-800 text-white rounded-xl font-bold text-xs shadow-lg transition flex items-center gap-1.5';
+      }
+    }
+
+    function handleVisitDateChanged() {
+      if (currentVisitMode === 'EDIT') {
+        updateVisitModeUI();
+      }
+    }
+
+    // Direct entry point from Patient Card
+    function startNewVisitForPatient(patientId) {
+      openDoctorModal(patientId, null, true);
+    }
+
+    function openDoctorModal(patientId, targetVisitId = null, forceNewVisit = false) {
       const p = patients.find(item => item.id === patientId);
       if (!p) return;
 
@@ -1632,9 +1669,9 @@
       currentActivePatientInModal = p;
 
       document.getElementById('editingPatientId').value = p.id;
-      document.getElementById('docModalSubtitle').innerText = `المريضة: ${p.name}`;
+      document.getElementById('docModalSubtitle').innerText = `المريضة: ${p.name} ${p.husband ? `(زوجها: ${p.husband})` : ''}`;
       
-      // Master profile
+      // Load Demographics
       document.getElementById('pName').value = p.name || '';
       document.getElementById('pHusband').value = p.husband || '';
       document.getElementById('pNationalId').value = p.nationalId || '';
@@ -1658,29 +1695,81 @@
       document.getElementById('pAllergies').value = p.allergies || '';
       updateModalPregnancyPreview();
 
-      // Precise visit loading: Prioritize explicit ID, then today's existing visit, otherwise fresh form
-      let visitToLoad = null;
-      const today = getTodayDateString();
+      // Render past visit tabs
+      renderModalVisitsPills(p, targetVisitId || (forceNewVisit ? 'NEW' : null));
 
-      if (targetVisitId) {
-        visitToLoad = p.visits.find(v => v.id === targetVisitId);
-      } else if (p.status !== 'waiting') {
-        // If already completed, load the latest visit (e.g. today's completed examination)
-        const todayVisit = p.visits.find(v => v.date === today);
-        visitToLoad = todayVisit || (p.visits.length > 0 ? p.visits[0] : null);
-      }
-
-      if (visitToLoad) {
-        loadVisitIntoForm(visitToLoad);
-        renderModalVisitsPills(p, visitToLoad.id);
+      if (forceNewVisit || targetVisitId === 'NEW' || !p.visits || p.visits.length === 0) {
+        switchToNewVisitMode(p.complaint);
+      } else if (targetVisitId) {
+        const v = p.visits.find(item => item.id === targetVisitId);
+        if (v) loadExistingVisitForEdit(v);
+        else switchToNewVisitMode(p.complaint);
       } else {
-        prepareFreshVisitForm(p.complaint);
-        renderModalVisitsPills(p, 'NEW');
+        if (p.status === 'waiting') {
+          switchToNewVisitMode(p.complaint);
+        } else {
+          loadExistingVisitForEdit(p.visits[0]);
+        }
       }
 
       renderDrugChips();
       document.getElementById('docSuggestionsDropdown').classList.add('hidden');
       document.getElementById('doctorModal').classList.remove('hidden');
+    }
+
+    function switchToNewVisitMode(defaultComplaint = '') {
+      currentVisitMode = 'NEW';
+      document.getElementById('editingVisitId').value = 'NEW_' + Date.now();
+      document.getElementById('pVisitDate').value = getTodayDateString();
+      document.getElementById('pComplaint').value = defaultComplaint || '';
+      document.getElementById('pBP').value = '';
+      document.getElementById('pWeight').value = '';
+      document.getElementById('pFee').value = '';
+      document.getElementById('pUltrasound').value = '';
+      document.getElementById('pRx').value = '';
+      document.getElementById('pNextVisitDate').value = '';
+      document.getElementById('bpWarningText').classList.add('hidden');
+
+      currentAttachedPhotos = [];
+      renderPhotosPreview();
+
+      if (currentActivePatientInModal) {
+        renderModalVisitsPills(currentActivePatientInModal, 'NEW');
+      }
+      updateVisitModeUI();
+    }
+
+    function loadExistingVisitForEdit(visit) {
+      currentVisitMode = 'EDIT';
+      document.getElementById('editingVisitId').value = visit.id;
+      document.getElementById('pVisitDate').value = visit.date || getTodayDateString();
+      document.getElementById('pComplaint').value = visit.complaint || '';
+      document.getElementById('pBP').value = visit.bp || '';
+      checkBPWarning(document.getElementById('pBP'));
+      document.getElementById('pWeight').value = visit.weight || '';
+      document.getElementById('pFee').value = (visit.fee !== undefined && visit.fee !== null) ? visit.fee : '';
+      document.getElementById('pUltrasound').value = visit.ultrasound || '';
+      document.getElementById('pRx').value = visit.rx || '';
+      document.getElementById('pNextVisitDate').value = visit.nextVisitDate || '';
+
+      currentAttachedPhotos = visit.photos ? [...visit.photos] : [];
+      renderPhotosPreview();
+
+      if (currentActivePatientInModal) {
+        renderModalVisitsPills(currentActivePatientInModal, visit.id);
+      }
+      updateVisitModeUI();
+    }
+
+    function duplicateCurrentToNewVisit() {
+      const comp = document.getElementById('pComplaint').value;
+      const rx = document.getElementById('pRx').value;
+      const us = document.getElementById('pUltrasound').value;
+      
+      switchToNewVisitMode(comp);
+      document.getElementById('pRx').value = rx;
+      document.getElementById('pUltrasound').value = us;
+      showRealtimeToast('📋 تم نسخ الوصفة والفحص إلى زيارة جديدة لليوم');
     }
 
     function renderModalVisitsPills(patient, activeVisitId) {
@@ -1698,87 +1787,31 @@
       countBadge.innerText = patient.visits.length;
       pillsList.innerHTML = '';
 
-      const isNewActive = (activeVisitId === 'NEW' || !activeVisitId);
+      const isNewActive = (activeVisitId === 'NEW' || currentVisitMode === 'NEW');
       btnNewTab.className = isNewActive 
-        ? 'bg-teal-500 text-white ring-2 ring-white px-3 py-1.5 rounded-xl font-bold text-xs shadow transition flex items-center gap-1'
+        ? 'bg-emerald-500 text-white ring-2 ring-white px-3.5 py-1.5 rounded-xl font-bold text-xs shadow-md transition flex items-center gap-1.5'
         : 'bg-slate-800 text-slate-300 hover:bg-slate-700 px-3 py-1.5 rounded-xl font-bold text-xs transition flex items-center gap-1';
 
       patient.visits.forEach((v) => {
-        const isThisVisitSelected = (v.id === activeVisitId && activeVisitId !== 'NEW');
+        const isThisSelected = (!isNewActive && v.id === activeVisitId);
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = `px-3 py-1.5 rounded-xl font-bold transition flex items-center gap-1.5 shrink-0 text-xs ${
-          isThisVisitSelected 
-            ? 'bg-teal-700 text-white shadow-md ring-2 ring-teal-300 scale-102' 
+          isThisSelected 
+            ? 'bg-teal-600 text-white shadow-md ring-2 ring-teal-300 scale-102' 
             : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white'
         }`;
         btn.innerHTML = `
           <span>📅</span> 
           <span>زيارة: ${escapeHTML(v.date)}</span>
           ${v.fee ? `<span class="bg-emerald-900/60 text-emerald-200 px-1 rounded text-[10px]">${v.fee.toLocaleString()}</span>` : ''}
-          ${isThisVisitSelected ? `<span class="bg-white/20 text-[10px] px-1 rounded">✔</span>` : ''}
+          ${isThisSelected ? `<span class="bg-white/20 text-[10px] px-1 rounded">✔</span>` : ''}
         `;
-        btn.onclick = () => {
-          loadVisitIntoForm(v);
-          renderModalVisitsPills(patient, v.id);
-        };
+        btn.onclick = () => loadExistingVisitForEdit(v);
         pillsList.appendChild(btn);
       });
     }
 
-    function loadVisitIntoForm(visit) {
-      document.getElementById('editingVisitId').value = visit.id || '';
-      document.getElementById('pVisitDate').value = visit.date || getTodayDateString();
-      document.getElementById('pComplaint').value = visit.complaint || '';
-      document.getElementById('pBP').value = visit.bp || '';
-      checkBPWarning(document.getElementById('pBP'));
-      document.getElementById('pWeight').value = visit.weight || '';
-      
-      // Load fee accurately
-      document.getElementById('pFee').value = (visit.fee !== undefined && visit.fee !== null) ? visit.fee : '';
-      
-      document.getElementById('pUltrasound').value = visit.ultrasound || '';
-      document.getElementById('pRx').value = visit.rx || '';
-      document.getElementById('pNextVisitDate').value = visit.nextVisitDate || '';
-
-      currentAttachedPhotos = visit.photos ? [...visit.photos] : [];
-      renderPhotosPreview();
-
-      document.getElementById('btnDeleteCurrentVisit').classList.remove('hidden');
-      document.getElementById('currentVisitSectionTitle').innerHTML = `
-        <span class="text-teal-700 font-bold">🩺 فحص زيارة تاريخ:</span> 
-        <span class="bg-teal-100 text-teal-900 px-2 py-0.5 rounded-lg font-bold">${escapeHTML(visit.date)}</span>
-      `;
-      document.getElementById('saveStatusHint').innerText = `تعديل بطاقة زيارة (${visit.date})`;
-    }
-
-    function prepareFreshVisitForm(defaultComplaint = '') {
-      document.getElementById('editingVisitId').value = 'NEW_' + Date.now();
-      document.getElementById('pVisitDate').value = getTodayDateString();
-      document.getElementById('pComplaint').value = defaultComplaint || '';
-      document.getElementById('pBP').value = '';
-      document.getElementById('pWeight').value = '';
-      document.getElementById('pFee').value = '';
-      document.getElementById('pUltrasound').value = '';
-      document.getElementById('pRx').value = '';
-      document.getElementById('pNextVisitDate').value = '';
-      document.getElementById('bpWarningText').classList.add('hidden');
-      document.getElementById('btnDeleteCurrentVisit').classList.add('hidden');
-
-      currentAttachedPhotos = [];
-      renderPhotosPreview();
-
-      document.getElementById('currentVisitSectionTitle').innerHTML = `
-        <span class="text-emerald-700 font-black">➕ فحص زيارة جديدة (${getTodayDateString()})</span>
-      `;
-      document.getElementById('saveStatusHint').innerText = 'سيتم إنشاء بطاقة زيارة جديدة ومستقلة تماماً';
-
-      if (currentActivePatientInModal) {
-        renderModalVisitsPills(currentActivePatientInModal, 'NEW');
-      }
-    }
-
-    // --- DELETE CURRENT VISIT ---
     async function deleteCurrentOpenVisit() {
       const visitIdToDelete = document.getElementById('editingVisitId').value;
       const patientId = document.getElementById('editingPatientId').value;
@@ -1806,17 +1839,14 @@
       alert(`🗑️ تم حذف بطاقة زيارة (${visitDate}) بنجاح.`);
 
       if (p.visits.length > 0) {
-        loadVisitIntoForm(p.visits[0]);
-        renderModalVisitsPills(p, p.visits[0].id);
+        loadExistingVisitForEdit(p.visits[0]);
       } else {
-        prepareFreshVisitForm();
-        renderModalVisitsPills(p, 'NEW');
+        switchToNewVisitMode();
       }
     }
 
     function openDoctorNewPatientModal() {
       document.getElementById('editingPatientId').value = '';
-      document.getElementById('editingVisitId').value = 'NEW_' + Date.now();
       document.getElementById('docModalSubtitle').innerText = `تسجيل مريضة جديدة`;
       document.getElementById('doctorForm').reset();
       document.getElementById('docAgePreview').innerText = '';
@@ -1826,20 +1856,19 @@
       document.getElementById('docExistingMatchBanner').classList.add('hidden');
       document.getElementById('docSuggestionsDropdown').classList.add('hidden');
       document.getElementById('modalVisitsNavContainer').classList.add('hidden');
-      document.getElementById('btnDeleteCurrentVisit').classList.add('hidden');
       
-      document.getElementById('pVisitDate').value = getTodayDateString();
       currentAttachedPhotos = [];
       renderPhotosPreview();
       renderDrugChips();
       updateModalPregnancyPreview();
       currentActivePatientInModal = null;
       
+      switchToNewVisitMode();
       document.getElementById('doctorModal').classList.remove('hidden');
       setTimeout(() => document.getElementById('pName').focus(), 150);
     }
 
-    // --- DOCTOR SUBMIT: Guaranteed Accurate Fee & Synchronization ---
+    // --- DOCTOR SUBMIT: GUARANTEED SEPARATION OF NEW VS EDIT ---
     async function handleDoctorSubmit(e) {
       e.preventDefault();
       const saveBtn = document.getElementById('saveDoctorBtn');
@@ -1856,19 +1885,9 @@
       const inputPhone = convertArabicNumerals(document.getElementById('pPhone').value.trim());
       const inputNationalId = convertArabicNumerals(document.getElementById('pNationalId').value.trim());
 
-      let patient = null;
-      if (patientId) {
-        patient = patients.find(p => p.id === patientId);
-      }
-
+      let patient = patients.find(p => p.id === patientId);
       if (!patient) {
-        const potentialMatch = findBestMatchingPatient({ 
-          name: inputName, husband: inputHusband, phone: inputPhone, nationalId: inputNationalId 
-        });
-        if (potentialMatch) {
-          patient = potentialMatch;
-          patientId = patient.id;
-        }
+        patient = findBestMatchingPatient({ name: inputName, husband: inputHusband, phone: inputPhone, nationalId: inputNationalId });
       }
 
       if (!patient) {
@@ -1882,7 +1901,7 @@
         patients.unshift(patient);
       }
 
-      // 1. Profile Data
+      // 1. Update Profile Information
       patient.name = inputName;
       patient.husband = inputHusband;
       patient.nationalId = inputNationalId;
@@ -1902,40 +1921,49 @@
       patient.allergies = document.getElementById('pAllergies').value;
       patient.status = 'completed';
 
-      // 2. Parse Fee Safely
+      // 2. Parse Fee Strictly
       const rawFeeInput = convertArabicNumerals(document.getElementById('pFee').value.trim());
       const parsedFee = (rawFeeInput !== '') ? (parseInt(rawFeeInput, 10) || 0) : 0;
-
-      // 3. Package the Visit Object
       const visitDateVal = document.getElementById('pVisitDate').value || getTodayDateString();
-      const visitRecord = {
-        id: (editingVisitId && !editingVisitId.startsWith('NEW_')) ? editingVisitId : ('v_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4)),
-        date: visitDateVal,
-        complaint: document.getElementById('pComplaint').value.trim() || 'فحص ومتابعة',
-        bp: convertArabicNumerals(document.getElementById('pBP').value.trim()),
-        weight: convertArabicNumerals(document.getElementById('pWeight').value.trim()),
-        fee: parsedFee,
-        ultrasound: document.getElementById('pUltrasound').value.trim(),
-        rx: document.getElementById('pRx').value.trim(),
-        nextVisitDate: document.getElementById('pNextVisitDate').value,
-        photos: [...currentAttachedPhotos],
-        timestamp: Date.now()
-      };
 
-      // 4. Save into visits array
       patient.visits = Array.isArray(patient.visits) ? patient.visits : [];
-      const existingVisitIndex = patient.visits.findIndex(v => v.id === visitRecord.id);
 
-      if (existingVisitIndex >= 0) {
-        patient.visits[existingVisitIndex] = visitRecord;
+      if (currentVisitMode === 'NEW' || editingVisitId.startsWith('NEW_')) {
+        // Create an absolute NEW independent visit
+        const newVisitRecord = {
+          id: 'v_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+          date: visitDateVal,
+          complaint: document.getElementById('pComplaint').value.trim() || 'فحص ومتابعة',
+          bp: convertArabicNumerals(document.getElementById('pBP').value.trim()),
+          weight: convertArabicNumerals(document.getElementById('pWeight').value.trim()),
+          fee: parsedFee,
+          ultrasound: document.getElementById('pUltrasound').value.trim(),
+          rx: document.getElementById('pRx').value.trim(),
+          nextVisitDate: document.getElementById('pNextVisitDate').value,
+          photos: [...currentAttachedPhotos],
+          timestamp: Date.now()
+        };
+        patient.visits.unshift(newVisitRecord);
       } else {
-        patient.visits.unshift(visitRecord);
+        // Update the EXISTING visit only
+        const targetIdx = patient.visits.findIndex(v => v.id === editingVisitId);
+        if (targetIdx >= 0) {
+          patient.visits[targetIdx].date = visitDateVal;
+          patient.visits[targetIdx].complaint = document.getElementById('pComplaint').value.trim();
+          patient.visits[targetIdx].bp = convertArabicNumerals(document.getElementById('pBP').value.trim());
+          patient.visits[targetIdx].weight = convertArabicNumerals(document.getElementById('pWeight').value.trim());
+          patient.visits[targetIdx].fee = parsedFee;
+          patient.visits[targetIdx].ultrasound = document.getElementById('pUltrasound').value.trim();
+          patient.visits[targetIdx].rx = document.getElementById('pRx').value.trim();
+          patient.visits[targetIdx].nextVisitDate = document.getElementById('pNextVisitDate').value;
+          patient.visits[targetIdx].photos = [...currentAttachedPhotos];
+        }
       }
 
-      // Sort visits descending: Date, then Timestamp
+      // Sort visits descending
       patient.visits.sort((a, b) => (b.date || '').localeCompare(a.date || '') || ((b.timestamp || 0) - (a.timestamp || 0)));
 
-      // Sync top-level pointers with the absolute newest visit
+      // Sync master pointers to the latest visit
       patient.visitDate = patient.visits[0].date;
       patient.fee = patient.visits[0].fee;
       patient.nextVisitDate = patient.visits[0].nextVisitDate;
@@ -1954,9 +1982,8 @@
       }
 
       closeDoctorModal();
-      showRealtimeToast(`✅ تم حفظ الكشفية (${parsedFee.toLocaleString()} ل.س) وفحص المريضة`);
+      showRealtimeToast(currentVisitMode === 'NEW' ? '✅ تم إضافة وحفظ الزيارة الجديدة' : '✅ تم حفظ تعديل الزيارة السابقة');
     }
-
     // --- ACCURATE PREGNANCY ENGINE ---
     function calculatePregnancy(lmpStr) {
       if (!lmpStr) return null;
@@ -2489,14 +2516,17 @@
             </details>
           ` : ''}
 
-          <!-- Action Buttons -->
-          <div class="flex justify-between items-center pt-2 border-t text-xs">
+      <!-- Action Buttons (Disambiguated) -->
+          <div class="flex justify-between items-center pt-2 border-t text-xs flex-wrap gap-2">
             <button onclick="requestDeletePatient('${p.id}', '${escapeHTML(p.name)}')" class="text-red-500 hover:text-red-700 font-semibold flex items-center gap-1">
               <span>🗑️</span> <span>حذف الملف</span>
             </button>
-            <div class="flex gap-2">
-              <button onclick="openDoctorModal('${p.id}', null)" class="bg-teal-700 hover:bg-teal-800 text-white px-3 py-1.5 rounded-lg font-bold shadow">
-                ${isWaiting ? '🩺 فحص المريضة الآن' : '➕ زيارة / فحص جديد'}
+            <div class="flex gap-1.5">
+              <button onclick="openDoctorModal('${p.id}', null, false)" class="bg-slate-100 hover:bg-slate-200 text-slate-800 px-3 py-1.5 rounded-xl font-bold border border-slate-300 shadow-2xs transition">
+                📂 استعراض السجل
+              </button>
+              <button onclick="startNewVisitForPatient('${p.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 rounded-xl font-bold shadow-md transition flex items-center gap-1">
+                <span>➕</span> <span>فحص زيارة جديدة</span>
               </button>
             </div>
           </div>
