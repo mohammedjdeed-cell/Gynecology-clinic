@@ -539,6 +539,189 @@
       </form>
     </div>
   </div>
+  <!-- ==================== DOCTOR COMPREHENSIVE NEW PATIENT MODAL ==================== -->
+  <div id="doctorNewPatientModal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center p-3 z-50 backdrop-blur-sm transition-all duration-300">
+    <div class="bg-white rounded-3xl max-w-3xl w-full p-5 max-h-[95vh] overflow-y-auto shadow-2xl border-2 border-teal-500 space-y-4">
+      
+      <!-- Header -->
+      <div class="flex justify-between items-center pb-3 border-b border-teal-100">
+        <div class="flex items-center gap-2.5">
+          <div class="w-11 h-11 rounded-2xl bg-teal-700 text-white flex items-center justify-center text-2xl font-bold shadow-md">
+            🩺
+          </div>
+          <div>
+            <h2 class="text-base font-black text-teal-950">فتح ملف طبي شامل ومريضة جديدة</h2>
+            <p class="text-xs text-slate-500 font-semibold">استمارة الطبيبة الكاملة (البيانات الثابتة + السوابق + فحص الزيارة الأولى)</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeDoctorNewPatientModal()" class="text-gray-400 hover:text-red-500 text-2xl font-bold p-1">&times;</button>
+      </div>
+
+      <form id="docNewPatientForm" onsubmit="handleDoctorNewPatientSubmit(event)" class="space-y-4 text-xs">
+        
+        <!-- SECTION 1: MASTER DEMOGRAPHICS -->
+        <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-2.5">
+          <h3 class="font-bold text-teal-900 text-xs flex items-center gap-1.5">
+            <span>👤</span> <span>1. البيانات الشخصية والعامة</span>
+          </h3>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+            <div>
+              <label class="block font-semibold mb-1 text-slate-700">الاسم الثلاثي للمريضة *</label>
+              <input type="text" id="dnpName" required placeholder="اسم المريضة الثلاثي..." class="w-full p-2.5 border rounded-xl text-sm font-bold bg-white focus:ring-2 focus:ring-teal-500">
+            </div>
+            <div>
+              <label class="block font-semibold mb-1 text-slate-700">اسم الزوج الثلاثي</label>
+              <input type="text" id="dnpHusband" placeholder="اسم الزوج..." class="w-full p-2.5 border rounded-xl text-sm bg-white">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+            <div>
+              <label class="block font-semibold mb-1 text-slate-700">الرقم الوطني (11 رقم)</label>
+              <input type="text" id="dnpNationalId" maxlength="11" placeholder="الرقم الوطني" class="w-full p-2 border rounded-xl font-mono text-xs bg-white">
+            </div>
+            <div>
+              <label class="block font-semibold mb-1 text-slate-700">الهاتف السوري</label>
+              <input type="tel" id="dnpPhone" maxlength="10" placeholder="09xxxxxxxx" class="w-full p-2 border rounded-xl font-mono text-xs bg-white" dir="ltr" oninput="formatSyrianPhone(this)">
+            </div>
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <label class="font-semibold text-slate-700">سنة التولد والزمرة</label>
+                <span id="dnpAgePreview" class="text-teal-700 font-bold text-[10px]"></span>
+              </div>
+              <div class="flex gap-1">
+                <input type="number" id="dnpBirthYear" min="1930" max="2030" placeholder="1998" oninput="updateDnpAgePreview()" class="w-1/2 p-2 border rounded-xl text-xs bg-white font-mono">
+                <select id="dnpBlood" class="w-1/2 p-2 border rounded-xl text-xs font-bold bg-white">
+                  <option value="غير محدد">الزمرة</option>
+                  <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+                  <option>O+</option><option>O-</option><option>AB+</option><option>AB-</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700">عنوان السكن / المنطقة</label>
+            <input type="text" id="dnpAddress" placeholder="المدينة، المنطقة، الحي..." class="w-full p-2 border rounded-xl text-xs bg-white">
+          </div>
+        </div>
+
+        <!-- SECTION 2: OBSTETRIC & MEDICAL HISTORY -->
+        <div class="bg-rose-50/50 p-3.5 rounded-2xl border border-rose-200 space-y-2.5">
+          <h3 class="font-bold text-rose-950 text-xs flex items-center gap-1.5">
+            <span>🤰</span> <span>2. السوابق التوليدية (GPA) والحالة الصحية العامة</span>
+          </h3>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div class="bg-white p-2.5 rounded-xl border border-rose-200 space-y-1.5">
+              <span class="block font-bold text-rose-900 text-[11px]">السوابق التوليدية (GPA):</span>
+              <div class="grid grid-cols-4 gap-1.5 text-center">
+                <div><label class="block text-[10px] font-bold">G (حمول)</label><input type="number" id="dnpG" value="0" min="0" class="w-full p-1 border rounded-lg text-center font-bold bg-slate-50"></div>
+                <div><label class="block text-[10px] font-bold">VD (طبيعي)</label><input type="number" id="dnpVD" value="0" min="0" class="w-full p-1 border rounded-lg text-center font-bold bg-slate-50"></div>
+                <div><label class="block text-[10px] font-bold">CS (قيصري)</label><input type="number" id="dnpCS" value="0" min="0" class="w-full p-1 border rounded-lg text-center font-bold bg-slate-50"></div>
+                <div><label class="block text-[10px] font-bold">A (إجهاض)</label><input type="number" id="dnpA" value="0" min="0" class="w-full p-1 border rounded-lg text-center font-bold bg-slate-50"></div>
+              </div>
+              <input type="text" id="dnpObsNotes" placeholder="ملاحظات الولادات السابقة..." class="w-full p-1.5 border rounded-lg text-xs bg-slate-50">
+            </div>
+
+            <div class="space-y-2">
+              <div>
+                <label class="block font-semibold mb-0.5 text-slate-700">أمراض مزمنة / سوابق جراحية</label>
+                <input type="text" id="dnpMedHistory" placeholder="ضغط، سكري، عمليات سابقة..." class="w-full p-2 border rounded-xl bg-white text-xs">
+              </div>
+              <div>
+                <label class="block font-semibold mb-0.5 text-red-600 font-bold">⚠️ التحسس الدوائي</label>
+                <input type="text" id="dnpAllergies" placeholder="بنسلين، سلفا، أدوية محددة..." class="w-full p-2 border border-red-300 rounded-xl bg-white text-red-600 font-bold text-xs">
+              </div>
+            </div>
+          </div>
+
+          <!-- LMP & High Risk -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 pt-1">
+            <div class="bg-red-50 p-2.5 rounded-xl border border-red-200">
+              <div class="flex items-center gap-1.5 mb-1">
+                <input type="checkbox" id="dnpIsHighRisk" onchange="toggleDnpHighRiskReason()" class="w-4 h-4 text-red-600 rounded">
+                <label for="dnpIsHighRisk" class="font-bold text-red-800 cursor-pointer">🚨 تصنيف كـ حمل عالي الخطورة</label>
+              </div>
+              <div id="dnpHighRiskGroup" class="hidden mt-1.5">
+                <input type="text" id="dnpHighRiskReason" placeholder="سبب تصنيف الخطورة..." class="w-full p-1.5 border border-red-300 rounded-lg text-xs bg-white text-red-900 font-semibold">
+              </div>
+            </div>
+
+            <div class="bg-teal-50 p-2.5 rounded-xl border border-teal-200">
+              <label class="block font-bold text-teal-950 mb-1">أول يوم من آخر دورة شهرية (LMP):</label>
+              <input type="date" id="dnpLMP" oninput="updateDnpPregnancyPreview()" onchange="updateDnpPregnancyPreview()" class="w-full p-1.5 border rounded-lg font-bold bg-white text-xs">
+            </div>
+          </div>
+
+          <div id="dnpPregnancyPreview" class="hidden"></div>
+        </div>
+
+        <!-- SECTION 3: FIRST VISIT EXAMINATION DETAILS -->
+        <div class="bg-amber-50/60 p-3.5 rounded-2xl border-2 border-amber-300 space-y-3">
+          <div class="flex justify-between items-center border-b border-amber-200 pb-2">
+            <h3 class="font-bold text-amber-950 text-xs flex items-center gap-1.5">
+              <span>🩺</span> <span>3. فحص الزيارة الأولى لهذه المريضة</span>
+            </h3>
+            <div class="flex items-center gap-2">
+              <label class="font-bold text-slate-700 text-xs">تاريخ الزيارة:</label>
+              <input type="date" id="dnpVisitDate" class="p-1.5 border rounded-xl font-bold bg-white text-xs text-amber-950">
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700">سبب الزيارة أو الشكوى الحالية</label>
+            <input type="text" id="dnpComplaint" placeholder="فحص أولي، متابعة حمل، إيكو..." class="w-full p-2 border rounded-xl text-xs bg-white font-semibold">
+          </div>
+
+          <div class="grid grid-cols-3 gap-2">
+            <div>
+              <label class="block font-semibold mb-0.5 text-slate-700">الضغط الشرياني</label>
+              <input type="text" id="dnpBP" placeholder="120/80" class="w-full p-2 border rounded-xl bg-white text-xs">
+            </div>
+            <div>
+              <label class="block font-semibold mb-0.5 text-slate-700">الوزن (كغ)</label>
+              <input type="text" id="dnpWeight" placeholder="الوزن" class="w-full p-2 border rounded-xl bg-white text-xs">
+            </div>
+            <div>
+              <label class="block font-semibold mb-0.5 text-slate-700">الكشفية (ل.س)</label>
+              <input type="number" id="dnpFee" placeholder="الكشفية" class="w-full p-2 border rounded-xl bg-white font-mono text-emerald-700 font-bold text-xs">
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700">تقرير الإيكو والفحص السريري الأولي</label>
+            <textarea id="dnpUltrasound" rows="2" placeholder="تقرير الفحص السريري والإيكو..." class="w-full p-2 border rounded-xl text-sm bg-white"></textarea>
+          </div>
+
+          <!-- Prescription -->
+          <div class="space-y-1.5">
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-slate-800 text-xs">💊 الوصفة الطبية الأولى (Rx):</span>
+              <button type="button" onclick="openDrugsModal()" class="text-[11px] text-teal-800 hover:text-teal-950 font-bold underline">⚙️ صيدلية الأدوية</button>
+            </div>
+            <div id="dnpQuickDrugsContainer" class="flex gap-1.5 flex-wrap py-1"></div>
+            <textarea id="dnpRx" rows="2" placeholder="العلاج والتعليمات الطبية للمريضة..." class="w-full p-2.5 border rounded-xl text-sm bg-yellow-50/70 font-sans"></textarea>
+          </div>
+
+          <!-- Next Appointment -->
+          <div class="bg-indigo-50/70 p-2 rounded-xl border border-indigo-200 flex justify-between items-center flex-wrap gap-2">
+            <label class="font-bold text-indigo-900 text-xs">📅 موعد المراجعة القادمة:</label>
+            <input type="date" id="dnpNextVisitDate" class="p-1 border rounded-lg text-xs bg-white font-bold text-indigo-900">
+          </div>
+        </div>
+
+        <!-- Submit Bar -->
+        <div class="flex justify-between items-center pt-2 border-t">
+          <button type="button" onclick="closeDoctorNewPatientModal()" class="px-5 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl font-bold text-xs">إلغاء</button>
+          <button type="submit" id="btnSubmitDnp" class="px-6 py-2.5 bg-teal-700 hover:bg-teal-800 text-white rounded-xl font-bold text-xs shadow-lg transition flex items-center gap-1.5 transform active:scale-95">
+            <span>💾</span> <span>حفظ الملف الطبي والزيارة الأولى في السجل</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
   <!-- ==================== 7. DRUG MANAGEMENT MODAL ==================== -->
   <div id="drugsModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center p-3 z-50">
     <div class="bg-white rounded-2xl max-w-lg w-full p-5 shadow-2xl space-y-3.5 text-xs max-h-[90vh] overflow-y-auto">
@@ -1913,9 +2096,174 @@
       showRealtimeToast(`✅ تم توثيق الزيارة بنجاح (الكشفية: ${parsedFee.toLocaleString()} ل.س)`);
     }
 
+    // --- COMPREHENSIVE DOCTOR NEW PATIENT INTAKE ENGINE ---
     function openDoctorNewPatientModal() {
-      // Secretary register or fresh doc register
-      openSecretaryModal();
+      const form = document.getElementById('docNewPatientForm');
+      if (form) form.reset();
+
+      document.getElementById('dnpVisitDate').value = getTodayDateString();
+      document.getElementById('dnpAgePreview').innerText = '';
+      document.getElementById('dnpIsHighRisk').checked = false;
+      toggleDnpHighRiskReason();
+      document.getElementById('dnpPregnancyPreview').classList.add('hidden');
+
+      renderDnpDrugChips();
+      document.getElementById('doctorNewPatientModal').classList.remove('hidden');
+      setTimeout(() => document.getElementById('dnpName').focus(), 150);
+    }
+
+    function closeDoctorNewPatientModal() {
+      document.getElementById('doctorNewPatientModal').classList.add('hidden');
+    }
+
+    function toggleDnpHighRiskReason() {
+      const isChecked = document.getElementById('dnpIsHighRisk').checked;
+      const group = document.getElementById('dnpHighRiskGroup');
+      if (isChecked) {
+        group.classList.remove('hidden');
+        document.getElementById('dnpHighRiskReason').focus();
+      } else {
+        group.classList.add('hidden');
+      }
+    }
+
+    function updateDnpAgePreview() {
+      const val = document.getElementById('dnpBirthYear').value;
+      const age = calculateAgeFromBirthYear(val);
+      document.getElementById('dnpAgePreview').innerText = age !== null ? `(${age} سنة)` : '';
+    }
+
+    function updateDnpPregnancyPreview() {
+      const lmpVal = document.getElementById('dnpLMP').value;
+      const previewEl = document.getElementById('dnpPregnancyPreview');
+      if (!lmpVal) { previewEl.classList.add('hidden'); return; }
+
+      const preg = calculatePregnancy(lmpVal);
+      if (!preg || preg.isFuture) { previewEl.classList.add('hidden'); return; }
+
+      previewEl.innerHTML = `
+        <div class="bg-emerald-100 border border-emerald-300 p-2.5 rounded-xl text-xs text-emerald-950 flex justify-between items-center font-bold">
+          <span>🤰 مرحلة الحمل: <strong class="text-emerald-900">${preg.monthName}</strong> (${preg.weeks})</span>
+          <span>📅 موعد الولادة (EDD): <strong>${preg.edd}</strong></span>
+        </div>
+      `;
+      previewEl.classList.remove('hidden');
+    }
+
+    function renderDnpDrugChips() {
+      const container = document.getElementById('dnpQuickDrugsContainer');
+      if (!container) return;
+      container.innerHTML = '';
+
+      drugs.forEach((d) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        const colorBadgeClass = getCompanyColorBadge(d.company);
+        btn.className = 'chip-btn bg-white hover:bg-slate-50 text-slate-800 px-2.5 py-1.5 rounded-xl text-xs font-bold border border-slate-300 flex items-center gap-1.5 shadow-sm';
+        btn.innerHTML = `
+          <span>+ ${escapeHTML(d.name)}</span>
+          ${d.company ? `<span class="${colorBadgeClass} text-[9px] px-2 py-0.5 rounded-md font-bold shadow-xs">${escapeHTML(d.company)}</span>` : ''}
+        `;
+        btn.onclick = () => {
+          const rxBox = document.getElementById('dnpRx');
+          const companyPart = d.company ? ` (${d.company})` : '';
+          const dosePart = d.dose ? ` - ${d.dose}` : '';
+          const textToAppend = `+ ${d.name}${companyPart}${dosePart}`;
+          rxBox.value = rxBox.value.trim() ? (rxBox.value.trim() + '\n' + textToAppend) : textToAppend;
+          rxBox.focus();
+        };
+        container.appendChild(btn);
+      });
+    }
+
+    async function handleDoctorNewPatientSubmit(e) {
+      e.preventDefault();
+      const submitBtn = document.getElementById('btnSubmitDnp');
+      if (submitBtn) { submitBtn.disabled = true; submitBtn.innerText = 'جاري حفظ الملف الطبي...'; }
+
+      const name = document.getElementById('dnpName').value.trim();
+      const husband = document.getElementById('dnpHusband').value.trim();
+      const nationalId = convertArabicNumerals(document.getElementById('dnpNationalId').value.trim());
+      const phone = convertArabicNumerals(document.getElementById('dnpPhone').value.trim());
+      const birthYear = convertArabicNumerals(document.getElementById('dnpBirthYear').value.trim());
+      const address = document.getElementById('dnpAddress').value.trim();
+      const blood = document.getElementById('dnpBlood').value;
+
+      const g = convertArabicNumerals(document.getElementById('dnpG').value);
+      const vd = convertArabicNumerals(document.getElementById('dnpVD').value);
+      const cs = convertArabicNumerals(document.getElementById('dnpCS').value);
+      const a = convertArabicNumerals(document.getElementById('dnpA').value);
+      const obsNotes = document.getElementById('dnpObsNotes').value.trim();
+
+      const medHistory = document.getElementById('dnpMedHistory').value.trim();
+      const allergies = document.getElementById('dnpAllergies').value.trim();
+      const isHighRisk = document.getElementById('dnpIsHighRisk').checked;
+      const highRiskReason = isHighRisk ? document.getElementById('dnpHighRiskReason').value.trim() : '';
+      const lmp = document.getElementById('dnpLMP').value;
+
+      // First Visit Info
+      const visitDate = document.getElementById('dnpVisitDate').value || getTodayDateString();
+      const complaint = document.getElementById('dnpComplaint').value.trim() || 'فحص أولي وفتح ملف';
+      const bp = convertArabicNumerals(document.getElementById('dnpBP').value.trim());
+      const weight = convertArabicNumerals(document.getElementById('dnpWeight').value.trim());
+      const rawFee = convertArabicNumerals(document.getElementById('dnpFee').value.trim());
+      const fee = rawFee !== '' ? (parseInt(rawFee, 10) || 0) : 0;
+      const ultrasound = document.getElementById('dnpUltrasound').value.trim();
+      const rx = document.getElementById('dnpRx').value.trim();
+      const nextVisitDate = document.getElementById('dnpNextVisitDate').value;
+
+      const localDocId = 'pat_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+
+      const firstVisit = {
+        id: 'v_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+        date: visitDate,
+        complaint: complaint,
+        bp: bp,
+        weight: weight,
+        fee: fee,
+        ultrasound: ultrasound,
+        rx: rx,
+        nextVisitDate: nextVisitDate,
+        photos: [],
+        timestamp: Date.now()
+      };
+
+      const newPatient = {
+        id: localDocId,
+        name: name,
+        husband: husband,
+        nationalId: nationalId,
+        phone: phone,
+        birthYear: birthYear,
+        address: address,
+        blood: blood,
+        g: g, vd: vd, cs: cs, a: a,
+        obsNotes: obsNotes,
+        medHistory: medHistory,
+        allergies: allergies,
+        isHighRisk: isHighRisk,
+        highRiskReason: highRiskReason,
+        lmp: lmp,
+        status: 'completed',
+        visitDate: visitDate,
+        fee: fee,
+        bp: bp,
+        weight: weight,
+        ultrasound: ultrasound,
+        rx: rx,
+        photos: [],
+        visits: [firstVisit],
+        timestamp: Date.now(),
+        createdAt: new Date().toLocaleDateString('ar-SY')
+      };
+
+      patients.unshift(newPatient);
+      notifyDataChanged();
+      await syncPatientToCloud(newPatient);
+
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.innerText = 'حفظ الملف الطبي والزيارة الأولى في السجل'; }
+      closeDoctorNewPatientModal();
+      showRealtimeToast(`🎉 تم فتح الملف الطبي للمريضة (${name}) بنجاح`);
     }
     // --- ACCURATE PREGNANCY ENGINE ---
     function calculatePregnancy(lmpStr) {
