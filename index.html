@@ -2,164 +2,264 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#0f766e">
-  <title>عيادة النسائية والتوليد - د.هيام خضر</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#881337">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>عيادة النسائية والتوليد وجراحتها - د. هيام خضر</title>
   
   <link rel="manifest" href="./manifest.json">
   <link rel="stylesheet" href="./css/styles.css">
   
-  <!-- Tailwind CSS & Fonts -->
+  <!-- Tailwind CSS & Google Fonts -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   
-  <!-- Firebase Compat Scripts -->
+  <!-- Firebase Compat Scripts v10.8.0 -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
   <style>
-    body { font-family: 'Cairo', sans-serif; }
-    .chip-btn { transition: all 0.15s ease-in-out; }
-    .chip-btn:active { transform: scale(0.95); }
-    @keyframes pulse-subtle {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.96; transform: scale(1.008); }
+    :root {
+      --primary-rose: #881337;
+      --primary-rose-hover: #4c0519;
+      --bg-warm: #faf7f8;
     }
-    .spotlight-glow { animation: pulse-subtle 2.5s infinite ease-in-out; }
+    body {
+      font-family: 'Cairo', sans-serif;
+      background-color: var(--bg-warm);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .chip-btn {
+      transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .chip-btn:active {
+      transform: scale(0.96);
+    }
+    @keyframes pulse-gentle {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.95; transform: scale(1.008); }
+    }
+    .spotlight-pulse {
+      animation: pulse-gentle 3s infinite ease-in-out;
+    }
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 8px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 8px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
   </style>
 </head>
-<body class="bg-slate-100 text-slate-800 antialiased selection:bg-teal-200">
+<body class="text-slate-800 antialiased selection:bg-rose-200 selection:text-rose-900 min-h-screen flex flex-col justify-between">
 
   <!-- ==================== 1. SECURITY LOCK SCREEN ==================== -->
-  <div id="lockScreen" class="fixed inset-0 bg-teal-950 flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl space-y-5 border border-teal-100">
-      <div class="w-16 h-16 bg-teal-100 text-teal-700 rounded-2xl flex items-center justify-center mx-auto text-3xl shadow-inner">
+  <div id="lockScreen" class="fixed inset-0 bg-rose-950/95 backdrop-blur-md flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl space-y-5 border border-rose-100">
+      <div class="w-16 h-16 bg-rose-50 text-rose-700 rounded-2xl flex items-center justify-center mx-auto text-3xl shadow-inner border border-rose-100">
         🩺
       </div>
       <div>
-        <h2 class="text-xl font-bold text-slate-900">عيادة النسائية والتوليد</h2>
-        <p class="text-xs text-slate-500 mt-1">أدخلي رمز الدخول (د.هيام أو الاستقبال)</p>
+        <h2 class="text-xl font-black text-rose-950">عيادة النسائية والتوليد</h2>
+        <p class="text-xs text-slate-500 font-bold mt-1">الدكتورة هيام خضر</p>
+        <p class="text-[11px] text-slate-400 mt-0.5">أدخلي رمز الدخول للمتابعة (الطبيبة أو الاستقبال)</p>
       </div>
 
-      <div>
+      <div class="space-y-2">
         <input type="password" id="pinInput" maxlength="8" placeholder="••••" 
-               class="w-full text-center text-2xl tracking-[0.4em] py-3 border-2 border-teal-200 rounded-xl focus:outline-teal-600 font-bold bg-slate-50 shadow-sm">
-        <p id="pinError" class="text-xs text-red-500 font-bold mt-2 hidden">⚠️ رمز الدخول غير صحيح</p>
+               class="w-full text-center text-3xl tracking-[0.4em] py-3 border-2 border-rose-200 rounded-2xl focus:outline-none focus:border-rose-700 font-bold bg-rose-50/30 text-rose-950 shadow-inner">
+        <p id="pinError" class="text-xs text-rose-600 font-bold hidden">⚠️ رمز الدخول غير صحيح، يرجى المحاولة ثانية</p>
       </div>
 
-      <button onclick="checkPin()" class="w-full bg-teal-700 hover:bg-teal-800 text-white font-bold py-3 rounded-xl shadow-lg transition">
-        دخول إلى النظام
+      <button onclick="checkPin()" class="w-full bg-rose-700 hover:bg-rose-800 text-white font-black py-3.5 rounded-2xl shadow-lg shadow-rose-900/20 active:scale-98 transition duration-150">
+        دخول إلى العيادة
       </button>
 
-      <div class="text-[11px] text-slate-400 border-t pt-3 space-y-1">
-        <p>رمز الطبيبة: <span class="font-bold text-teal-700">1234</span></p>
-        <p>رمز السكرتيرة: <span class="font-bold text-indigo-600">0000</span></p>
+      <div class="text-[11px] text-slate-400 border-t border-rose-100 pt-3 space-y-1">
+        <p>رمز الطبيبة الافتراضي: <span class="font-mono font-bold text-rose-800">1234</span></p>
+        <p>رمز الاستقبال الافتراضي: <span class="font-mono font-bold text-slate-600">0000</span></p>
       </div>
     </div>
   </div>
 
   <input type="file" id="importFileInput" accept=".json" class="hidden" onchange="handleImportFile(event)">
 
-  <!-- ==================== 2. HEADER ==================== -->
-  <header class="bg-teal-700 text-white p-3 shadow-md sticky top-0 z-20">
-    <div class="max-w-5xl mx-auto flex justify-between items-center flex-wrap gap-2">
-      <div class="flex items-center gap-2">
-        <span class="text-2xl">🩺</span>
+  <!-- ==================== 2. SMART MOBILE/DESKTOP HEADER ==================== -->
+  <header class="bg-rose-900 text-white p-3 shadow-md sticky top-0 z-30 border-b border-rose-800">
+    <div class="max-w-5xl mx-auto flex justify-between items-center gap-2">
+      
+      <!-- Brand & Role Indicator -->
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-rose-800 flex items-center justify-center text-xl shadow-inner border border-rose-700/50">
+          🩺
+        </div>
         <div>
-          <h1 class="text-base md:text-lg font-bold leading-tight">سجل عيادة د.هيام خضر</h1>
-          <span id="roleBadge" class="text-[10px] bg-teal-900 text-teal-200 px-2 py-0.5 rounded-full font-bold"></span>
+          <h1 class="text-sm md:text-base font-black leading-tight text-rose-50">عيادة د. هيام خضر</h1>
+          <div class="flex items-center gap-1.5 mt-0.5">
+            <span id="roleBadge" class="text-[10px] bg-rose-950 text-rose-200 px-2 py-0.2 rounded-full font-bold"></span>
+          </div>
         </div>
       </div>
       
-      <!-- Doctor Actions -->
-      <div id="doctorNav" class="flex gap-1.5 flex-wrap items-center">
-        <button onclick="syncAllToCloud()" title="مزامنة فورية كاملة مع السحابة" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-2.5 py-1.5 rounded-lg font-bold flex items-center gap-1 shadow">☁️ مزامنة سحابية</button>
-        <button onclick="manualInstantRefresh()" title="تحديث السجلات" class="bg-teal-800 hover:bg-teal-900 text-xs px-2.5 py-1.5 rounded-lg font-bold flex items-center gap-1">🔄 تحديث</button>
-        <button onclick="openDrugsModal()" title="إدارة صيدلية الأدوية" class="bg-teal-800 hover:bg-teal-900 text-xs px-2.5 py-1.5 rounded-lg font-semibold flex items-center gap-1">💊 الأدوية</button>
-        <button onclick="cleanDuplicatePatients(true)" title="تنظيف التكرارات" class="bg-teal-800 hover:bg-teal-900 text-xs px-2.5 py-1.5 rounded-lg font-semibold">🧹 دمج المكرر</button>
-        <button onclick="openBackdateModal()" title="أرشفة مريضة بأثر رجعي" class="bg-amber-600 hover:bg-amber-700 text-white text-xs px-2.5 py-1.5 rounded-lg font-bold">📁 أرشفة سابقة</button>
-        <button onclick="triggerImport()" title="استيراد" class="bg-teal-800 hover:bg-teal-900 text-xs px-2 py-1.5 rounded-lg">📥</button>
-        <button onclick="exportData(false)" title="تصدير نسخة احتياطية" class="bg-teal-800 hover:bg-teal-900 text-xs px-2 py-1.5 rounded-lg">💾</button>
-        <button onclick="openChangePinModal()" title="إدارة الرموز" class="bg-teal-800 hover:bg-teal-900 text-xs px-2 py-1.5 rounded-lg">🔑</button>
-        <button onclick="lockApp()" class="bg-teal-900 hover:bg-black/30 text-xs px-2.5 py-1.5 rounded-lg font-semibold">🔒 قفل</button>
-        <button onclick="openDoctorNewPatientModal()" class="bg-white text-teal-800 font-bold px-3 py-1.5 rounded-lg text-xs shadow hover:bg-gray-100">+ مريضة جديدة</button>
+      <!-- Doctor Actions Bar (Clean 2026 App Bar) -->
+      <div id="doctorNav" class="flex gap-1.5 items-center">
+        <button onclick="openDoctorNewPatientModal()" class="bg-white text-rose-900 hover:bg-rose-50 font-black px-3 py-1.5 rounded-xl text-xs shadow transition active:scale-95 flex items-center gap-1">
+          <span>➕</span>
+          <span class="hidden sm:inline">مريضة جديدة</span>
+          <span class="sm:hidden">جديدة</span>
+        </button>
+
+        <button onclick="syncAllToCloud()" title="مزامنة فورية كاملة مع السحابة" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-2.5 py-1.5 rounded-xl font-bold flex items-center gap-1 shadow transition active:scale-95">
+          <span>☁️</span>
+          <span class="hidden md:inline">مزامنة</span>
+        </button>
+
+        <!-- Administrative Dropdown Menu -->
+        <div class="relative" id="adminMenuContainer">
+          <button onclick="toggleAdminMenu()" id="btnAdminMenu" title="قائمة الأدوات والإدارة" class="bg-rose-800 hover:bg-rose-700 text-rose-100 text-xs px-2.5 py-1.5 rounded-xl font-bold flex items-center gap-1 border border-rose-700/80 transition active:scale-95">
+            <span>⚙️</span>
+            <span class="hidden md:inline">الأدوات</span>
+            <span class="text-[10px]">▼</span>
+          </button>
+
+          <!-- Dropdown Popup -->
+          <div id="adminDropdownMenu" class="hidden absolute left-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-rose-100 py-1.5 z-40 text-slate-800 text-xs divide-y divide-slate-100 animate-in fade-in duration-150">
+            <div class="py-1">
+              <button onclick="manualInstantRefresh(); closeAdminMenu();" class="w-full text-right px-3.5 py-2 hover:bg-rose-50 flex items-center gap-2 font-semibold">
+                <span>🔄</span> <span>تحديث السجلات فورياً</span>
+              </button>
+              <button onclick="openDrugsModal(); closeAdminMenu();" class="w-full text-right px-3.5 py-2 hover:bg-rose-50 flex items-center gap-2 font-semibold">
+                <span>💊</span> <span>إدارة صيدلية الأدوية</span>
+              </button>
+              <button onclick="cleanDuplicatePatients(true); closeAdminMenu();" class="w-full text-right px-3.5 py-2 hover:bg-rose-50 flex items-center gap-2 font-semibold">
+                <span>🧹</span> <span>فحص ودمج البطاقات المكررة</span>
+              </button>
+              <button onclick="openBackdateModal(); closeAdminMenu();" class="w-full text-right px-3.5 py-2 hover:bg-rose-50 flex items-center gap-2 font-semibold">
+                <span>📁</span> <span>أرشفة فحص بأثر رجعي</span>
+              </button>
+            </div>
+            <div class="py-1">
+              <button onclick="exportData(false); closeAdminMenu();" class="w-full text-right px-3.5 py-2 hover:bg-rose-50 flex items-center gap-2 font-semibold text-slate-700">
+                <span>💾</span> <span>تصدير نسخة احتياطية (JSON)</span>
+              </button>
+              <button onclick="triggerImport(); closeAdminMenu();" class="w-full text-right px-3.5 py-2 hover:bg-rose-50 flex items-center gap-2 font-semibold text-slate-700">
+                <span>📥</span> <span>استيراد نسخة احتياطية</span>
+              </button>
+              <button onclick="openChangePinModal(); closeAdminMenu();" class="w-full text-right px-3.5 py-2 hover:bg-rose-50 flex items-center gap-2 font-semibold text-slate-700">
+                <span>🔑</span> <span>إدارة رموز الأمان والتصفير</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <button onclick="lockApp()" title="قفل العيادة" class="bg-rose-950 hover:bg-black/40 text-xs px-2.5 py-1.5 rounded-xl font-bold transition active:scale-95">
+          🔒
+        </button>
       </div>
 
-      <!-- Secretary Actions -->
-      <div id="secretaryNav" class="hidden flex gap-2 items-center">
-        <button onclick="syncAllToCloud()" title="مزامنة سحابية" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-2.5 py-2 rounded-lg font-bold shadow">☁️ مزامنة</button>
-        <button onclick="manualInstantRefresh()" title="تحديث فوري" class="bg-indigo-800 hover:bg-indigo-900 text-white text-xs px-2.5 py-2 rounded-lg font-bold">🔄 تحديث</button>
-        <button onclick="openBackdateModal()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-3 py-2 rounded-lg text-xs shadow">📁 أرشفة سابقة</button>
-        <button onclick="lockApp()" class="bg-teal-900 hover:bg-black/30 text-xs px-3 py-2 rounded-lg font-semibold">🔒 قفل</button>
-        <button onclick="openSecretaryModal()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-4 py-2 rounded-lg text-xs shadow">+ تسجيل دور جديد</button>
+      <!-- Secretary Actions Bar -->
+      <div id="secretaryNav" class="hidden flex gap-1.5 items-center">
+        <button onclick="openSecretaryModal()" class="bg-rose-50 hover:bg-white text-rose-900 font-black px-3.5 py-1.5 rounded-xl text-xs shadow transition active:scale-95 flex items-center gap-1.5">
+          <span>➕</span>
+          <span>تسجيل دور جديد</span>
+        </button>
+        <button onclick="syncAllToCloud()" title="مزامنة سحابية" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-2.5 py-1.5 rounded-xl font-bold shadow transition active:scale-95">
+          ☁️
+        </button>
+        <button onclick="openBackdateModal()" title="أرشفة زيارة سابقة" class="bg-rose-800 hover:bg-rose-700 text-rose-100 text-xs px-2.5 py-1.5 rounded-xl font-bold border border-rose-700/60 transition active:scale-95">
+          📁 أرشفة
+        </button>
+        <button onclick="manualInstantRefresh()" title="تحديث فوري" class="bg-rose-800 hover:bg-rose-700 text-rose-100 text-xs px-2.5 py-1.5 rounded-xl font-bold transition active:scale-95">
+          🔄
+        </button>
+        <button onclick="lockApp()" title="قفل" class="bg-rose-950 hover:bg-black/40 text-xs px-2.5 py-1.5 rounded-xl font-bold transition active:scale-95">
+          🔒
+        </button>
       </div>
+
     </div>
   </header>
 
   <!-- Notification Toast -->
-  <div id="realtimeToast" class="fixed bottom-4 left-4 bg-slate-900/90 backdrop-blur text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-2xl flex items-center gap-2 transform translate-y-24 transition-transform duration-300 z-50 pointer-events-none">
-    <span class="text-emerald-400 text-base">⚡</span>
+  <div id="realtimeToast" class="fixed bottom-4 left-4 bg-slate-900/95 backdrop-blur text-white px-4 py-3 rounded-2xl text-xs font-bold shadow-2xl flex items-center gap-2.5 transform translate-y-28 transition-transform duration-300 z-50 pointer-events-none border border-slate-700">
+    <span class="text-rose-400 text-base">⚡</span>
     <span id="realtimeToastMsg">تم التحديث</span>
   </div>
 
   <!-- ==================== 3. MAIN DASHBOARD ==================== -->
-  <main class="max-w-5xl mx-auto p-3.5 space-y-3">
+  <main class="max-w-5xl mx-auto p-3.5 space-y-3.5 flex-1 w-full">
     
-    <!-- Tabs (Doctor Only) -->
-    <div id="tabsContainer" class="flex gap-2 border-b pb-2 overflow-x-auto">
-      <button onclick="setActiveTab('daily')" id="tabDaily" class="px-3 py-2 rounded-xl text-xs font-bold bg-teal-700 text-white shadow">
+    <!-- Doctor Tabs Navigation -->
+    <div id="tabsContainer" class="flex gap-1.5 border-b border-rose-200/60 pb-2 overflow-x-auto no-scrollbar">
+      <button onclick="setActiveTab('daily')" id="tabDaily" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-rose-800 text-white shadow-sm transition">
         📅 سجل اليوميات
       </button>
-      <button onclick="setActiveTab('weekly')" id="tabWeekly" class="px-3 py-2 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-slate-100 border">
-        📊 سجل الأسبوع (مقسم بالأيام)
+      <button onclick="setActiveTab('weekly')" id="tabWeekly" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-rose-50 border border-slate-200 transition">
+        📊 سجل الأسبوع المالي
       </button>
-      <button onclick="setActiveTab('dueMonth')" id="tabDueMonth" class="px-3 py-2 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-slate-100 border">
-        🤰 ولادات هذا الشهر <span id="dueThisMonthCount" class="bg-rose-500 text-white px-1.5 py-0.2 rounded-full text-[10px] mr-1 hidden">0</span>
+      <button onclick="setActiveTab('dueMonth')" id="tabDueMonth" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-rose-50 border border-slate-200 transition flex items-center gap-1.5">
+        <span>🤰 ولادات هذا الشهر</span>
+        <span id="dueThisMonthCount" class="bg-rose-600 text-white px-1.5 py-0.2 rounded-full text-[10px] font-mono hidden">0</span>
       </button>
-      <button onclick="setActiveTab('all')" id="tabAll" class="px-3 py-2 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-slate-100 border">
-        📋 أرشيف جميع المريضات
+      <button onclick="setActiveTab('all')" id="tabAll" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-rose-50 border border-slate-200 transition">
+        📋 أرشيف المريضات العام
       </button>
     </div>
 
-    <!-- Date Filter Bar with Shortcuts -->
-    <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row gap-2.5 justify-between items-center">
+    <!-- Date Filter & Comprehensive Live Search -->
+    <div class="bg-white p-3 rounded-2xl shadow-sm border border-rose-100/80 flex flex-col md:flex-row gap-2.5 justify-between items-center">
       <div id="dateControlGroup" class="flex items-center gap-1.5 flex-wrap w-full md:w-auto">
         <span class="text-xs font-bold text-slate-600">📅 التاريخ:</span>
         <input type="date" id="dateFilterInput" onchange="handleDateInputChange()" 
-               class="p-2 border rounded-xl text-xs font-bold bg-slate-50 focus:outline-teal-600">
-        <button onclick="setDateToToday()" class="bg-teal-100 hover:bg-teal-200 text-teal-900 text-xs px-2.5 py-2 rounded-xl font-bold">اليوم</button>
-        <button onclick="setDateToYesterday()" class="bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs px-2.5 py-2 rounded-xl font-bold">الأمس</button>
+               class="p-2 border border-slate-300 rounded-xl text-xs font-bold bg-slate-50 focus:outline-none focus:border-rose-600 text-slate-800">
+        <button onclick="setDateToToday()" class="bg-rose-50 hover:bg-rose-100 text-rose-900 border border-rose-200 text-xs px-2.5 py-2 rounded-xl font-bold transition">اليوم</button>
+        <button onclick="setDateToYesterday()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs px-2.5 py-2 rounded-xl font-bold transition">الأمس</button>
       </div>
 
-      <div class="w-full md:w-72">
+      <div class="w-full md:w-80">
         <input type="text" id="searchInput" oninput="renderApp()" placeholder="🔍 بحث شامل بالاسم، الزوج، الهاتف، السكن..." 
-               class="w-full p-2.5 border rounded-xl text-xs focus:outline-teal-600 bg-slate-50 font-medium">
+               class="w-full p-2.5 border border-slate-300 rounded-xl text-xs focus:outline-none focus:border-rose-600 bg-slate-50 font-medium">
       </div>
     </div>
 
     <!-- Global Search Banner Indicator -->
-    <div id="globalSearchAlertBanner" class="hidden bg-amber-50 border border-amber-300 p-2.5 rounded-xl text-xs text-amber-900 flex justify-between items-center font-bold">
-      <span id="globalSearchAlertText">🔍 نتائج البحث الشامل في كامل قاعدة البيانات:</span>
-      <button onclick="clearSearchInput()" class="text-xs text-red-600 hover:underline">إلغاء البحث والعودة</button>
+    <div id="globalSearchAlertBanner" class="hidden bg-amber-50 border border-amber-300 p-2.5 rounded-2xl text-xs text-amber-950 flex justify-between items-center font-bold">
+      <span id="globalSearchAlertText">🔍 نتائج البحث الشامل في كامل أرشيف العيادة:</span>
+      <button onclick="clearSearchInput()" class="text-xs text-rose-700 hover:underline">إلغاء البحث والعودة</button>
     </div>
 
-    <!-- Stats Bar -->
-    <div class="bg-slate-800 text-white p-3 rounded-2xl shadow-sm flex justify-between items-center flex-wrap gap-2 text-xs font-bold">
+    <!-- Real-time Stats & Income Bar -->
+    <div class="bg-slate-900 text-white p-3 rounded-2xl shadow-sm flex justify-between items-center flex-wrap gap-2 text-xs font-bold border border-slate-800">
       <div id="queueStats" class="text-slate-200"></div>
       <div class="flex items-center gap-2.5">
-        <div id="financialTally" class="bg-emerald-800 text-emerald-100 px-3 py-1 rounded-xl border border-emerald-600 flex items-center gap-1">
-          <span>💰 الصندوق:</span>
-          <span id="dailyTotalIncome">0</span>
-          <span>ل.س</span>
+        <div id="financialTally" class="bg-emerald-950 text-emerald-300 px-3 py-1 rounded-xl border border-emerald-800/80 flex items-center gap-1.5 font-mono">
+          <span class="text-slate-300 font-sans">💰 الصندوق:</span>
+          <span id="dailyTotalIncome" class="font-black text-emerald-400 text-sm">0</span>
+          <span class="text-[11px] font-sans">ل.س</span>
         </div>
-        <button onclick="syncAllToCloud()" title="اضغطي للتأكد من حفظ السحابة" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-2 py-1 rounded-xl text-[11px] flex items-center gap-1">
-          <span id="syncStatus">🟢 فحص الاتصال...</span>
+        <button onclick="syncAllToCloud()" title="فحص المزامنة" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-xl text-[11px] flex items-center gap-1 border border-slate-700 transition">
+          <span id="syncStatus">🟢 متصل</span>
         </button>
       </div>
     </div>
 
-    <!-- Spotlight Widget: Next Patient In Line -->
+    <!-- Spotlight Widget: Next Patient In Queue -->
     <div id="nextPatientSpotlightContainer"></div>
 
     <!-- Patient Cards List -->
@@ -167,19 +267,22 @@
   </main>
 
   <!-- ==================== 4. SECRETARY INTAKE MODAL ==================== -->
-  <div id="secretaryModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-3 z-30">
-    <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-3 max-h-[92vh] overflow-y-auto">
-      <div class="flex justify-between items-center border-b pb-2">
-        <h2 class="text-base font-bold text-teal-800">📋 تسجيل مريضة في دور اليوم</h2>
-        <button type="button" onclick="closeSecretaryModal()" class="text-gray-400 hover:text-red-500 text-2xl font-bold">&times;</button>
+  <div id="secretaryModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 z-40">
+    <div class="bg-white rounded-3xl max-w-md w-full p-5 shadow-2xl space-y-3 max-h-[92vh] overflow-y-auto border border-rose-100">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-2.5">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">📋</span>
+          <h2 class="text-base font-black text-rose-950">تسجيل مريضة في دور اليوم</h2>
+        </div>
+        <button type="button" onclick="closeSecretaryModal()" class="text-gray-400 hover:text-rose-600 text-2xl font-bold p-1">&times;</button>
       </div>
 
-      <div id="secExistingMatchBanner" class="hidden bg-emerald-50 border border-emerald-300 p-2.5 rounded-xl text-xs text-emerald-950 flex justify-between items-center font-bold">
+      <div id="secExistingMatchBanner" class="hidden bg-emerald-50 border border-emerald-300 p-2.5 rounded-2xl text-xs text-emerald-950 flex justify-between items-center font-bold">
         <div>
-          <span>💡 مريضة مسجلة سابقاً!</span>
-          <p class="text-[10px] text-emerald-800 font-normal">سيتم إدراجها في دور اليوم وإضافة الزيارة لملفها تلقائياً دون تكرار البطاقة.</p>
+          <span>💡 تم ربط المريضة بملفها السابق بنجاح!</span>
+          <p class="text-[10px] text-emerald-800 font-normal">سيتم إدراجها بالدور وتصفير كشفية اليوم تلقائياً بانتظار فحص الطبيبة.</p>
         </div>
-        <button type="button" onclick="resetSecSelection()" class="text-xs text-red-600 hover:underline">إلغاء الربط</button>
+        <button type="button" onclick="resetSecSelection()" class="text-xs text-rose-700 hover:underline">إلغاء الربط</button>
       </div>
 
       <form id="secFormElement" onsubmit="handleSecretarySubmit(event)" class="space-y-3 text-xs relative">
@@ -188,21 +291,21 @@
         <div class="relative" id="secNameFieldContainer">
           <label class="block font-bold mb-1 text-slate-700">الاسم الثلاثي للمريضة *</label>
           <input type="text" id="secName" required autocomplete="off" oninput="handleSecretaryLiveSearch(this.value)" 
-                 placeholder="اكتبي اسم المريضة للبحث أو الإضافة..." 
-                 class="w-full p-2.5 border rounded-xl text-sm font-bold bg-white focus:ring-2 focus:ring-teal-500">
+                 placeholder="اكتبي الاسم للبحث في الأرشيف أو إضافة مريضة جديدة..." 
+                 class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-bold bg-white focus:outline-none focus:ring-2 focus:ring-rose-500">
           
-          <div id="secSuggestionsDropdown" class="hidden absolute top-full right-0 left-0 bg-white border-2 border-teal-500 rounded-xl shadow-2xl mt-1 max-h-56 overflow-y-auto z-40 divide-y divide-slate-100">
-          </div>
+          <!-- Live Auto-Suggest Dropdown -->
+          <div id="secSuggestionsDropdown" class="hidden absolute top-full right-0 left-0 bg-white border-2 border-rose-400 rounded-2xl shadow-2xl mt-1 max-h-56 overflow-y-auto z-50 divide-y divide-slate-100"></div>
         </div>
 
         <div class="grid grid-cols-2 gap-2">
           <div>
             <label class="block font-semibold mb-1 text-slate-700">اسم الزوج (اختياري)</label>
-            <input type="text" id="secHusband" placeholder="اسم الزوج" class="w-full p-2 border rounded-xl text-xs">
+            <input type="text" id="secHusband" placeholder="اسم الزوج" class="w-full p-2 border border-slate-300 rounded-xl text-xs">
           </div>
           <div>
             <label class="block font-semibold mb-1 text-slate-700">الرقم الوطني (11 رقم)</label>
-            <input type="text" id="secNationalId" maxlength="11" placeholder="الرقم الوطني" class="w-full p-2 border rounded-xl text-xs font-mono">
+            <input type="text" id="secNationalId" maxlength="11" placeholder="الرقم الوطني" class="w-full p-2 border border-slate-300 rounded-xl text-xs font-mono">
           </div>
         </div>
 
@@ -210,30 +313,30 @@
           <div>
             <div class="flex justify-between items-center mb-1">
               <label class="font-semibold text-slate-700">سنة التولد</label>
-              <span id="secAgePreview" class="text-teal-700 font-bold text-[11px]"></span>
+              <span id="secAgePreview" class="text-rose-800 font-bold text-[11px]"></span>
             </div>
-            <input type="number" id="secBirthYear" min="1930" max="2030" placeholder="مثال: 1998" oninput="updateSecAgePreview()" class="w-full p-2 border rounded-xl text-xs font-mono">
+            <input type="number" id="secBirthYear" min="1930" max="2030" placeholder="مثال: 1998" oninput="updateSecAgePreview()" class="w-full p-2 border border-slate-300 rounded-xl text-xs font-mono">
           </div>
           <div>
-            <label class="block font-semibold mb-1 text-slate-700">رقم الهاتف (09xxxxxxxx)</label>
-            <input type="tel" id="secPhone" maxlength="10" placeholder="09xxxxxxxx" 
-                   class="w-full p-2 border rounded-xl text-xs font-mono" dir="ltr" oninput="formatSyrianPhone(this)">
+            <label class="block font-semibold mb-1 text-slate-700">رقم الهاتف (سوري أو دولي)</label>
+            <input type="tel" id="secPhone" maxlength="17" placeholder="09xxxxxxxx أو +..." 
+                   class="w-full p-2 border border-slate-300 rounded-xl text-xs font-mono" dir="ltr" oninput="formatSmartPhone(this)">
           </div>
         </div>
 
         <div>
           <label class="block font-semibold mb-1 text-slate-700">عنوان السكن / المنطقة</label>
-          <input type="text" id="secAddress" placeholder="المدينة، الحي..." class="w-full p-2 border rounded-xl text-xs">
+          <input type="text" id="secAddress" placeholder="المدينة، البلدة، الحي..." class="w-full p-2 border border-slate-300 rounded-xl text-xs">
         </div>
 
         <div>
-          <label class="block font-semibold mb-1 text-slate-700">سبب الزيارة / الشكوى</label>
-          <input type="text" id="secComplaint" placeholder="متابعة حمل، تصوير إيكو، استشارة، نزف..." class="w-full p-2.5 border rounded-xl text-xs font-semibold text-teal-900 bg-teal-50/50">
+          <label class="block font-semibold mb-1 text-slate-700">سبب الزيارة أو الشكوى اليوم</label>
+          <input type="text" id="secComplaint" placeholder="متابعة حمل، تصوير إيكو، فحص دوري، استشارة..." class="w-full p-2.5 border border-rose-200 rounded-xl text-xs font-semibold text-rose-950 bg-rose-50/40">
         </div>
 
-        <div class="flex justify-end gap-2 pt-2 border-t">
-          <button type="button" onclick="closeSecretaryModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-xl font-bold">إلغاء</button>
-          <button type="submit" id="secSubmitBtn" class="px-5 py-2 bg-teal-700 hover:bg-teal-800 text-white rounded-xl font-bold shadow">
+        <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+          <button type="button" onclick="closeSecretaryModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold">إلغاء</button>
+          <button type="submit" id="secSubmitBtn" class="px-5 py-2 bg-rose-800 hover:bg-rose-900 text-white rounded-xl font-bold shadow-md active:scale-95 transition">
             إعطاء دور وتسجيل
           </button>
         </div>
@@ -242,90 +345,92 @@
   </div>
 
   <!-- ==================== 5. BACKDATE ARCHIVING MODAL ==================== -->
-  <div id="backdateModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center p-3 z-40">
-    <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-3.5 text-xs">
-      <div class="flex justify-between items-center border-b pb-2">
-        <h2 class="text-base font-bold text-amber-800">📁 أرشفة مريضة سابقة (بأثر رجعي)</h2>
-        <button type="button" onclick="closeBackdateModal()" class="text-gray-400 hover:text-red-500 text-2xl font-bold">&times;</button>
+  <div id="backdateModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 z-40">
+    <div class="bg-white rounded-3xl max-w-md w-full p-5 shadow-2xl space-y-3.5 text-xs border border-amber-200">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">📁</span>
+          <h2 class="text-base font-black text-amber-900">أرشفة زيارة أو ملف قديم (بأثر رجعي)</h2>
+        </div>
+        <button type="button" onclick="closeBackdateModal()" class="text-gray-400 hover:text-rose-600 text-2xl font-bold p-1">&times;</button>
       </div>
 
       <p class="text-slate-600">
-        توثيق فحص أو زيارة قديمة لإثراء قاعدة البيانات وتوثيق الأرشيف دون إدراجها في دور اليوم النشط.
+        توثيق فحص أو استشارة قديمة لإثراء قاعدة البيانات وتوثيق الأرشيف دون إدراج المريضة في دور اليوم النشط.
       </p>
 
       <form onsubmit="handleBackdateSubmit(event)" class="space-y-3">
         <div>
-          <label class="block font-bold mb-1 text-slate-700">تاريخ الزيارة السابقة المُراد توثيقها *</label>
+          <label class="block font-bold mb-1 text-slate-700">تاريخ الزيارة السابقة *</label>
           <div class="flex gap-2">
-            <input type="date" id="backdateVisitDate" required class="w-full p-2.5 border rounded-xl font-bold text-sm bg-amber-50 focus:outline-amber-600">
-            <button type="button" onclick="setBackdateLastMonth()" class="bg-amber-100 hover:bg-amber-200 text-amber-900 text-xs px-2.5 py-1 rounded-xl font-bold whitespace-nowrap">الشهر الماضي</button>
+            <input type="date" id="backdateVisitDate" required class="w-full p-2.5 border border-slate-300 rounded-xl font-bold text-sm bg-amber-50/50 focus:outline-none focus:border-amber-600">
+            <button type="button" onclick="setBackdateLastMonth()" class="bg-amber-100 hover:bg-amber-200 text-amber-950 text-xs px-3 py-1 rounded-xl font-bold whitespace-nowrap transition">الشهر الماضي</button>
           </div>
         </div>
 
         <div>
           <label class="block font-bold mb-1 text-slate-700">الاسم الثلاثي للمريضة *</label>
-          <input type="text" id="backdateName" required placeholder="مثال: سناء وليد مرعي" class="w-full p-2 border rounded-xl font-bold text-sm">
+          <input type="text" id="backdateName" required placeholder="اسم المريضة الثلاثي..." class="w-full p-2 border border-slate-300 rounded-xl font-bold text-sm">
         </div>
 
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="block font-semibold mb-1 text-slate-700">اسم الزوج (اختياري)</label>
-            <input type="text" id="backdateHusband" placeholder="اسم الزوج" class="w-full p-2 border rounded-xl">
+            <label class="block font-semibold mb-1 text-slate-700">اسم الزوج</label>
+            <input type="text" id="backdateHusband" placeholder="اسم الزوج" class="w-full p-2 border border-slate-300 rounded-xl">
           </div>
           <div>
-            <label class="block font-semibold mb-1 text-slate-700">الهاتف السوري</label>
-            <input type="tel" id="backdatePhone" maxlength="10" placeholder="09xxxxxxxx" class="w-full p-2 border rounded-xl font-mono" dir="ltr" oninput="formatSyrianPhone(this)">
+            <label class="block font-semibold mb-1 text-slate-700">الهاتف (سوري أو دولي)</label>
+            <input type="tel" id="backdatePhone" maxlength="17" placeholder="09xxxxxxxx أو +..." class="w-full p-2 border border-slate-300 rounded-xl font-mono" dir="ltr" oninput="formatSmartPhone(this)">
           </div>
         </div>
 
         <div>
-          <label class="block font-semibold mb-1 text-slate-700">ملاحظات / تقرير الزيارة أو العلاج القديم</label>
-          <textarea id="backdateNotes" rows="2" placeholder="تفاصيل الفحص القديم، التشخيص، أو العلاج..." class="w-full p-2 border rounded-xl"></textarea>
+          <label class="block font-semibold mb-1 text-slate-700">ملاحظات وتقرير الزيارة أو العلاج القديم</label>
+          <textarea id="backdateNotes" rows="2" placeholder="ملاحظات الفحص، التشخيص، أو العلاج السابق..." class="w-full p-2 border border-slate-300 rounded-xl"></textarea>
         </div>
 
-        <div class="flex justify-end gap-2 pt-2 border-t">
-          <button type="button" onclick="closeBackdateModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-xl font-bold">إلغاء</button>
-          <button type="submit" class="px-5 py-2 bg-amber-700 hover:bg-amber-800 text-white rounded-xl font-bold shadow">
-            💾 حفظ في الأرشيف القديم
+        <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+          <button type="button" onclick="closeBackdateModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold">إلغاء</button>
+          <button type="submit" class="px-5 py-2 bg-amber-700 hover:bg-amber-800 text-white rounded-xl font-bold shadow transition active:scale-95">
+            💾 حفظ في الأرشيف
           </button>
         </div>
       </form>
     </div>
   </div>
-
-  <!-- ==================== 6. PATIENT ARCHIVE & MEDICAL RECORD MODAL ==================== -->
-  <div id="doctorModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center p-3 z-40 backdrop-blur-xs transition-opacity duration-300">
-    <div class="bg-white rounded-3xl max-w-3xl w-full p-5 max-h-[92vh] overflow-y-auto shadow-2xl border border-teal-100 space-y-4">
+<!-- ==================== 6. PATIENT ARCHIVE & MEDICAL RECORD MODAL ==================== -->
+  <div id="doctorModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 z-40 transition-opacity duration-300">
+    <div class="bg-white rounded-3xl max-w-3xl w-full p-5 max-h-[92vh] overflow-y-auto shadow-2xl border border-rose-100 space-y-4">
       
       <!-- Modal Header -->
-      <div class="flex justify-between items-center border-b pb-3">
+      <div class="flex justify-between items-center border-b border-rose-100 pb-3">
         <div class="flex items-center gap-2.5">
-          <div class="w-10 h-10 rounded-2xl bg-teal-100 text-teal-800 flex items-center justify-center text-xl font-bold shadow-xs">
+          <div class="w-10 h-10 rounded-2xl bg-rose-50 text-rose-800 flex items-center justify-center text-xl font-bold border border-rose-200/60 shadow-xs">
             🗂️
           </div>
           <div>
-            <h2 class="text-base font-black text-slate-900" id="archivePatientNameTitle">ملف المريضة</h2>
+            <h2 class="text-base font-black text-rose-950" id="archivePatientNameTitle">ملف المريضة</h2>
             <p id="archivePatientSubtitle" class="text-xs text-slate-500 font-bold mt-0.5"></p>
           </div>
         </div>
         <div class="flex items-center gap-2">
-          <button type="button" id="btnArchiveQuickNewVisit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl font-bold text-xs shadow-md transition flex items-center gap-1.5 transform active:scale-95">
+          <button type="button" id="btnArchiveQuickNewVisit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl font-bold text-xs shadow-md transition flex items-center gap-1.5 active:scale-95">
             <span>➕</span> <span>تسجيل فحص جديد لليوم</span>
           </button>
-          <button type="button" onclick="closeDoctorModal()" class="text-gray-400 hover:text-red-500 text-2xl font-bold p-1">&times;</button>
+          <button type="button" onclick="closeDoctorModal()" class="text-gray-400 hover:text-rose-600 text-2xl font-bold p-1">&times;</button>
         </div>
       </div>
 
       <!-- Static Profile Smooth Accordion -->
       <div class="bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden shadow-2xs">
-        <button type="button" onclick="toggleStaticProfileAccordion()" class="w-full p-3.5 flex justify-between items-center hover:bg-slate-100 transition text-right">
+        <button type="button" onclick="toggleStaticProfileAccordion()" class="w-full p-3.5 flex justify-between items-center hover:bg-rose-50/50 transition text-right">
           <div class="flex items-center gap-2 font-bold text-slate-800 text-xs">
             <span>👤</span>
             <span>البيانات الثابتة، السوابق التوليدية (GPA)، والملاحظات المرضية</span>
           </div>
           <div class="flex items-center gap-2">
-            <span class="text-[11px] text-teal-700 font-bold bg-teal-50 px-2 py-0.5 rounded-md border border-teal-200">عرض / تعديل</span>
-            <span id="accordionArrow" class="text-teal-700 font-bold text-xs transform transition-transform duration-300">▼</span>
+            <span class="text-[11px] text-rose-800 font-bold bg-rose-50 px-2 py-0.5 rounded-lg border border-rose-200">عرض / تعديل</span>
+            <span id="accordionArrow" class="text-rose-800 font-bold text-xs transform transition-transform duration-300">▼</span>
           </div>
         </button>
 
@@ -333,31 +438,31 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
             <div>
               <label class="block font-semibold mb-1 text-slate-700">الاسم الثلاثي للمريضة *</label>
-              <input type="text" id="pName" required class="w-full p-2 border rounded-xl font-bold bg-slate-50 focus:bg-white text-sm">
+              <input type="text" id="pName" required class="w-full p-2 border border-slate-300 rounded-xl font-bold bg-slate-50 focus:bg-white text-sm focus:outline-none focus:border-rose-600">
             </div>
             <div>
               <label class="block font-semibold mb-1 text-slate-700">اسم الزوج</label>
-              <input type="text" id="pHusband" class="w-full p-2 border rounded-xl bg-slate-50 focus:bg-white text-sm">
+              <input type="text" id="pHusband" class="w-full p-2 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white text-sm focus:outline-none focus:border-rose-600">
             </div>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
             <div>
               <label class="block font-semibold mb-1 text-slate-700">الرقم الوطني</label>
-              <input type="text" id="pNationalId" maxlength="11" class="w-full p-2 border rounded-xl font-mono text-xs bg-slate-50">
+              <input type="text" id="pNationalId" maxlength="11" class="w-full p-2 border border-slate-300 rounded-xl font-mono text-xs bg-slate-50">
             </div>
             <div>
-              <label class="block font-semibold mb-1 text-slate-700">الهاتف</label>
-              <input type="tel" id="pPhone" maxlength="10" class="w-full p-2 border rounded-xl font-mono text-xs bg-slate-50" dir="ltr">
+              <label class="block font-semibold mb-1 text-slate-700">الهاتف (سوري أو دولي)</label>
+              <input type="tel" id="pPhone" maxlength="17" class="w-full p-2 border border-slate-300 rounded-xl font-mono text-xs bg-slate-50" dir="ltr" oninput="formatSmartPhone(this)">
             </div>
             <div>
               <div class="flex justify-between items-center mb-1">
                 <label class="font-semibold text-slate-700">سنة التولد والزمرة</label>
-                <span id="docAgePreview" class="text-teal-700 font-bold text-[10px]"></span>
+                <span id="docAgePreview" class="text-rose-800 font-bold text-[10px]"></span>
               </div>
               <div class="flex gap-1">
-                <input type="number" id="pBirthYear" placeholder="1998" oninput="updateDocAgePreview()" class="w-1/2 p-2 border rounded-xl text-xs font-mono bg-slate-50">
-                <select id="pBlood" class="w-1/2 p-2 border rounded-xl text-xs font-bold bg-slate-50">
+                <input type="number" id="pBirthYear" placeholder="1998" oninput="updateDocAgePreview()" class="w-1/2 p-2 border border-slate-300 rounded-xl text-xs font-mono bg-slate-50">
+                <select id="pBlood" class="w-1/2 p-2 border border-slate-300 rounded-xl text-xs font-bold bg-slate-50">
                   <option value="غير محدد">الزمرة</option>
                   <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
                   <option>O+</option><option>O-</option><option>AB+</option><option>AB-</option>
@@ -368,25 +473,25 @@
 
           <div>
             <label class="block font-semibold mb-1 text-slate-700">عنوان السكن</label>
-            <input type="text" id="pAddress" class="w-full p-2 border rounded-xl bg-slate-50 text-xs">
+            <input type="text" id="pAddress" class="w-full p-2 border border-slate-300 rounded-xl bg-slate-50 text-xs">
           </div>
 
           <!-- Obstetric GPA -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 pt-1">
-            <div class="bg-rose-50/70 p-2.5 rounded-xl border border-rose-100">
-              <span class="block font-bold text-rose-900 mb-1">السوابق التوليدية (GPA):</span>
+            <div class="bg-rose-50/60 p-2.5 rounded-xl border border-rose-200">
+              <span class="block font-bold text-rose-950 mb-1">السوابق التوليدية (GPA):</span>
               <div class="grid grid-cols-4 gap-1.5 text-center mb-1.5">
-                <div><label class="block text-[10px] font-bold">G</label><input type="number" id="pG" value="0" min="0" class="w-full p-1 border rounded-lg text-center font-bold bg-white"></div>
-                <div><label class="block text-[10px] font-bold">VD</label><input type="number" id="pVD" value="0" min="0" class="w-full p-1 border rounded-lg text-center font-bold bg-white"></div>
-                <div><label class="block text-[10px] font-bold">CS</label><input type="number" id="pCS" value="0" min="0" class="w-full p-1 border rounded-lg text-center font-bold bg-white"></div>
-                <div><label class="block text-[10px] font-bold">A</label><input type="number" id="pA" value="0" min="0" class="w-full p-1 border rounded-lg text-center font-bold bg-white"></div>
+                <div><label class="block text-[10px] font-bold text-rose-900">G</label><input type="number" id="pG" value="0" min="0" class="w-full p-1 border border-rose-200 rounded-lg text-center font-bold bg-white"></div>
+                <div><label class="block text-[10px] font-bold text-rose-900">VD</label><input type="number" id="pVD" value="0" min="0" class="w-full p-1 border border-rose-200 rounded-lg text-center font-bold bg-white"></div>
+                <div><label class="block text-[10px] font-bold text-rose-900">CS</label><input type="number" id="pCS" value="0" min="0" class="w-full p-1 border border-rose-200 rounded-lg text-center font-bold bg-white"></div>
+                <div><label class="block text-[10px] font-bold text-rose-900">A</label><input type="number" id="pA" value="0" min="0" class="w-full p-1 border border-rose-200 rounded-lg text-center font-bold bg-white"></div>
               </div>
-              <input type="text" id="pObsNotes" placeholder="ملاحظات الولادات..." class="w-full p-1.5 border rounded-lg text-xs bg-white">
+              <input type="text" id="pObsNotes" placeholder="ملاحظات الولادات السابقة..." class="w-full p-1.5 border border-rose-200 rounded-lg text-xs bg-white">
             </div>
 
             <div class="space-y-2">
-              <input type="text" id="pMedicalHistory" placeholder="أمراض مزمنة / سوابق جراحية..." class="w-full p-2 border rounded-xl bg-slate-50">
-              <input type="text" id="pAllergies" placeholder="تحسس دوائي..." class="w-full p-2 border rounded-xl text-red-600 font-bold bg-slate-50">
+              <input type="text" id="pMedicalHistory" placeholder="أمراض مزمنة / سوابق جراحية..." class="w-full p-2 border border-slate-300 rounded-xl bg-slate-50">
+              <input type="text" id="pAllergies" placeholder="تحسس دوائي..." class="w-full p-2 border border-red-300 rounded-xl text-red-600 font-bold bg-rose-50/30">
             </div>
           </div>
 
@@ -398,20 +503,20 @@
                 <label for="pIsHighRisk" class="font-bold text-red-800 cursor-pointer">🚨 حمل عالي الخطورة</label>
               </div>
               <div id="highRiskReasonGroup" class="hidden">
-                <input type="text" id="pHighRiskReason" placeholder="سبب الخطورة..." class="w-full p-1.5 border border-red-300 rounded-lg text-xs bg-white text-red-900 font-semibold">
+                <input type="text" id="pHighRiskReason" placeholder="سبب تصنيف الخطورة..." class="w-full p-1.5 border border-red-300 rounded-lg text-xs bg-white text-red-900 font-semibold">
               </div>
             </div>
 
-            <div class="bg-teal-50 p-2.5 rounded-xl border border-teal-100">
-              <label class="block font-bold text-teal-900 mb-1">أول يوم من آخر دورة (LMP):</label>
-              <input type="date" id="pLMP" oninput="updateModalPregnancyPreview()" onchange="updateModalPregnancyPreview()" class="w-full p-1.5 border rounded-lg font-bold bg-white text-xs">
+            <div class="bg-rose-50 p-2.5 rounded-xl border border-rose-200">
+              <label class="block font-bold text-rose-950 mb-1">أول يوم من آخر دورة شهرية (LMP):</label>
+              <input type="date" id="pLMP" oninput="updateModalPregnancyPreview()" onchange="updateModalPregnancyPreview()" class="w-full p-1.5 border border-rose-200 rounded-lg font-bold bg-white text-xs">
             </div>
           </div>
 
           <div id="modalPregnancyPreview" class="hidden"></div>
 
           <div class="flex justify-end pt-2">
-            <button type="submit" class="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold text-xs shadow transition">
+            <button type="submit" class="px-5 py-2 bg-rose-900 hover:bg-rose-950 text-white rounded-xl font-bold text-xs shadow transition active:scale-95">
               💾 حفظ تعديلات البيانات الثابتة
             </button>
           </div>
@@ -422,15 +527,15 @@
       <div class="flex justify-between items-center pt-2">
         <h3 class="font-black text-slate-800 text-xs flex items-center gap-2">
           <span>📜</span> <span>سجل الفحوصات والزيارات المؤرشفة</span>
-          <span id="archiveVisitsCountBadge" class="bg-teal-100 text-teal-800 px-2 py-0.5 rounded-full text-[11px] font-bold">0</span>
+          <span id="archiveVisitsCountBadge" class="bg-rose-100 text-rose-800 px-2 py-0.5 rounded-full text-[11px] font-bold">0</span>
         </h3>
       </div>
 
       <!-- Vertical Timeline of Visits -->
       <div id="archiveVisitsTimeline" class="space-y-3 max-h-96 overflow-y-auto pr-1"></div>
 
-      <div class="flex justify-end pt-2 border-t">
-        <button type="button" onclick="closeDoctorModal()" class="px-5 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl font-bold text-xs">
+      <div class="flex justify-end pt-2 border-t border-slate-100">
+        <button type="button" onclick="closeDoctorModal()" class="px-5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs">
           إغلاق السجل
         </button>
       </div>
@@ -438,65 +543,65 @@
   </div>
 
   <!-- ==================== NEW VISIT DEDICATED POPUP WINDOW ==================== -->
-  <div id="newVisitModal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center p-3 z-50 backdrop-blur-sm transition-all duration-300">
-    <div class="bg-white rounded-3xl max-w-xl w-full p-5 max-h-[94vh] overflow-y-auto shadow-2xl border-2 border-emerald-400 transform transition-all duration-300 scale-95 opacity-0" id="newVisitModalCard">
+  <div id="newVisitModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-xs flex items-center justify-center p-3 z-50 transition-all duration-300">
+    <div class="bg-white rounded-3xl max-w-xl w-full p-5 max-h-[94vh] overflow-y-auto shadow-2xl border-2 border-rose-400 transform transition-all duration-300 scale-95 opacity-0" id="newVisitModalCard">
       
       <!-- Header -->
-      <div class="flex justify-between items-center pb-3 border-b border-emerald-100">
+      <div class="flex justify-between items-center pb-3 border-b border-rose-100">
         <div class="flex items-center gap-2.5">
-          <div class="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-xl font-bold shadow-xs">
+          <div class="w-10 h-10 rounded-2xl bg-rose-50 text-rose-800 flex items-center justify-center text-xl font-bold border border-rose-200 shadow-xs">
             🩺
           </div>
           <div>
-            <h2 class="text-base font-black text-emerald-950">فحص وزيارة جديدة</h2>
-            <p id="nvPatientTitle" class="text-xs text-emerald-800 font-bold mt-0.5"></p>
+            <h2 class="text-base font-black text-rose-950">فحص وزيارة جديدة</h2>
+            <p id="nvPatientTitle" class="text-xs text-rose-800 font-bold mt-0.5"></p>
           </div>
         </div>
-        <button type="button" onclick="closeNewVisitModal()" class="text-gray-400 hover:text-red-500 text-2xl font-bold p-1">&times;</button>
+        <button type="button" onclick="closeNewVisitModal()" class="text-gray-400 hover:text-rose-600 text-2xl font-bold p-1">&times;</button>
       </div>
 
       <form onsubmit="handleNewVisitSubmit(event)" class="space-y-3.5 pt-2 text-xs">
         <input type="hidden" id="nvPatientId">
 
-        <!-- Date & Fee Bar -->
-        <div class="bg-emerald-50/70 p-3 rounded-2xl border border-emerald-200 grid grid-cols-2 gap-2.5">
+        <!-- Date & Fee Bar (Strict Isolated Billing) -->
+        <div class="bg-rose-50/70 p-3 rounded-2xl border border-rose-200 grid grid-cols-2 gap-2.5">
           <div>
-            <label class="block font-bold text-emerald-950 mb-1">📅 تاريخ الزيارة</label>
-            <input type="date" id="nvDate" required class="w-full p-2 border rounded-xl font-bold text-xs bg-white focus:ring-2 focus:ring-emerald-500">
+            <label class="block font-bold text-rose-950 mb-1">📅 تاريخ الزيارة</label>
+            <input type="date" id="nvDate" required class="w-full p-2 border border-slate-300 rounded-xl font-bold text-xs bg-white focus:outline-none focus:ring-2 focus:ring-rose-500">
           </div>
           <div>
-            <label class="block font-bold text-emerald-950 mb-1">💰 الكشفية (ل.س)</label>
-            <input type="number" id="nvFee" placeholder="مثال: 1000" class="w-full p-2 border rounded-xl font-mono text-emerald-700 font-bold text-sm bg-white focus:ring-2 focus:ring-emerald-500">
+            <label class="block font-bold text-rose-950 mb-1">💰 الكشفية لهذه الزيارة (ل.س)</label>
+            <input type="number" id="nvFee" placeholder="مثال: 1000" class="w-full p-2 border border-slate-300 rounded-xl font-mono text-emerald-700 font-bold text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
           </div>
         </div>
 
         <div>
-          <label class="block font-semibold mb-1 text-slate-700">سبب الزيارة أو الشكوى</label>
-          <input type="text" id="nvComplaint" placeholder="متابعة دورية، إيكو، استشارة، ألم..." class="w-full p-2.5 border rounded-xl text-xs bg-slate-50 focus:bg-white font-semibold">
+          <label class="block font-semibold mb-1 text-slate-700">سبب الزيارة أو الشكوى الحالية</label>
+          <input type="text" id="nvComplaint" placeholder="متابعة دورية، إيكو، استشارة، ألم، نزف..." class="w-full p-2.5 border border-slate-300 rounded-xl text-xs bg-slate-50 focus:bg-white font-semibold">
         </div>
 
         <div class="grid grid-cols-2 gap-2.5">
           <div>
             <label class="block font-semibold mb-1 text-slate-700">الضغط الشرياني</label>
-            <input type="text" id="nvBP" placeholder="120/80" oninput="checkBPWarning(this)" class="w-full p-2.5 border rounded-xl text-xs bg-slate-50 focus:bg-white">
+            <input type="text" id="nvBP" placeholder="120/80" oninput="checkBPWarning(this)" class="w-full p-2.5 border border-slate-300 rounded-xl text-xs bg-slate-50 focus:bg-white font-mono">
             <span id="bpWarningText" class="text-[10px] text-red-600 font-bold mt-0.5 hidden block">⚠️ ضغط مرتفع</span>
           </div>
           <div>
             <label class="block font-semibold mb-1 text-slate-700">الوزن (كغ)</label>
-            <input type="text" id="nvWeight" placeholder="الوزن" class="w-full p-2.5 border rounded-xl text-xs bg-slate-50 focus:bg-white">
+            <input type="text" id="nvWeight" placeholder="الوزن" class="w-full p-2.5 border border-slate-300 rounded-xl text-xs bg-slate-50 focus:bg-white font-mono">
           </div>
         </div>
 
         <div>
           <label class="block font-semibold mb-1 text-slate-700">تقرير الإيكو والفحص السريري لزيارة اليوم</label>
-          <textarea id="nvUltrasound" rows="2" placeholder="تقرير الفحص السريري والإيكو..." class="w-full p-2.5 border rounded-xl text-sm bg-slate-50 focus:bg-white"></textarea>
+          <textarea id="nvUltrasound" rows="2" placeholder="تقرير الفحص السريري والإيكو..." class="w-full p-2.5 border border-slate-300 rounded-xl text-sm bg-slate-50 focus:bg-white"></textarea>
         </div>
 
         <!-- Photos -->
         <div class="space-y-1.5">
           <div class="flex justify-between items-center">
             <span class="font-bold text-slate-800 text-xs">📸 صور إيكو وتحاليل هذه الزيارة:</span>
-            <label class="bg-teal-700 hover:bg-teal-800 text-white px-3 py-1 rounded-xl cursor-pointer text-xs font-bold shadow-xs">
+            <label class="bg-rose-800 hover:bg-rose-900 text-white px-3 py-1 rounded-xl cursor-pointer text-xs font-bold shadow-xs active:scale-95 transition">
               📷 إضافة صورة
               <input type="file" accept="image/*" class="hidden" onchange="handlePhotoUpload(event)">
             </label>
@@ -510,29 +615,29 @@
         <div class="space-y-1.5">
           <div class="flex justify-between items-center flex-wrap gap-1">
             <span class="font-bold text-slate-800 text-xs">💊 الوصفة الطبية والعلاج (Rx):</span>
-            <button type="button" onclick="openDrugsModal()" class="text-[11px] text-teal-800 hover:text-teal-950 font-bold underline">
+            <button type="button" onclick="openDrugsModal()" class="text-[11px] text-rose-800 hover:text-rose-950 font-bold underline">
               ⚙️ صيدلية الأدوية
             </button>
           </div>
           <div id="quickDrugsContainer" class="flex gap-1.5 flex-wrap py-1"></div>
-          <textarea id="nvRx" rows="3" placeholder="العلاج والتعليمات الخاصة بهذه الزيارة..." class="w-full p-2.5 border rounded-xl text-sm bg-yellow-50/70 font-sans"></textarea>
+          <textarea id="nvRx" rows="3" placeholder="العلاج والتعليمات الخاصة بهذه الزيارة..." class="w-full p-2.5 border border-amber-200 rounded-xl text-sm bg-amber-50/50 font-sans"></textarea>
         </div>
 
         <!-- Next Appointment -->
-        <div class="bg-indigo-50/80 p-2.5 rounded-xl border border-indigo-200 flex justify-between items-center flex-wrap gap-2">
-          <label class="font-bold text-indigo-900 text-xs">📅 موعد المراجعة القادمة:</label>
+        <div class="bg-purple-50/80 p-2.5 rounded-xl border border-purple-200 flex justify-between items-center flex-wrap gap-2">
+          <label class="font-bold text-purple-950 text-xs">📅 موعد المراجعة القادمة:</label>
           <div class="flex gap-1 items-center">
-            <button type="button" onclick="setNextVisitRelative(7)" class="bg-indigo-100 hover:bg-indigo-200 text-indigo-800 text-[10px] px-2.5 py-1 rounded-lg font-bold">أسبوع</button>
-            <button type="button" onclick="setNextVisitRelative(14)" class="bg-indigo-100 hover:bg-indigo-200 text-indigo-800 text-[10px] px-2.5 py-1 rounded-lg font-bold">أسبوعين</button>
-            <button type="button" onclick="setNextVisitRelative(28)" class="bg-indigo-100 hover:bg-indigo-200 text-indigo-800 text-[10px] px-2.5 py-1 rounded-lg font-bold">شهر</button>
-            <input type="date" id="pNextVisitDate" class="p-1 border rounded-lg text-xs bg-white font-bold text-indigo-900 mr-1">
+            <button type="button" onclick="setNextVisitRelative(7)" class="bg-purple-100 hover:bg-purple-200 text-purple-900 text-[10px] px-2.5 py-1 rounded-lg font-bold">أسبوع</button>
+            <button type="button" onclick="setNextVisitRelative(14)" class="bg-purple-100 hover:bg-purple-200 text-purple-900 text-[10px] px-2.5 py-1 rounded-lg font-bold">أسبوعين</button>
+            <button type="button" onclick="setNextVisitRelative(28)" class="bg-purple-100 hover:bg-purple-200 text-purple-900 text-[10px] px-2.5 py-1 rounded-lg font-bold">شهر</button>
+            <input type="date" id="pNextVisitDate" class="p-1 border border-purple-200 rounded-lg text-xs bg-white font-bold text-purple-950 mr-1">
           </div>
         </div>
 
         <!-- Submit Button -->
-        <div class="flex justify-end gap-2 pt-2 border-t">
-          <button type="button" onclick="closeNewVisitModal()" class="px-4 py-2.5 bg-gray-200 text-gray-700 rounded-xl font-bold text-xs">إلغاء</button>
-          <button type="submit" id="btnSaveNewVisit" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-lg transition flex items-center gap-1.5 transform active:scale-95">
+        <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+          <button type="button" onclick="closeNewVisitModal()" class="px-4 py-2.5 bg-slate-100 text-slate-700 rounded-xl font-bold text-xs">إلغاء</button>
+          <button type="submit" id="btnSaveNewVisit" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-lg transition flex items-center gap-1.5 active:scale-95">
             <span>💾</span> <span>توثيق وحفظ الزيارة في السجل</span>
           </button>
         </div>
@@ -541,59 +646,59 @@
   </div>
 
   <!-- ==================== DOCTOR COMPREHENSIVE NEW PATIENT MODAL ==================== -->
-  <div id="doctorNewPatientModal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center p-3 z-50 backdrop-blur-sm transition-all duration-300">
-    <div class="bg-white rounded-3xl max-w-3xl w-full p-5 max-h-[95vh] overflow-y-auto shadow-2xl border-2 border-teal-500 space-y-4">
+  <div id="doctorNewPatientModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-xs flex items-center justify-center p-3 z-50 transition-all duration-300">
+    <div class="bg-white rounded-3xl max-w-3xl w-full p-5 max-h-[95vh] overflow-y-auto shadow-2xl border-2 border-rose-500 space-y-4">
       
       <!-- Header -->
-      <div class="flex justify-between items-center pb-3 border-b border-teal-100">
+      <div class="flex justify-between items-center pb-3 border-b border-rose-100">
         <div class="flex items-center gap-2.5">
-          <div class="w-11 h-11 rounded-2xl bg-teal-700 text-white flex items-center justify-center text-2xl font-bold shadow-md">
+          <div class="w-11 h-11 rounded-2xl bg-rose-800 text-white flex items-center justify-center text-2xl font-bold shadow-md">
             🩺
           </div>
           <div>
-            <h2 class="text-base font-black text-teal-950">فتح ملف طبي شامل ومريضة جديدة</h2>
-            <p class="text-xs text-slate-500 font-semibold">استمارة الطبيبة الكاملة (البيانات الثابتة + السوابق + فحص الزيارة الأولى)</p>
+            <h2 class="text-base font-black text-rose-950">فتح ملف طبي شامل ومريضة جديدة</h2>
+            <p class="text-xs text-slate-500 font-semibold">استمارة الطبيبة الملكية (البيانات الثابتة + GPA + فحص الزيارة الأولى)</p>
           </div>
         </div>
-        <button type="button" onclick="closeDoctorNewPatientModal()" class="text-gray-400 hover:text-red-500 text-2xl font-bold p-1">&times;</button>
+        <button type="button" onclick="closeDoctorNewPatientModal()" class="text-gray-400 hover:text-rose-600 text-2xl font-bold p-1">&times;</button>
       </div>
 
       <form id="docNewPatientForm" onsubmit="handleDoctorNewPatientSubmit(event)" class="space-y-4 text-xs">
         
         <!-- SECTION 1: MASTER DEMOGRAPHICS -->
         <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-2.5">
-          <h3 class="font-bold text-teal-900 text-xs flex items-center gap-1.5">
+          <h3 class="font-bold text-rose-950 text-xs flex items-center gap-1.5">
             <span>👤</span> <span>1. البيانات الشخصية والعامة</span>
           </h3>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
             <div>
               <label class="block font-semibold mb-1 text-slate-700">الاسم الثلاثي للمريضة *</label>
-              <input type="text" id="dnpName" required placeholder="اسم المريضة الثلاثي..." class="w-full p-2.5 border rounded-xl text-sm font-bold bg-white focus:ring-2 focus:ring-teal-500">
+              <input type="text" id="dnpName" required placeholder="اسم المريضة الثلاثي..." class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-bold bg-white focus:outline-none focus:ring-2 focus:ring-rose-500">
             </div>
             <div>
               <label class="block font-semibold mb-1 text-slate-700">اسم الزوج الثلاثي</label>
-              <input type="text" id="dnpHusband" placeholder="اسم الزوج..." class="w-full p-2.5 border rounded-xl text-sm bg-white">
+              <input type="text" id="dnpHusband" placeholder="اسم الزوج..." class="w-full p-2.5 border border-slate-300 rounded-xl text-sm bg-white">
             </div>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
             <div>
               <label class="block font-semibold mb-1 text-slate-700">الرقم الوطني (11 رقم)</label>
-              <input type="text" id="dnpNationalId" maxlength="11" placeholder="الرقم الوطني" class="w-full p-2 border rounded-xl font-mono text-xs bg-white">
+              <input type="text" id="dnpNationalId" maxlength="11" placeholder="الرقم الوطني" class="w-full p-2 border border-slate-300 rounded-xl font-mono text-xs bg-white">
             </div>
             <div>
-              <label class="block font-semibold mb-1 text-slate-700">الهاتف السوري</label>
-              <input type="tel" id="dnpPhone" maxlength="10" placeholder="09xxxxxxxx" class="w-full p-2 border rounded-xl font-mono text-xs bg-white" dir="ltr" oninput="formatSyrianPhone(this)">
+              <label class="block font-semibold mb-1 text-slate-700">الهاتف (سوري أو دولي)</label>
+              <input type="tel" id="dnpPhone" maxlength="17" placeholder="09xxxxxxxx أو +..." class="w-full p-2 border border-slate-300 rounded-xl font-mono text-xs bg-white" dir="ltr" oninput="formatSmartPhone(this)">
             </div>
             <div>
               <div class="flex justify-between items-center mb-1">
                 <label class="font-semibold text-slate-700">سنة التولد والزمرة</label>
-                <span id="dnpAgePreview" class="text-teal-700 font-bold text-[10px]"></span>
+                <span id="dnpAgePreview" class="text-rose-800 font-bold text-[10px]"></span>
               </div>
               <div class="flex gap-1">
-                <input type="number" id="dnpBirthYear" min="1930" max="2030" placeholder="1998" oninput="updateDnpAgePreview()" class="w-1/2 p-2 border rounded-xl text-xs bg-white font-mono">
-                <select id="dnpBlood" class="w-1/2 p-2 border rounded-xl text-xs font-bold bg-white">
+                <input type="number" id="dnpBirthYear" min="1930" max="2030" placeholder="1998" oninput="updateDnpAgePreview()" class="w-1/2 p-2 border border-slate-300 rounded-xl text-xs bg-white font-mono">
+                <select id="dnpBlood" class="w-1/2 p-2 border border-slate-300 rounded-xl text-xs font-bold bg-white">
                   <option value="غير محدد">الزمرة</option>
                   <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
                   <option>O+</option><option>O-</option><option>AB+</option><option>AB-</option>
@@ -604,12 +709,12 @@
 
           <div>
             <label class="block font-semibold mb-1 text-slate-700">عنوان السكن / المنطقة</label>
-            <input type="text" id="dnpAddress" placeholder="المدينة، المنطقة، الحي..." class="w-full p-2 border rounded-xl text-xs bg-white">
+            <input type="text" id="dnpAddress" placeholder="المدينة، المنطقة، الحي..." class="w-full p-2 border border-slate-300 rounded-xl text-xs bg-white">
           </div>
         </div>
 
         <!-- SECTION 2: OBSTETRIC & MEDICAL HISTORY -->
-        <div class="bg-rose-50/50 p-3.5 rounded-2xl border border-rose-200 space-y-2.5">
+        <div class="bg-rose-50/60 p-3.5 rounded-2xl border border-rose-200 space-y-2.5">
           <h3 class="font-bold text-rose-950 text-xs flex items-center gap-1.5">
             <span>🤰</span> <span>2. السوابق التوليدية (GPA) والحالة الصحية العامة</span>
           </h3>
@@ -618,18 +723,18 @@
             <div class="bg-white p-2.5 rounded-xl border border-rose-200 space-y-1.5">
               <span class="block font-bold text-rose-900 text-[11px]">السوابق التوليدية (GPA):</span>
               <div class="grid grid-cols-4 gap-1.5 text-center">
-                <div><label class="block text-[10px] font-bold">G (حمول)</label><input type="number" id="dnpG" value="0" min="0" class="w-full p-1 border rounded-lg text-center font-bold bg-slate-50"></div>
-                <div><label class="block text-[10px] font-bold">VD (طبيعي)</label><input type="number" id="dnpVD" value="0" min="0" class="w-full p-1 border rounded-lg text-center font-bold bg-slate-50"></div>
-                <div><label class="block text-[10px] font-bold">CS (قيصري)</label><input type="number" id="dnpCS" value="0" min="0" class="w-full p-1 border rounded-lg text-center font-bold bg-slate-50"></div>
-                <div><label class="block text-[10px] font-bold">A (إجهاض)</label><input type="number" id="dnpA" value="0" min="0" class="w-full p-1 border rounded-lg text-center font-bold bg-slate-50"></div>
+                <div><label class="block text-[10px] font-bold text-rose-900">G (حمول)</label><input type="number" id="dnpG" value="0" min="0" class="w-full p-1 border border-rose-200 rounded-lg text-center font-bold bg-slate-50"></div>
+                <div><label class="block text-[10px] font-bold text-rose-900">VD (طبيعي)</label><input type="number" id="dnpVD" value="0" min="0" class="w-full p-1 border border-rose-200 rounded-lg text-center font-bold bg-slate-50"></div>
+                <div><label class="block text-[10px] font-bold text-rose-900">CS (قيصري)</label><input type="number" id="dnpCS" value="0" min="0" class="w-full p-1 border border-rose-200 rounded-lg text-center font-bold bg-slate-50"></div>
+                <div><label class="block text-[10px] font-bold text-rose-900">A (إجهاض)</label><input type="number" id="dnpA" value="0" min="0" class="w-full p-1 border border-rose-200 rounded-lg text-center font-bold bg-slate-50"></div>
               </div>
-              <input type="text" id="dnpObsNotes" placeholder="ملاحظات الولادات السابقة..." class="w-full p-1.5 border rounded-lg text-xs bg-slate-50">
+              <input type="text" id="dnpObsNotes" placeholder="ملاحظات الولادات السابقة..." class="w-full p-1.5 border border-rose-200 rounded-lg text-xs bg-slate-50">
             </div>
 
             <div class="space-y-2">
               <div>
                 <label class="block font-semibold mb-0.5 text-slate-700">أمراض مزمنة / سوابق جراحية</label>
-                <input type="text" id="dnpMedHistory" placeholder="ضغط، سكري، عمليات سابقة..." class="w-full p-2 border rounded-xl bg-white text-xs">
+                <input type="text" id="dnpMedHistory" placeholder="ضغط، سكري، عمليات سابقة..." class="w-full p-2 border border-slate-300 rounded-xl bg-white text-xs">
               </div>
               <div>
                 <label class="block font-semibold mb-0.5 text-red-600 font-bold">⚠️ التحسس الدوائي</label>
@@ -650,9 +755,9 @@
               </div>
             </div>
 
-            <div class="bg-teal-50 p-2.5 rounded-xl border border-teal-200">
-              <label class="block font-bold text-teal-950 mb-1">أول يوم من آخر دورة شهرية (LMP):</label>
-              <input type="date" id="dnpLMP" oninput="updateDnpPregnancyPreview()" onchange="updateDnpPregnancyPreview()" class="w-full p-1.5 border rounded-lg font-bold bg-white text-xs">
+            <div class="bg-rose-50 p-2.5 rounded-xl border border-rose-200">
+              <label class="block font-bold text-rose-950 mb-1">أول يوم من آخر دورة شهرية (LMP):</label>
+              <input type="date" id="dnpLMP" oninput="updateDnpPregnancyPreview()" onchange="updateDnpPregnancyPreview()" class="w-full p-1.5 border border-rose-200 rounded-lg font-bold bg-white text-xs">
             </div>
           </div>
 
@@ -660,63 +765,63 @@
         </div>
 
         <!-- SECTION 3: FIRST VISIT EXAMINATION DETAILS -->
-        <div class="bg-amber-50/60 p-3.5 rounded-2xl border-2 border-amber-300 space-y-3">
+        <div class="bg-amber-50/50 p-3.5 rounded-2xl border-2 border-amber-300 space-y-3">
           <div class="flex justify-between items-center border-b border-amber-200 pb-2">
             <h3 class="font-bold text-amber-950 text-xs flex items-center gap-1.5">
               <span>🩺</span> <span>3. فحص الزيارة الأولى لهذه المريضة</span>
             </h3>
             <div class="flex items-center gap-2">
               <label class="font-bold text-slate-700 text-xs">تاريخ الزيارة:</label>
-              <input type="date" id="dnpVisitDate" class="p-1.5 border rounded-xl font-bold bg-white text-xs text-amber-950">
+              <input type="date" id="dnpVisitDate" class="p-1.5 border border-amber-300 rounded-xl font-bold bg-white text-xs text-amber-950">
             </div>
           </div>
 
           <div>
             <label class="block font-semibold mb-1 text-slate-700">سبب الزيارة أو الشكوى الحالية</label>
-            <input type="text" id="dnpComplaint" placeholder="فحص أولي، متابعة حمل، إيكو..." class="w-full p-2 border rounded-xl text-xs bg-white font-semibold">
+            <input type="text" id="dnpComplaint" placeholder="فحص أولي، متابعة حمل، إيكو..." class="w-full p-2 border border-amber-200 rounded-xl text-xs bg-white font-semibold">
           </div>
 
           <div class="grid grid-cols-3 gap-2">
             <div>
               <label class="block font-semibold mb-0.5 text-slate-700">الضغط الشرياني</label>
-              <input type="text" id="dnpBP" placeholder="120/80" class="w-full p-2 border rounded-xl bg-white text-xs">
+              <input type="text" id="dnpBP" placeholder="120/80" class="w-full p-2 border border-slate-300 rounded-xl bg-white text-xs font-mono">
             </div>
             <div>
               <label class="block font-semibold mb-0.5 text-slate-700">الوزن (كغ)</label>
-              <input type="text" id="dnpWeight" placeholder="الوزن" class="w-full p-2 border rounded-xl bg-white text-xs">
+              <input type="text" id="dnpWeight" placeholder="الوزن" class="w-full p-2 border border-slate-300 rounded-xl bg-white text-xs font-mono">
             </div>
             <div>
               <label class="block font-semibold mb-0.5 text-slate-700">الكشفية (ل.س)</label>
-              <input type="number" id="dnpFee" placeholder="الكشفية" class="w-full p-2 border rounded-xl bg-white font-mono text-emerald-700 font-bold text-xs">
+              <input type="number" id="dnpFee" placeholder="الكشفية" class="w-full p-2 border border-slate-300 rounded-xl bg-white font-mono text-emerald-700 font-bold text-xs">
             </div>
           </div>
 
           <div>
             <label class="block font-semibold mb-1 text-slate-700">تقرير الإيكو والفحص السريري الأولي</label>
-            <textarea id="dnpUltrasound" rows="2" placeholder="تقرير الفحص السريري والإيكو..." class="w-full p-2 border rounded-xl text-sm bg-white"></textarea>
+            <textarea id="dnpUltrasound" rows="2" placeholder="تقرير الفحص السريري والإيكو..." class="w-full p-2 border border-slate-300 rounded-xl text-sm bg-white"></textarea>
           </div>
 
           <!-- Prescription -->
           <div class="space-y-1.5">
             <div class="flex justify-between items-center">
               <span class="font-bold text-slate-800 text-xs">💊 الوصفة الطبية الأولى (Rx):</span>
-              <button type="button" onclick="openDrugsModal()" class="text-[11px] text-teal-800 hover:text-teal-950 font-bold underline">⚙️ صيدلية الأدوية</button>
+              <button type="button" onclick="openDrugsModal()" class="text-[11px] text-rose-800 hover:text-rose-950 font-bold underline">⚙️ صيدلية الأدوية</button>
             </div>
             <div id="dnpQuickDrugsContainer" class="flex gap-1.5 flex-wrap py-1"></div>
-            <textarea id="dnpRx" rows="2" placeholder="العلاج والتعليمات الطبية للمريضة..." class="w-full p-2.5 border rounded-xl text-sm bg-yellow-50/70 font-sans"></textarea>
+            <textarea id="dnpRx" rows="2" placeholder="العلاج والتعليمات الطبية للمريضة..." class="w-full p-2.5 border border-amber-200 rounded-xl text-sm bg-amber-50/50 font-sans"></textarea>
           </div>
 
           <!-- Next Appointment -->
-          <div class="bg-indigo-50/70 p-2 rounded-xl border border-indigo-200 flex justify-between items-center flex-wrap gap-2">
-            <label class="font-bold text-indigo-900 text-xs">📅 موعد المراجعة القادمة:</label>
-            <input type="date" id="dnpNextVisitDate" class="p-1 border rounded-lg text-xs bg-white font-bold text-indigo-900">
+          <div class="bg-purple-50/70 p-2 rounded-xl border border-purple-200 flex justify-between items-center flex-wrap gap-2">
+            <label class="font-bold text-purple-950 text-xs">📅 موعد المراجعة القادمة:</label>
+            <input type="date" id="dnpNextVisitDate" class="p-1 border border-purple-200 rounded-lg text-xs bg-white font-bold text-purple-950">
           </div>
         </div>
 
         <!-- Submit Bar -->
-        <div class="flex justify-between items-center pt-2 border-t">
-          <button type="button" onclick="closeDoctorNewPatientModal()" class="px-5 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl font-bold text-xs">إلغاء</button>
-          <button type="submit" id="btnSubmitDnp" class="px-6 py-2.5 bg-teal-700 hover:bg-teal-800 text-white rounded-xl font-bold text-xs shadow-lg transition flex items-center gap-1.5 transform active:scale-95">
+        <div class="flex justify-between items-center pt-2 border-t border-slate-100">
+          <button type="button" onclick="closeDoctorNewPatientModal()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs">إلغاء</button>
+          <button type="submit" id="btnSubmitDnp" class="px-6 py-2.5 bg-rose-800 hover:bg-rose-900 text-white rounded-xl font-bold text-xs shadow-lg transition flex items-center gap-1.5 active:scale-95">
             <span>💾</span> <span>حفظ الملف الطبي والزيارة الأولى في السجل</span>
           </button>
         </div>
@@ -725,21 +830,21 @@
   </div>
 
   <!-- ==================== SURGERY & DELIVERY DOCUMENTATION MODAL ==================== -->
-  <div id="surgeryModal" class="hidden fixed inset-0 bg-black/75 flex items-center justify-center p-3 z-50 backdrop-blur-xs transition-all duration-300">
-    <div class="bg-white rounded-3xl max-w-xl w-full p-5 max-h-[95vh] overflow-y-auto shadow-2xl border-2 border-indigo-400 space-y-3.5 text-xs">
+  <div id="surgeryModal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-xs flex items-center justify-center p-3 z-50 transition-all duration-300">
+    <div class="bg-white rounded-3xl max-w-xl w-full p-5 max-h-[95vh] overflow-y-auto shadow-2xl border-2 border-rose-400 space-y-3.5 text-xs">
       
       <!-- Header -->
-      <div class="flex justify-between items-center pb-2.5 border-b border-indigo-100">
+      <div class="flex justify-between items-center pb-2.5 border-b border-rose-100">
         <div class="flex items-center gap-2.5">
-          <div class="w-10 h-10 rounded-2xl bg-indigo-100 text-indigo-700 flex items-center justify-center text-xl font-bold shadow-xs">
+          <div class="w-10 h-10 rounded-2xl bg-rose-50 text-rose-800 flex items-center justify-center text-xl font-bold border border-rose-200 shadow-xs">
             ✂️
           </div>
           <div>
-            <h2 class="text-base font-black text-indigo-950">توثيق عمل جراحي / ولادة</h2>
-            <p id="surgPatientTitle" class="text-xs text-indigo-800 font-bold mt-0.5"></p>
+            <h2 class="text-base font-black text-rose-950">توثيق عمل جراحي / ولادة</h2>
+            <p id="surgPatientTitle" class="text-xs text-rose-800 font-bold mt-0.5"></p>
           </div>
         </div>
-        <button type="button" onclick="closeSurgeryModal()" class="text-gray-400 hover:text-red-500 text-2xl font-bold p-1">&times;</button>
+        <button type="button" onclick="closeSurgeryModal()" class="text-gray-400 hover:text-rose-600 text-2xl font-bold p-1">&times;</button>
       </div>
 
       <form onsubmit="handleSaveSurgerySubmit(event)" class="space-y-3">
@@ -748,7 +853,7 @@
         <!-- Surgery Type Presets -->
         <div>
           <label class="block font-bold text-slate-800 mb-1">نوع العمل الجراحي أو الإجراء *</label>
-          <select id="surgTypeSelect" onchange="handleSurgeryTypeChange(this.value)" required class="w-full p-2.5 border rounded-xl font-bold text-xs bg-indigo-50/50 text-indigo-950 focus:ring-2 focus:ring-indigo-500">
+          <select id="surgTypeSelect" onchange="handleSurgeryTypeChange(this.value)" required class="w-full p-2.5 border border-rose-200 rounded-xl font-bold text-xs bg-rose-50/40 text-rose-950 focus:outline-none focus:ring-2 focus:ring-rose-500">
             <option value="">-- اختاري نوع العمل الجراحي --</option>
             <option value="عملية قيصرية (Cesarean Section)">👶 عملية قيصرية (Cesarean Section)</option>
             <option value="ولادة طبيعية بمستشفى (Normal Delivery)">🤱 ولادة طبيعية بمستشفى (Normal Delivery)</option>
@@ -766,24 +871,24 @@
 
         <div id="surgCustomTypeGroup" class="hidden">
           <label class="block font-semibold mb-1 text-slate-700">اكتبي اسم الإجراء الجراحي:</label>
-          <input type="text" id="surgCustomType" placeholder="اسم العملية بالتفصيل..." class="w-full p-2 border rounded-xl bg-slate-50 text-xs">
+          <input type="text" id="surgCustomType" placeholder="اسم العملية بالتفصيل..." class="w-full p-2 border border-slate-300 rounded-xl bg-slate-50 text-xs">
         </div>
 
         <div class="grid grid-cols-2 gap-2.5">
           <div>
             <label class="block font-bold text-slate-700 mb-1">📅 تاريخ إجراء العملية *</label>
-            <input type="date" id="surgDate" required class="w-full p-2 border rounded-xl font-bold bg-white text-xs">
+            <input type="date" id="surgDate" required class="w-full p-2 border border-slate-300 rounded-xl font-bold bg-white text-xs">
           </div>
           <div>
             <label class="block font-semibold text-slate-700 mb-1">المشفى / المركز الجراحي</label>
-            <input type="text" id="surgHospital" placeholder="مثال: مشفى الرازي، المشفى الوطني..." class="w-full p-2 border rounded-xl text-xs bg-white">
+            <input type="text" id="surgHospital" placeholder="مثال: مشفى الرازي، المشفى الوطني..." class="w-full p-2 border border-slate-300 rounded-xl text-xs bg-white">
           </div>
         </div>
 
         <div class="grid grid-cols-2 gap-2.5">
           <div>
             <label class="block font-semibold text-slate-700 mb-1">نوع التخدير</label>
-            <select id="surgAnesthesia" class="w-full p-2 border rounded-xl text-xs bg-white font-semibold">
+            <select id="surgAnesthesia" class="w-full p-2 border border-slate-300 rounded-xl text-xs bg-white font-semibold">
               <option value="عام (General)">تخدير عام (General)</option>
               <option value="قطني / نصفي (Spinal)">قطني / نصفي (Spinal)</option>
               <option value="فوق الجافية (Epidural)">فوق الجافية (Epidural)</option>
@@ -793,17 +898,17 @@
           </div>
           <div>
             <label class="block font-semibold text-slate-700 mb-1">الطبيبة الجراحة / المساعد</label>
-            <input type="text" id="surgSurgeon" value="د. هيام خضر" class="w-full p-2 border rounded-xl text-xs bg-white font-semibold">
+            <input type="text" id="surgSurgeon" value="د. هيام خضر" class="w-full p-2 border border-slate-300 rounded-xl text-xs bg-white font-semibold">
           </div>
         </div>
 
         <!-- Baby Details (Shown only for Deliveries/C-Sections) -->
-        <div id="surgBabyGroup" class="hidden bg-emerald-50 p-2.5 rounded-xl border border-emerald-200 space-y-2">
-          <span class="block font-bold text-emerald-900 text-xs">👶 بيانات المولود (خاص بالولادات):</span>
+        <div id="surgBabyGroup" class="hidden bg-rose-50/60 p-2.5 rounded-xl border border-rose-200 space-y-2">
+          <span class="block font-bold text-rose-950 text-xs">👶 بيانات المولود (خاص بالولادات):</span>
           <div class="grid grid-cols-3 gap-2">
             <div>
               <label class="block text-[11px] font-semibold text-slate-700 mb-0.5">جنس المولود</label>
-              <select id="surgBabyGender" class="w-full p-1.5 border rounded-lg bg-white font-bold text-xs">
+              <select id="surgBabyGender" class="w-full p-1.5 border border-rose-200 rounded-lg bg-white font-bold text-xs">
                 <option value="غير محدد">-</option>
                 <option value="ذكر 👦">ذكر 👦</option>
                 <option value="أنثى 👧">أنثى 👧</option>
@@ -812,11 +917,11 @@
             </div>
             <div>
               <label class="block text-[11px] font-semibold text-slate-700 mb-0.5">وزن المولود (كغ)</label>
-              <input type="text" id="surgBabyWeight" placeholder="مثال: 3.2" class="w-full p-1.5 border rounded-lg bg-white text-xs font-mono text-center">
+              <input type="text" id="surgBabyWeight" placeholder="مثال: 3.2" class="w-full p-1.5 border border-rose-200 rounded-lg bg-white text-xs font-mono text-center">
             </div>
             <div>
               <label class="block text-[11px] font-semibold text-slate-700 mb-0.5">حالة المولود</label>
-              <input type="text" id="surgBabyStatus" placeholder="سليم معافى..." class="w-full p-1.5 border rounded-lg bg-white text-xs text-center">
+              <input type="text" id="surgBabyStatus" placeholder="سليم معافى..." class="w-full p-1.5 border border-rose-200 rounded-lg bg-white text-xs text-center">
             </div>
           </div>
         </div>
@@ -824,19 +929,19 @@
         <!-- Surgery Detailed Report -->
         <div>
           <label class="block font-bold text-slate-700 mb-1">تقرير العملية الجراحية والموجودات السريرية</label>
-          <textarea id="surgReport" rows="3" placeholder="ملاحظات الشق الجراحي، الموجودات، تفاصيل الاستئصال، النزف، الأدوية، الاختلاطات..." class="w-full p-2 border rounded-xl text-xs bg-white"></textarea>
+          <textarea id="surgReport" rows="3" placeholder="ملاحظات الشق الجراحي، الموجودات، تفاصيل الاستئصال، النزف، الأدوية، الاختلاطات..." class="w-full p-2 border border-slate-300 rounded-xl text-xs bg-white"></textarea>
         </div>
 
         <!-- Auto GPA Notification Alert -->
-        <div id="surgAutoGpaNotice" class="bg-indigo-50 border border-indigo-200 p-2 rounded-xl text-[11px] text-indigo-900 flex items-center gap-1.5 font-bold">
+        <div id="surgAutoGpaNotice" class="bg-rose-50 border border-rose-200 p-2.5 rounded-xl text-[11px] text-rose-950 flex items-center gap-1.5 font-bold">
           <span>⚡ ربط تلقائي:</span>
           <span id="surgAutoGpaNoticeText">سيتم ربط هذا العمل الجراحي بملف المريضة وتحديث سوابقها فوراً.</span>
         </div>
 
         <!-- Submit Buttons -->
-        <div class="flex justify-end gap-2 pt-2 border-t">
-          <button type="button" onclick="closeSurgeryModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-xl font-bold text-xs">إلغاء</button>
-          <button type="submit" id="btnSaveSurgery" class="px-6 py-2 bg-indigo-700 hover:bg-indigo-800 text-white rounded-xl font-bold text-xs shadow-lg transition flex items-center gap-1.5">
+        <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+          <button type="button" onclick="closeSurgeryModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs">إلغاء</button>
+          <button type="submit" id="btnSaveSurgery" class="px-6 py-2 bg-rose-800 hover:bg-rose-900 text-white rounded-xl font-bold text-xs shadow-lg transition flex items-center gap-1.5 active:scale-95">
             <span>💾</span> <span>توثيق وحفظ العمل الجراحي</span>
           </button>
         </div>
@@ -845,30 +950,33 @@
   </div>
 
   <!-- ==================== 7. DRUG MANAGEMENT MODAL ==================== -->
-  <div id="drugsModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center p-3 z-50">
-    <div class="bg-white rounded-2xl max-w-lg w-full p-5 shadow-2xl space-y-3.5 text-xs max-h-[90vh] overflow-y-auto">
-      <div class="flex justify-between items-center border-b pb-2">
-        <h2 class="text-base font-bold text-teal-800">💊 صيدلية الأدوية والشركات</h2>
-        <button type="button" onclick="closeDrugsModal()" class="text-gray-400 hover:text-red-500 text-2xl font-bold">&times;</button>
+  <div id="drugsModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 z-50">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-5 shadow-2xl space-y-3.5 text-xs max-h-[90vh] overflow-y-auto border border-rose-100">
+      <div class="flex justify-between items-center border-b border-rose-100 pb-2">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">💊</span>
+          <h2 class="text-base font-black text-rose-950">صيدلية الأدوية والشركات</h2>
+        </div>
+        <button type="button" onclick="closeDrugsModal()" class="text-gray-400 hover:text-rose-600 text-2xl font-bold p-1">&times;</button>
       </div>
 
-      <form onsubmit="handleAddNewDrug(event)" class="bg-slate-50 p-3 rounded-xl border space-y-2">
-        <h3 class="font-bold text-slate-800">➕ إضافة دواء جديد للقائمة السريعة:</h3>
+      <form onsubmit="handleAddNewDrug(event)" class="bg-rose-50/40 p-3 rounded-2xl border border-rose-200 space-y-2">
+        <h3 class="font-bold text-rose-950">➕ إضافة دواء جديد للقائمة السريعة:</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
           <div>
             <label class="block mb-0.5 text-slate-600 font-semibold">اسم الدواء والعيار *</label>
-            <input type="text" id="newDrugName" required placeholder="مثال: لوتوفوليك أو دوفاستون" class="w-full p-2 border rounded-lg bg-white">
+            <input type="text" id="newDrugName" required placeholder="مثال: لوتوفوليك أو دوفاستون" class="w-full p-2 border border-slate-300 rounded-xl bg-white">
           </div>
           <div>
             <label class="block mb-0.5 text-slate-600 font-semibold">الشركة المصنعة (اختياري)</label>
-            <input type="text" id="newDrugCompany" placeholder="مثال: ابن حيان، آسيا، تاميكو" class="w-full p-2 border rounded-lg bg-white">
+            <input type="text" id="newDrugCompany" placeholder="مثال: ابن حيان، آسيا، تاميكو" class="w-full p-2 border border-slate-300 rounded-xl bg-white">
           </div>
         </div>
         <div>
           <label class="block mb-0.5 text-slate-600 font-semibold">طريقة الاستعمال والجرعة المعتادة</label>
-          <input type="text" id="newDrugDose" placeholder="مثال: حبة يومياً بعد الغداء" class="w-full p-2 border rounded-lg bg-white">
+          <input type="text" id="newDrugDose" placeholder="مثال: حبة يومياً بعد الغداء" class="w-full p-2 border border-slate-300 rounded-xl bg-white">
         </div>
-        <button type="submit" class="w-full py-2 bg-teal-700 hover:bg-teal-800 text-white rounded-lg font-bold shadow">
+        <button type="submit" class="w-full py-2 bg-rose-800 hover:bg-rose-900 text-white rounded-xl font-bold shadow transition active:scale-95">
           ➕ حفظ وإضافة الدواء للقائمة
         </button>
       </form>
@@ -880,131 +988,134 @@
     </div>
   </div>
 
-  <!-- ==================== 8. WHATSAPP ACTION MODAL ==================== -->
-  <div id="whatsappModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center p-3 z-50">
-    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-3.5 text-xs text-center">
-      <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-2xl">
+  <!-- ==================== 8. SMART WHATSAPP ACTION MODAL ==================== -->
+  <div id="whatsappModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 z-50">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-5 shadow-2xl space-y-3.5 text-xs text-center border border-emerald-100">
+      <div class="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-2xl flex items-center justify-center mx-auto text-2xl shadow-inner border border-emerald-200">
         💬
       </div>
       <div>
-        <h3 class="text-base font-bold text-slate-900">إرسال واتساب مباشر للمريضة</h3>
-        <p id="whatsappModalPatientName" class="text-xs text-teal-800 font-bold mt-0.5"></p>
+        <h3 class="text-base font-black text-slate-900">إرسال واتساب مباشر للمريضة</h3>
+        <p id="whatsappModalPatientName" class="text-xs text-rose-900 font-bold mt-0.5"></p>
         <p id="whatsappModalPhone" class="text-xs text-slate-500 font-mono" dir="ltr"></p>
       </div>
 
       <div class="space-y-2 text-right">
-        <button type="button" onclick="sendWhatsAppMessage('direct')" class="w-full p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl flex items-center justify-between border">
+        <button type="button" onclick="sendWhatsAppMessage('direct')" class="w-full p-3 bg-slate-50 hover:bg-slate-100 text-slate-800 font-bold rounded-2xl flex items-center justify-between border border-slate-200 transition">
           <span>💬 فتح محادثة واتساب مباشرة</span>
           <span class="text-xs">➔</span>
         </button>
 
-        <button type="button" onclick="sendWhatsAppMessage('rx')" class="w-full p-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 font-bold rounded-xl flex items-center justify-between border border-emerald-200">
+        <button type="button" onclick="sendWhatsAppMessage('rx')" class="w-full p-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-950 font-bold rounded-2xl flex items-center justify-between border border-emerald-200 transition">
           <span>💊 إرسال الوصفة الطبية والتعليمات</span>
           <span class="text-xs">➔</span>
         </button>
 
-        <button type="button" onclick="sendWhatsAppMessage('reminder')" class="w-full p-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-900 font-bold rounded-xl flex items-center justify-between border border-indigo-200">
+        <button type="button" onclick="sendWhatsAppMessage('reminder')" class="w-full p-3 bg-rose-50 hover:bg-rose-100 text-rose-950 font-bold rounded-2xl flex items-center justify-between border border-rose-200 transition">
           <span>📅 إرسال تذكير بموعد المراجعة القادمة</span>
           <span class="text-xs">➔</span>
         </button>
       </div>
 
-      <button type="button" onclick="closeWhatsAppModal()" class="w-full py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold rounded-xl">إلغاء</button>
+      <button type="button" onclick="closeWhatsAppModal()" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition">إلغاء</button>
     </div>
   </div>
 
   <!-- ==================== 9. FULLSCREEN IMAGE LIGHTBOX ==================== -->
-  <div id="imageLightbox" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center p-4 z-50" onclick="closeLightbox()">
-    <div class="relative max-w-3xl max-h-[90vh]">
-      <img id="lightboxImg" src="" class="max-w-full max-h-[85vh] rounded-xl shadow-2xl object-contain">
-      <button class="absolute -top-10 left-0 text-white text-3xl font-bold">&times;</button>
+  <div id="imageLightbox" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center p-4 z-50" onclick="closeLightbox()">
+    <div class="relative max-w-4xl max-h-[90vh]">
+      <img id="lightboxImg" src="" class="max-w-full max-h-[85vh] rounded-2xl shadow-2xl object-contain border border-slate-700">
+      <button class="absolute -top-10 left-0 text-white text-3xl font-bold hover:text-rose-400">&times;</button>
     </div>
   </div>
 
-  <!-- ==================== 10. CLOUD SYNC SUCCESS MODAL ==================== -->
-  <div id="syncReportModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
+  <!-- ==================== 10. CLOUD SYNC SUCCESS REPORT MODAL ==================== -->
+  <div id="syncReportModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl space-y-4 border border-emerald-100">
-      <div class="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-2xl flex items-center justify-center mx-auto text-3xl shadow-inner">
+      <div class="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-2xl flex items-center justify-center mx-auto text-3xl shadow-inner border border-emerald-200">
         ☁️
       </div>
       <div>
         <h3 class="text-lg font-black text-slate-900">تقرير المزامنة السحابية</h3>
         <p id="syncReportDetails" class="text-xs text-slate-600 mt-2 font-medium leading-relaxed"></p>
       </div>
-      <div class="bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl text-xs text-emerald-900 font-bold">
+      <div class="bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl text-xs text-emerald-950 font-bold">
         ✅ كافة بيانات العيادة مؤمنة ومحفوظة بالسحابة
       </div>
-      <button onclick="closeSyncReportModal()" class="w-full py-2.5 bg-teal-700 hover:bg-teal-800 text-white rounded-xl font-bold text-xs shadow-md transition">
+      <button onclick="closeSyncReportModal()" class="w-full py-2.5 bg-rose-800 hover:bg-rose-900 text-white rounded-xl font-bold text-xs shadow-md transition active:scale-95">
         تم، إغلاق النافذة
       </button>
     </div>
   </div>
 
   <!-- ==================== 11. PIN SETTINGS & CLEANUP MODAL ==================== -->
-  <div id="changePinModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-3 z-40">
-    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4 text-xs max-h-[90vh] overflow-y-auto">
-      <div class="flex justify-between items-center border-b pb-2">
-        <h2 class="text-base font-bold text-teal-800">🔑 إدارة الرموز والإعدادات</h2>
-        <button type="button" onclick="closeChangePinModal()" class="text-gray-400 hover:text-red-500 text-2xl font-bold">&times;</button>
+  <div id="changePinModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 z-40">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-5 shadow-2xl space-y-4 text-xs max-h-[90vh] overflow-y-auto border border-rose-100">
+      <div class="flex justify-between items-center border-b border-rose-100 pb-2">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">🔑</span>
+          <h2 class="text-base font-black text-rose-950">إدارة الرموز والإعدادات</h2>
+        </div>
+        <button type="button" onclick="closeChangePinModal()" class="text-gray-400 hover:text-rose-600 text-2xl font-bold p-1">&times;</button>
       </div>
 
-      <form onsubmit="handleDoctorPinUpdate(event)" class="space-y-2 bg-slate-50 p-3 rounded-xl border">
-        <h3 class="font-bold text-slate-700">1. تغيير رمز الطبيبة (الحالي: <span id="currentDocPinDisplay" class="font-mono text-teal-800 font-bold"></span>)</h3>
-        <input type="password" id="newDocPin" required minlength="4" maxlength="8" placeholder="رمز الطبيبة الجديد" class="w-full p-2 border rounded-lg text-center font-bold">
-        <button type="submit" class="w-full py-1.5 bg-teal-700 hover:bg-teal-800 text-white rounded-lg font-bold">تحديث رمز الطبيبة ومزامنته</button>
+      <form onsubmit="handleDoctorPinUpdate(event)" class="space-y-2 bg-rose-50/30 p-3 rounded-2xl border border-rose-200">
+        <h3 class="font-bold text-rose-950">1. تغيير رمز الطبيبة (الحالي: <span id="currentDocPinDisplay" class="font-mono text-rose-800 font-bold"></span>)</h3>
+        <input type="password" id="newDocPin" required minlength="4" maxlength="8" placeholder="رمز الطبيبة الجديد" class="w-full p-2 border border-slate-300 rounded-xl text-center font-bold">
+        <button type="submit" class="w-full py-2 bg-rose-800 hover:bg-rose-900 text-white rounded-xl font-bold transition active:scale-95">تحديث رمز الطبيبة ومزامنته</button>
       </form>
 
-      <form onsubmit="handleSecPinUpdate(event)" class="space-y-2 bg-slate-50 p-3 rounded-xl border">
-        <h3 class="font-bold text-slate-700">2. تغيير رمز السكرتيرة (الحالي: <span id="currentSecPinDisplay" class="font-mono text-indigo-800 font-bold"></span>)</h3>
-        <input type="password" id="newSecPin" required minlength="4" maxlength="8" placeholder="رمز السكرتيرة الجديد" class="w-full p-2 border rounded-lg text-center font-bold">
-        <button type="submit" class="w-full py-1.5 bg-indigo-700 hover:bg-indigo-800 text-white rounded-lg font-bold">تحديث رمز السكرتيرة ومزامنته</button>
+      <form onsubmit="handleSecPinUpdate(event)" class="space-y-2 bg-slate-50 p-3 rounded-2xl border border-slate-200">
+        <h3 class="font-bold text-slate-800">2. تغيير رمز الاستقبال (الحالي: <span id="currentSecPinDisplay" class="font-mono text-slate-700 font-bold"></span>)</h3>
+        <input type="password" id="newSecPin" required minlength="4" maxlength="8" placeholder="رمز الاستقبال الجديد" class="w-full p-2 border border-slate-300 rounded-xl text-center font-bold">
+        <button type="submit" class="w-full py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold transition active:scale-95">تحديث رمز الاستقبال ومزامنته</button>
       </form>
 
-      <div class="bg-red-50 p-3 rounded-xl border border-red-200 space-y-1.5 text-center">
-        <h3 class="font-bold text-red-800">🧹 مسح جميع السجلات القديمة وتصفير العيادة</h3>
-        <p class="text-[10px] text-red-600">لحذف كل الأسماء والبطاقات القديمة نهائياً والبدء بسجل نظيف:</p>
-        <button type="button" onclick="purgeAllOldTestPatients()" class="w-full py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold">مسح جميع السجلات نهائياً</button>
+      <div class="bg-red-50 p-3 rounded-2xl border border-red-200 space-y-1.5 text-center">
+        <h3 class="font-bold text-red-900">🧹 مسح السجلات وتصفير قاعدة البيانات</h3>
+        <p class="text-[10px] text-red-600">لحذف كل البطاقات القديمة نهائياً والبدء بسجل نظيف:</p>
+        <button type="button" onclick="purgeAllOldTestPatients()" class="w-full py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition active:scale-95">مسح جميع السجلات نهائياً</button>
       </div>
     </div>
   </div>
 
   <!-- ==================== 12. PIN-PROTECTED DELETE MODAL ==================== -->
-  <div id="deleteModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center p-3 z-50">
-    <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl space-y-4">
-      <div class="w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto text-2xl">
+  <div id="deleteModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 z-50">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl space-y-4 border border-red-100">
+      <div class="w-14 h-14 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center mx-auto text-2xl border border-red-200">
         🗑️
       </div>
       <div>
-        <h3 class="text-base font-bold text-slate-900">تأكيد حذف ملف المريضة</h3>
+        <h3 class="text-base font-black text-slate-900">تأكيد حذف ملف المريضة</h3>
         <p id="deleteModalPatientName" class="text-xs text-red-600 font-bold mt-1"></p>
-        <p class="text-[11px] text-slate-500 mt-1">لحذف هذا الملف نهائياً ومنع عودته، أدخلي رمز أمان الطبيبة:</p>
+        <p class="text-[11px] text-slate-500 mt-1">لحذف هذا الملف نهائياً ومنع استعادته، أدخلي رمز أمان الطبيبة:</p>
       </div>
 
       <div>
         <input type="password" id="deletePinInput" maxlength="8" placeholder="••••" 
-               class="w-full text-center text-xl tracking-[0.3em] py-2.5 border-2 border-red-200 rounded-xl focus:outline-red-500 font-bold bg-slate-50">
+               class="w-full text-center text-xl tracking-[0.3em] py-2.5 border-2 border-red-200 rounded-xl focus:outline-none focus:border-red-600 font-bold bg-slate-50">
         <p id="deletePinError" class="text-xs text-red-500 font-bold mt-1.5 hidden">⚠️ رمز الأمان غير صحيح!</p>
       </div>
 
       <div class="flex gap-2 pt-2">
-        <button type="button" onclick="closeDeleteModal()" class="w-1/2 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl font-bold text-xs">إلغاء</button>
-        <button type="button" onclick="confirmDeletePatientWithPin()" class="w-1/2 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-xs shadow-lg">تأكيد الحذف النهائي</button>
+        <button type="button" onclick="closeDeleteModal()" class="w-1/2 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs">إلغاء</button>
+        <button type="button" onclick="confirmDeletePatientWithPin()" class="w-1/2 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-xs shadow-lg transition active:scale-95">تأكيد الحذف النهائي</button>
       </div>
     </div>
   </div>
 
   <!-- ==================== JAVASCRIPT ENGINE ==================== -->
   <script>
-    // --- KEYS & CONFIG ---
+    // --- 1. CONFIGURATION & PERMANENT STORAGE KEYS ---
     const DEFAULT_DOC_PIN = "1234";
     const DEFAULT_SEC_PIN = "0000";
     const DOC_PIN_KEY = "clinic_doc_pin";
     const SEC_PIN_KEY = "clinic_sec_pin";
     const CURRENT_ROLE_KEY = "clinic_user_role";
-    const PRIMARY_DB_KEY = "syria_obgyn_permanent_records_v14";
-    const DELETED_IDS_KEY = "clinic_deleted_tombstones_v14";
-    const DRUGS_KEY = "clinic_custom_drugs_v5";
-    const LAST_BACKUP_KEY = "clinic_last_weekly_backup";
+    const PRIMARY_DB_KEY = "syria_obgyn_permanent_records_v15";
+    const DELETED_IDS_KEY = "clinic_deleted_tombstones_v15";
+    const DRUGS_KEY = "clinic_custom_drugs_v6";
+    const LAST_BACKUP_KEY = "clinic_last_weekly_backup_v2";
 
     const DEFAULT_DRUGS = [
       { id: "d_1", name: "حديد + فوليك أسيد", company: "ابن حيان", dose: "حبة يومياً بعد الغداء" },
@@ -1017,7 +1128,7 @@
       { id: "d_8", name: "فيتامينات حمل (Pregnacare)", company: "مستورد", dose: "حبة يومياً" }
     ];
 
-    // --- TOMBSTONES BLACKLIST ---
+    // --- 2. TOMBSTONES DELETION LIST ---
     function getDeletedIds() {
       try {
         return new Set(JSON.parse(localStorage.getItem(DELETED_IDS_KEY) || '[]'));
@@ -1033,8 +1144,8 @@
       localStorage.setItem(DELETED_IDS_KEY, JSON.stringify([...set]));
     }
 
-    // --- INDEXEDDB ENGINE ---
-    const IDB_NAME = "SyriaClinicIDB_v14";
+    // --- 3. ROBUST INDEXEDDB CLIENT ENGINE ---
+    const IDB_NAME = "SyriaClinicIDB_v15";
     const IDB_STORE = "patients_store";
 
     function openIDB() {
@@ -1083,11 +1194,11 @@
           if (p && p.id) store.put(p);
         });
       } catch (e) {
-        console.warn("IDB save error:", e);
+        console.warn("IDB write note:", e);
       }
     }
 
-    // --- ACCURATE ARABIC NUMERAL CONVERTER ---
+    // --- 4. ARABIC NUMERALS & SMART PHONE FORMATTER ---
     function convertArabicNumerals(str) {
       if (str === null || str === undefined) return '';
       return str.toString()
@@ -1105,13 +1216,54 @@
         .replace(/[\u064B-\u065F]/g, '');
     }
 
-    // --- STRICT VISIT & SURGERY NORMALIZER ---
+    function formatSmartPhone(input) {
+      let val = convertArabicNumerals(input.value).trim();
+      if (!val) return;
+
+      if (val.startsWith('+') || val.startsWith('00')) {
+        let isPlus = val.startsWith('+');
+        let digitsOnly = val.replace(/\D/g, '');
+        input.value = (isPlus ? '+' : '') + digitsOnly.slice(0, 17);
+        return;
+      }
+
+      let digits = val.replace(/\D/g, '');
+      if (digits.length > 0) {
+        if (digits.startsWith('9')) digits = '0' + digits;
+        else if (digits.startsWith('0') && digits.length > 1 && digits[1] !== '9') digits = '09' + digits.slice(2);
+      }
+      input.value = digits.slice(0, 10);
+    }
+
+    function isValidSmartPhone(phone) {
+      if (!phone) return true;
+      const clean = convertArabicNumerals(phone).trim();
+      if (clean.startsWith('+') || clean.startsWith('00')) {
+        const digits = clean.replace(/\D/g, '');
+        return digits.length >= 8 && digits.length <= 17;
+      }
+      return /^09[3-9]\d{7}$/.test(clean);
+    }
+
+    function formatForWhatsApp(phone) {
+      if (!phone) return null;
+      let clean = convertArabicNumerals(phone).trim();
+      if (clean.startsWith('+')) clean = clean.substring(1).replace(/\D/g, '');
+      else if (clean.startsWith('00')) clean = clean.substring(2).replace(/\D/g, '');
+      else {
+        clean = clean.replace(/\D/g, '');
+        if (clean.startsWith('09')) clean = '963' + clean.slice(1);
+        else if (clean.startsWith('9')) clean = '963' + clean;
+      }
+      return clean;
+    }
+
+    // --- 5. STRICT VISIT & OBJECT NORMALIZER (FIXES FEE DISTORTION) ---
     function normalizePatientObject(p) {
       if (!p) return null;
       p.visits = Array.isArray(p.visits) ? p.visits : [];
       p.surgeries = Array.isArray(p.surgeries) ? p.surgeries : [];
-      
-      // Filter out completely empty ghost visits
+
       p.visits = p.visits.filter(v => {
         if (!v) return false;
         const hasFee = (v.fee !== undefined && v.fee !== null && v.fee !== '' && parseInt(v.fee, 10) >= 0);
@@ -1124,7 +1276,6 @@
         return hasContent || (v.date && v.complaint);
       });
 
-      // Ensure every single visit has a guaranteed unique id & integer fee
       p.visits.forEach((v, idx) => {
         if (!v.id || typeof v.id !== 'string') {
           v.id = 'v_' + (v.date ? v.date.replace(/-/g, '') : 'd') + '_' + idx + '_' + Math.random().toString(36).substr(2, 5);
@@ -1137,7 +1288,6 @@
         if (!v.timestamp) v.timestamp = Date.now();
       });
 
-      // Deduplicate visits safely
       const uniqueVisits = [];
       const seenVisitIds = new Set();
       p.visits.forEach(v => {
@@ -1148,17 +1298,17 @@
       });
       p.visits = uniqueVisits;
 
-      // Sort visits descending: Date descending, then Timestamp descending
+      // Sort visits descending: Date desc, then Timestamp desc
       p.visits.sort((a, b) => (b.date || '').localeCompare(a.date || '') || ((b.timestamp || 0) - (a.timestamp || 0)));
       return p;
     }
 
-    // --- INITIAL LOAD ---
+    // --- 6. STATE & APP STORAGE ---
     function loadInitialPatients() {
       const deletedIds = getDeletedIds();
       const raw = localStorage.getItem(PRIMARY_DB_KEY) || 
-                  localStorage.getItem("syria_obgyn_permanent_records_v13") ||
-                  localStorage.getItem("syria_obgyn_permanent_records_v12");
+                  localStorage.getItem("syria_obgyn_permanent_records_v14") ||
+                  localStorage.getItem("syria_obgyn_permanent_records_v13");
       if (raw) {
         try {
           const list = JSON.parse(raw);
@@ -1170,7 +1320,6 @@
       return [];
     }
 
-    // State Initialization
     let patients = loadInitialPatients();
     let drugs = JSON.parse(localStorage.getItem(DRUGS_KEY) || JSON.stringify(DEFAULT_DRUGS));
     let currentRole = sessionStorage.getItem(CURRENT_ROLE_KEY) || null;
@@ -1178,11 +1327,11 @@
     let currentAttachedPhotos = [];
     let patientToDeleteId = null;
     let whatsAppTargetPatient = null;
-    let currentActivePatientInModal = null;
+    let activeArchivePatient = null;
     let db = null;
 
-    // Cross-tab sync
-    const syncChannel = ('BroadcastChannel' in window) ? new BroadcastChannel('clinic_sync_bus') : null;
+    // Cross-tab broadcast synchronization
+    const syncChannel = ('BroadcastChannel' in window) ? new BroadcastChannel('clinic_sync_bus_v15') : null;
     if (syncChannel) {
       syncChannel.onmessage = async (ev) => {
         if (ev.data && ev.data.type === 'USER_ACTION_UPDATED') {
@@ -1194,11 +1343,12 @@
             patients = loadInitialPatients();
           }
           renderApp();
-          showRealtimeToast('⚡ تم تحديث القائمة فورياً');
+          showRealtimeToast('⚡ تم تحديث السجلات تلقائياً');
         }
       };
     }
 
+    // Dismiss dropdowns on outside click
     document.addEventListener('click', (e) => {
       const secContainer = document.getElementById('secNameFieldContainer');
       const secDropdown = document.getElementById('secSuggestionsDropdown');
@@ -1206,20 +1356,30 @@
         secDropdown.classList.add('hidden');
       }
 
-      const docContainer = document.getElementById('docNameFieldContainer');
-      const docDropdown = document.getElementById('docSuggestionsDropdown');
-      if (docContainer && docDropdown && !docContainer.contains(e.target)) {
-        docDropdown.classList.add('hidden');
+      const adminMenuContainer = document.getElementById('adminMenuContainer');
+      const adminDropdown = document.getElementById('adminDropdownMenu');
+      if (adminMenuContainer && adminDropdown && !adminMenuContainer.contains(e.target)) {
+        adminDropdown.classList.add('hidden');
       }
     });
+
+    function toggleAdminMenu() {
+      const dropdown = document.getElementById('adminDropdownMenu');
+      if (dropdown) dropdown.classList.toggle('hidden');
+    }
+
+    function closeAdminMenu() {
+      const dropdown = document.getElementById('adminDropdownMenu');
+      if (dropdown) dropdown.classList.add('hidden');
+    }
 
     function showRealtimeToast(msg) {
       const toast = document.getElementById('realtimeToast');
       const toastMsg = document.getElementById('realtimeToastMsg');
       if (toast && toastMsg) {
         toastMsg.innerText = msg;
-        toast.classList.remove('translate-y-24');
-        setTimeout(() => toast.classList.add('translate-y-24'), 3500);
+        toast.classList.remove('translate-y-28');
+        setTimeout(() => toast.classList.add('translate-y-28'), 3500);
       }
     }
 
@@ -1236,7 +1396,7 @@
       try {
         localStorage.setItem(PRIMARY_DB_KEY, JSON.stringify(patients));
       } catch (err) {
-        console.warn("LocalStorage quota warning:", err);
+        console.warn("Storage warning:", err);
       }
 
       savePatientsToIDB(patients);
@@ -1259,14 +1419,14 @@
       renderApp();
     }
 
-    // --- SAFE DEDUPLICATION & MERGE ---
+    // --- 7. DEDUPLICATION & MERGE LOGIC ---
     function getDedupeKey(p) {
       if (!p) return '';
       const natId = p.nationalId ? convertArabicNumerals(p.nationalId).trim() : '';
       if (natId && natId.length > 5) return 'nat_' + natId;
 
       const phone = p.phone ? convertArabicNumerals(p.phone).trim() : '';
-      if (phone && phone.length >= 9) return 'ph_' + phone;
+      if (phone && phone.length >= 8) return 'ph_' + phone;
 
       const name = normalizeArabic(p.name);
       const husband = normalizeArabic(p.husband);
@@ -1361,7 +1521,7 @@
       }
     }
 
-    // --- CLOUD SYNC FUNCTION ---
+    // --- 8. CLOUD SYNC & RECOVERY ---
     async function syncAllToCloud() {
       if (!db) {
         alert("⚠️ جاري الاتصال بالسحابة... تحققي من شبكة الإنترنت.");
@@ -1400,9 +1560,9 @@
       document.getElementById('syncStatus').innerText = '🟢 متصل ومزامن';
       
       document.getElementById('syncReportDetails').innerHTML = `
-        تم فحص <strong class="text-slate-900">${patients.length}</strong> ملف مريضة.<br>
+        تم فحص <strong class="text-rose-950">${patients.length}</strong> ملف مريضة.<br>
         تمت مزامنة <strong class="text-emerald-700">${successCount}</strong> ملف بنجاح في قاعدة البيانات السحابية.<br>
-        ${failCount > 0 ? `<span class="text-red-500 font-bold">تعذر رفع ${failCount} ملف.</span>` : `<span class="text-slate-500 text-[11px]">نسبة النجاح: 100%</span>`}
+        ${failCount > 0 ? `<span class="text-rose-600 font-bold">تعذر رفع ${failCount} ملف.</span>` : `<span class="text-slate-500 text-[11px]">نسبة النجاح: 100%</span>`}
       `;
       document.getElementById('syncReportModal').classList.remove('hidden');
     }
@@ -1510,17 +1670,13 @@
       return colors[Math.abs(hash) % colors.length];
     }
 
-    function formatForWhatsApp(phone) {
-      if (!phone) return null;
-      let clean = convertArabicNumerals(phone).replace(/\D/g, '');
-      if (clean.startsWith('09')) clean = '963' + clean.slice(1);
-      else if (clean.startsWith('9')) clean = '963' + clean;
-      return clean;
-    }
-
+    // --- 9. SMART WHATSAPP DISPATCHER ---
     function openWhatsAppModal(patientId, customRxText = null) {
       const p = patients.find(item => item.id === patientId);
-      if (!p || !p.phone) return;
+      if (!p || !p.phone) {
+        alert('⚠️ المريضة لا تملك رقم هاتف مسجل.');
+        return;
+      }
       whatsAppTargetPatient = { ...p };
       if (customRxText) {
         whatsAppTargetPatient.customRx = customRxText;
@@ -1539,17 +1695,22 @@
       if (!whatsAppTargetPatient || !whatsAppTargetPatient.phone) return;
       const p = whatsAppTargetPatient;
       const cleanNumber = formatForWhatsApp(p.phone);
-      let text = "";
 
+      if (!cleanNumber) {
+        alert('⚠️ رقم الهاتف غير صالح لإرسال رسالة واتساب.');
+        return;
+      }
+
+      let text = "";
       const rxText = p.customRx || (p.visits && p.visits[0] && p.visits[0].rx) || p.rx || 'لا توجد أدوية مدونة';
       const nextDate = (p.visits && p.visits[0] && p.visits[0].nextVisitDate) || p.nextVisitDate || 'القريب';
 
       if (type === 'rx') {
-        text = `مرحباً سيدة ${p.name}،\nإليكِ الوصفة الطبية والتعليمات من عيادة د.هيام خضر:\n\n${rxText}\n\nمع تمنياتنا لكِ بدوام الصحة والعافية.`;
+        text = `مرحباً سيدة ${p.name}،\nإليكِ الوصفة الطبية والتعليمات من عيادة د. هيام خضر:\n\n${rxText}\n\nمع تمنياتنا لكِ بدوام الصحة والعافية.`;
       } else if (type === 'reminder') {
-        text = `مرحباً سيدة ${p.name}،\nنود تذكيرك بموعد مراجعتك القادمة في عيادة الدكتورة بتاريخ: ${nextDate}.\nأهلاً وسهلاً بكِ.`;
+        text = `مرحباً سيدة ${p.name}،\nنود تذكيرك بموعد مراجعتك القادمة في عيادة د. هيام خضر بتاريخ: ${nextDate}.\nأهلاً وسهلاً بكِ.`;
       } else {
-        text = `مرحباً سيدة ${p.name}، من عيادة د.هيام خضر.`;
+        text = `مرحباً سيدة ${p.name}، من عيادة د. هيام خضر.`;
       }
 
       const url = `https://wa.me/${cleanNumber}?text=${encodeURIComponent(text)}`;
@@ -1557,7 +1718,7 @@
       closeWhatsAppModal();
     }
 
-    // --- SECRETARY LIVE SEARCH ---
+    // --- 10. SECRETARY LIVE SEARCH & SUBMISSION ---
     function handleSecretaryLiveSearch(typedText) {
       const dropdown = document.getElementById('secSuggestionsDropdown');
       const q = normalizeArabic(typedText);
@@ -1584,19 +1745,19 @@
       }
 
       dropdown.innerHTML = `
-        <div class="p-2 bg-slate-50 text-[11px] font-bold text-slate-500 border-b flex justify-between">
+        <div class="p-2 bg-rose-50/50 text-[11px] font-bold text-rose-900 border-b border-rose-100 flex justify-between">
           <span>🔍 مريضات مسجلات سابقاً في النظام:</span>
-          <span>اضغطي للاختيار والربط</span>
+          <span>اضغطي للربط المباشر</span>
         </div>
       `;
 
       matches.forEach(m => {
         const item = document.createElement('div');
-        item.className = 'p-2.5 hover:bg-teal-50 cursor-pointer text-xs transition border-b last:border-0';
+        item.className = 'p-2.5 hover:bg-rose-50 cursor-pointer text-xs transition border-b border-slate-100 last:border-0';
         item.innerHTML = `
           <div class="flex justify-between items-center font-bold text-slate-900">
             <span>${escapeHTML(m.name)} ${m.husband ? `<span class="text-slate-500 font-normal text-[11px]">(زوجها: ${escapeHTML(m.husband)})</span>` : ''}</span>
-            <span class="bg-teal-100 text-teal-800 text-[10px] px-2 py-0.5 rounded-full font-bold">ملف موجود</span>
+            <span class="bg-rose-100 text-rose-800 text-[10px] px-2 py-0.5 rounded-full font-bold">ملف موجود</span>
           </div>
           <div class="flex gap-2 text-[10px] text-slate-500 mt-1 flex-wrap font-mono">
             <span>📞 ${escapeHTML(m.phone) || 'بدون هاتف'}</span>
@@ -1645,7 +1806,7 @@
         if (found) return found;
       }
 
-      if (qPhone && qPhone.length >= 9) {
+      if (qPhone && qPhone.length >= 8) {
         const found = patients.find(p => p.phone && convertArabicNumerals(p.phone).trim() === qPhone);
         if (found) return found;
       }
@@ -1666,7 +1827,6 @@
       return null;
     }
 
-    // --- SECRETARY SUBMIT ---
     async function handleSecretarySubmit(e) {
       e.preventDefault();
       const submitBtn = document.getElementById('secSubmitBtn');
@@ -1684,8 +1844,8 @@
       const address = document.getElementById('secAddress').value.trim();
       const complaint = document.getElementById('secComplaint').value.trim();
 
-      if (phone && !isValidSyrianPhone(phone)) {
-        alert('⚠️ يرجى كتابة رقم موبايل سوري صالح مؤلف من 10 أرقام يبدأ بـ 09');
+      if (phone && !isValidSmartPhone(phone)) {
+        alert('⚠️ يرجى كتابة رقم هاتف صالح (سوري يبدأ بـ 09، أو دولي يبدأ بـ + أو 00)');
         if (submitBtn) { submitBtn.disabled = false; submitBtn.innerText = 'إعطاء دور وتسجيل'; }
         return;
       }
@@ -1728,7 +1888,7 @@
         targetPatient.status = 'waiting';
         targetPatient.queueTimestamp = Date.now();
         targetPatient.complaint = complaint || 'متابعة دورية';
-        targetPatient.fee = 0;
+        targetPatient.fee = 0; // Strict zeroing for new intake!
 
         if (husband && !targetPatient.husband) targetPatient.husband = husband;
         if (nationalId && !targetPatient.nationalId) targetPatient.nationalId = nationalId;
@@ -1738,7 +1898,7 @@
 
         notifyDataChanged();
         await syncPatientToCloud(targetPatient);
-        alert(`✅ تم استدعاء ملف المريضة بنجاح وإدراجها في دور اليوم!\nالمريضة: ${name}`);
+        alert(`✅ تم استدعاء ملف المريضة وإدراجها في دور اليوم!\nالمريضة: ${name}`);
       } else {
         const localDocId = 'pat_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
 
@@ -1790,7 +1950,7 @@
       closeSecretaryModal();
     }
 
-    // --- BACKDATE SUBMIT ---
+    // --- 11. BACKDATE ARCHIVING ENGINE ---
     function openBackdateModal() {
       document.getElementById('backdateVisitDate').value = '';
       document.getElementById('backdateName').value = '';
@@ -1892,9 +2052,7 @@
       closeBackdateModal();
     }
 
-    // --- ARCHIVE & SMOOTH ACCORDION LOGIC ---
-    let activeArchivePatient = null;
-
+    // --- 12. ARCHIVE VIEWER & STATIC PROFILE ACCORDION ---
     function toggleStaticProfileAccordion() {
       const form = document.getElementById('staticProfileForm');
       const arrow = document.getElementById('accordionArrow');
@@ -1915,7 +2073,7 @@
       activeArchivePatient = p;
 
       document.getElementById('archivePatientNameTitle').innerText = `${p.name} ${p.husband ? `(زوجها: ${p.husband})` : ''}`;
-      document.getElementById('archivePatientSubtitle').innerText = `رقم الهاتف: ${p.phone || 'بدون'} | العنوان: ${p.address || 'غير محدد'}`;
+      document.getElementById('archivePatientSubtitle').innerText = `الهاتف: ${p.phone || 'بدون'} | العنوان: ${p.address || 'غير محدد'}`;
       
       document.getElementById('btnArchiveQuickNewVisit').onclick = () => {
         closeDoctorModal();
@@ -1986,50 +2144,85 @@
       openDoctorModal(p.id);
     }
 
-    function renderArchiveVisitsTimeline(patient) {
+   function renderArchiveVisitsTimeline(patient) {
       const container = document.getElementById('archiveVisitsTimeline');
       const badge = document.getElementById('archiveVisitsCountBadge');
       container.innerHTML = '';
       const visits = patient.visits || [];
-      badge.innerText = visits.length;
+      const surgeries = patient.surgeries || [];
+      badge.innerText = visits.length + surgeries.length;
 
-      if (visits.length === 0) {
-        container.innerHTML = `<div class="p-8 text-center text-slate-400 bg-slate-50 rounded-2xl border">لا توجد زيارات سابقة موثقة بعد. يمكنكِ إضافة زيارة جديدة عبر الزر الأخضر أعلاه.</div>`;
+      if (visits.length === 0 && surgeries.length === 0) {
+        container.innerHTML = `<div class="p-8 text-center text-slate-400 bg-rose-50/20 rounded-2xl border border-rose-100 font-semibold">لا توجد زيارات أو عمليات سابقة موثقة بعد. يمكنكِ إضافة زيارة جديدة عبر الزر الأخضر أعلاه.</div>`;
         return;
       }
 
+      // 1. عرض العمليات الجراحية إن وُجدت
+      if (surgeries.length > 0) {
+        const surgHeader = document.createElement('div');
+        surgHeader.className = 'font-bold text-xs text-amber-950 flex items-center gap-1.5 pt-1';
+        surgHeader.innerHTML = `<span>✂️ العمليات الجراحية والولادات الموثقة (${surgeries.length}):</span>`;
+        container.appendChild(surgHeader);
+
+        surgeries.forEach(s => {
+          const sItem = document.createElement('div');
+          sItem.className = 'bg-amber-50/70 p-3 rounded-2xl border border-amber-200 text-xs space-y-1.5';
+          sItem.innerHTML = `
+            <div class="flex justify-between items-center border-b border-amber-200 pb-1">
+              <span class="font-bold text-amber-950 flex items-center gap-1">
+                <span>✂️ ${escapeHTML(s.type)}</span>
+                <span class="text-amber-800 text-[11px]">(${escapeHTML(s.date)})</span>
+              </span>
+              <button type="button" onclick="deleteSurgeryRecord('${patient.id}', '${s.id}')" class="text-rose-600 hover:text-rose-800 text-[11px] font-bold p-1">🗑️ حذف</button>
+            </div>
+            <div class="flex gap-3 text-[11px] text-slate-600 font-mono">
+              ${s.hospital ? `<span>المشفى: <strong>${escapeHTML(s.hospital)}</strong></span>` : ''}
+              ${s.anesthesia ? `<span>التخدير: <strong>${escapeHTML(s.anesthesia)}</strong></span>` : ''}
+            </div>
+            ${s.babyGender ? `<div class="text-emerald-900 font-bold bg-white p-1.5 rounded-lg border border-emerald-100">👶 المولود: ${escapeHTML(s.babyGender)} | الوزن: ${escapeHTML(s.babyWeight || '-')} كغ | الحالة: ${escapeHTML(s.babyStatus || 'سليم')}</div>` : ''}
+            ${s.report ? `<p class="text-slate-800 bg-white p-2 rounded-xl border border-amber-100">${escapeHTML(s.report)}</p>` : ''}
+          `;
+          container.appendChild(sItem);
+        });
+
+        const divider = document.createElement('div');
+        divider.className = 'border-t border-slate-200 my-2';
+        container.appendChild(divider);
+      }
+
+      // 2. عرض الزيارات السريرية
       visits.forEach((v, idx) => {
         const item = document.createElement('div');
-        item.className = 'bg-slate-50 hover:bg-slate-100/80 p-3.5 rounded-2xl border border-slate-200 transition space-y-2 text-xs';
+        item.className = 'bg-slate-50 hover:bg-rose-50/30 p-3.5 rounded-2xl border border-slate-200 transition space-y-2 text-xs';
         item.innerHTML = `
-          <div class="flex justify-between items-center border-b pb-2 flex-wrap gap-1">
+          <div class="flex justify-between items-center border-b border-slate-200 pb-2 flex-wrap gap-1">
             <span class="font-bold text-slate-900 flex items-center gap-1.5">
-              <span class="bg-slate-700 text-white px-2 py-0.5 rounded text-[10px]">زيارة #${visits.length - idx}</span>
+              <span class="bg-rose-900 text-white px-2 py-0.5 rounded-lg text-[10px]">زيارة #${visits.length - idx}</span>
               <span>📅 ${escapeHTML(v.date)}</span>
-              ${v.complaint ? `<span class="text-teal-900 font-semibold bg-teal-50 px-2 py-0.5 rounded-md border border-teal-200">الشكوى: ${escapeHTML(v.complaint)}</span>` : ''}
+              ${v.complaint ? `<span class="text-rose-950 font-semibold bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">الشكوى: ${escapeHTML(v.complaint)}</span>` : ''}
             </span>
             <div class="flex items-center gap-2">
               ${v.fee ? `<span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-lg border border-emerald-300 font-mono">${v.fee.toLocaleString()} ل.س</span>` : ''}
-              <button type="button" onclick="deleteVisitFromArchive('${patient.id}', '${v.id}')" class="text-red-500 hover:text-red-700 text-[11px] font-bold p-1">🗑️ حذف</button>
+              <button type="button" onclick="deleteVisitFromArchive('${patient.id}', '${v.id}')" class="text-rose-600 hover:text-rose-800 text-[11px] font-bold p-1">🗑️ حذف</button>
             </div>
           </div>
 
           <div class="grid grid-cols-2 md:grid-cols-3 gap-2 text-slate-600 font-mono text-[11px]">
             ${v.bp ? `<div>الضغط: <strong class="text-slate-900">${escapeHTML(v.bp)}</strong></div>` : ''}
             ${v.weight ? `<div>الوزن: <strong class="text-slate-900">${escapeHTML(v.weight)} كغ</strong></div>` : ''}
-            ${v.nextVisitDate ? `<div>المراجعة: <strong class="text-indigo-800">${escapeHTML(v.nextVisitDate)}</strong></div>` : ''}
+            ${v.nextVisitDate ? `<div>المراجعة: <strong class="text-purple-800">${escapeHTML(v.nextVisitDate)}</strong></div>` : ''}
           </div>
 
           ${v.ultrasound ? `
-            <div class="bg-white p-2 rounded-xl border text-slate-800">
-              <strong class="text-amber-900">تقرير الإيكو:</strong> ${escapeHTML(v.ultrasound)}
+            <div class="bg-white p-2.5 rounded-xl border border-slate-200 text-slate-800">
+              <strong class="text-rose-950">تقرير الإيكو:</strong> ${escapeHTML(v.ultrasound)}
             </div>
           ` : ''}
 
           ${v.rx ? `
-            <div class="bg-yellow-50 p-2 rounded-xl border border-yellow-200 text-slate-800">
+            <div class="bg-amber-50/60 p-2.5 rounded-xl border border-amber-200 text-slate-800">
               <div class="flex justify-between items-center mb-0.5">
-                <strong class="text-teal-950">العلاج (Rx):</strong>
+                <strong class="text-rose-950">العلاج (Rx):</strong>
                 <button type="button" onclick="openWhatsAppModal('${patient.id}', '${escapeHTML(v.rx).replace(/'/g, "\\'")}')" class="text-emerald-700 text-[10px] font-bold">📲 إرسال واتساب</button>
               </div>
               <p class="whitespace-pre-line font-sans">${escapeHTML(v.rx)}</p>
@@ -2038,7 +2231,7 @@
 
           ${v.photos && v.photos.length > 0 ? `
             <div class="flex gap-2 flex-wrap pt-1">
-              ${v.photos.map(src => `<img src="${src}" class="w-12 h-12 rounded-lg object-cover border cursor-pointer hover:opacity-80" onclick="openLightbox('${src}')">`).join('')}
+              ${v.photos.map(src => `<img src="${src}" class="w-12 h-12 rounded-xl object-cover border border-slate-300 cursor-pointer hover:opacity-80" onclick="openLightbox('${src}')">`).join('')}
             </div>
           ` : ''}
         `;
@@ -2065,7 +2258,7 @@
       showRealtimeToast('🗑️ تم حذف الزيارة بنجاح');
     }
 
-    // --- DEDICATED NEW VISIT POPUP WINDOW ---
+    // --- 13. DEDICATED NEW VISIT POPUP WINDOW ---
     function openNewVisitModal(patientId) {
       const p = patients.find(item => item.id === patientId);
       if (!p) return;
@@ -2134,7 +2327,6 @@
 
       patient.visits = Array.isArray(patient.visits) ? patient.visits : [];
       patient.visits.unshift(newVisit);
-
       patient.visits.sort((a, b) => (b.date || '').localeCompare(a.date || '') || ((b.timestamp || 0) - (a.timestamp || 0)));
 
       patient.status = 'completed';
@@ -2154,7 +2346,7 @@
       showRealtimeToast(`✅ تم توثيق الزيارة بنجاح (الكشفية: ${parsedFee.toLocaleString()} ل.س)`);
     }
 
-    // ==================== SURGERY & DELIVERIES ENGINE ====================
+    // --- 14. SURGERIES & DELIVERIES ENGINE ---
     function openSurgeryModal(patientId) {
       const p = patients.find(item => item.id === patientId);
       if (!p) return;
@@ -2202,9 +2394,9 @@
       }
 
       if (typeVal.includes('قيصرية')) {
-        gpaNoticeText.innerText = 'سيتم رفع عداد القيصريات (CS +1) والحمول (G +1) تلقائياً في السوابق التوليدية للمريضة!';
+        gpaNoticeText.innerText = 'سيتم رفع عداد القيصريات (CS +1) والحمول (G +1) تلقائياً في السوابق التوليدية!';
       } else if (typeVal.includes('تجريف') || typeVal.includes('كورتاج')) {
-        gpaNoticeText.innerText = 'سيتم رفع عداد الإجهاض (A +1) والحمول (G +1) تلقائياً في السوابق التوليدية!';
+        gpaNoticeText.innerText = 'سيتم رفع عداد الإجهاض (A +1) والحمول (G +1) تلقائياً!';
       } else if (typeVal.includes('ولادة طبيعية')) {
         gpaNoticeText.innerText = 'سيتم رفع عداد الولادة الطبيعية (VD +1) والحمول (G +1) تلقائياً!';
       } else if (typeVal.includes('استئصال رحم')) {
@@ -2272,11 +2464,10 @@
 
       if (saveBtn) { saveBtn.disabled = false; saveBtn.innerText = 'توثيق وحفظ العمل الجراحي'; }
       closeSurgeryModal();
-      showRealtimeToast(`✂️ تم توثيق (${type}) وتحديث ملف المريضة أوتوماتيكياً`);
+      showRealtimeToast(`✂️ تم توثيق (${type}) وتحديث السوابق تلقائياً`);
     }
-
-    async function deleteSurgeryRecord(patientId, surgId) {
-      if (!confirm('هل أنتِ متأكدة من حذف تقرير هذا العمل الجراحي؟')) return;
+  async function deleteSurgeryRecord(patientId, surgId) {
+      if (!confirm('هل أنتِ متأكدة من حذف تقرير هذا العمل الجراحي نهائياً من ملف المريضة؟')) return;
       const p = patients.find(item => item.id === patientId);
       if (!p || !p.surgeries) return;
 
@@ -2285,11 +2476,10 @@
       await syncPatientToCloud(p);
       showRealtimeToast('🗑️ تم حذف تقرير العملية بنجاح');
       if (activeArchivePatient && activeArchivePatient.id === patientId) {
-        openDoctorModal(patientId);
+        renderArchiveVisitsTimeline(p);
       }
     }
-
-    // --- COMPREHENSIVE DOCTOR NEW PATIENT INTAKE ENGINE ---
+    // --- 15. DOCTOR COMPREHENSIVE NEW PATIENT INTAKE ---
     function openDoctorNewPatientModal() {
       const form = document.getElementById('docNewPatientForm');
       if (form) form.reset();
@@ -2335,9 +2525,9 @@
       if (!preg || preg.isFuture) { previewEl.classList.add('hidden'); return; }
 
       previewEl.innerHTML = `
-        <div class="bg-emerald-100 border border-emerald-300 p-2.5 rounded-xl text-xs text-emerald-950 flex justify-between items-center font-bold">
-          <span>🤰 مرحلة الحمل: <strong class="text-emerald-900">${preg.monthName}</strong> (${preg.weeks})</span>
-          <span>📅 موعد الولادة (EDD): <strong>${preg.edd}</strong></span>
+        <div class="bg-rose-50 border border-rose-200 p-2.5 rounded-xl text-xs text-rose-950 flex justify-between items-center font-bold">
+          <span>🤰 مرحلة الحمل: <strong class="text-rose-900">${preg.monthName}</strong> (${preg.weeks})</span>
+          <span>📅 موعد الولادة المتوقع (EDD): <strong>${preg.edd}</strong></span>
         </div>
       `;
       previewEl.classList.remove('hidden');
@@ -2352,7 +2542,7 @@
         const btn = document.createElement('button');
         btn.type = 'button';
         const colorBadgeClass = getCompanyColorBadge(d.company);
-        btn.className = 'chip-btn bg-white hover:bg-slate-50 text-slate-800 px-2.5 py-1.5 rounded-xl text-xs font-bold border border-slate-300 flex items-center gap-1.5 shadow-sm';
+        btn.className = 'chip-btn bg-white hover:bg-rose-50 text-slate-800 px-2.5 py-1.5 rounded-xl text-xs font-bold border border-slate-300 flex items-center gap-1.5 shadow-sm';
         btn.innerHTML = `
           <span>+ ${escapeHTML(d.name)}</span>
           ${d.company ? `<span class="${colorBadgeClass} text-[9px] px-2 py-0.5 rounded-md font-bold shadow-xs">${escapeHTML(d.company)}</span>` : ''}
@@ -2459,7 +2649,7 @@
       showRealtimeToast(`🎉 تم فتح الملف الطبي للمريضة (${name}) بنجاح`);
     }
 
-    // --- ACCURATE PREGNANCY ENGINE ---
+    // --- 16. ACCURATE OB/GYN PREGNANCY MATHEMATICS ---
     function calculatePregnancy(lmpStr) {
       if (!lmpStr) return null;
       const parts = lmpStr.split('-');
@@ -2542,12 +2732,12 @@
       }
 
       previewEl.innerHTML = `
-        <div class="bg-emerald-100 border-2 border-emerald-400 p-3 rounded-xl text-xs text-emerald-950 space-y-1.5 shadow-sm">
+        <div class="bg-rose-50 border-2 border-rose-300 p-3 rounded-2xl text-xs text-rose-950 space-y-1.5 shadow-sm">
           <div class="flex justify-between items-center font-bold">
-            <span class="text-sm">🤰 مرحلة الحمل: <span class="${preg.isOverdue ? 'bg-red-700' : 'bg-emerald-700'} text-white px-2 py-0.5 rounded-lg text-xs">${preg.monthName}</span></span>
-            <span>📅 موعد الولادة المتوقع (EDD): <strong class="text-teal-900 underline">${preg.edd}</strong></span>
+            <span class="text-sm">🤰 مرحلة الحمل: <span class="${preg.isOverdue ? 'bg-red-700' : 'bg-rose-800'} text-white px-2 py-0.5 rounded-lg text-xs">${preg.monthName}</span></span>
+            <span>📅 موعد الولادة المتوقع (EDD): <strong class="text-rose-900 underline">${preg.edd}</strong></span>
           </div>
-          <div class="flex justify-between items-center text-slate-800 font-semibold border-t border-emerald-200 pt-1">
+          <div class="flex justify-between items-center text-slate-800 font-semibold border-t border-rose-200/60 pt-1">
             <span>عمر الحمل: <strong>${preg.weeks}</strong></span>
             ${preg.isOverdue ? 
               `<span class="text-red-700 font-bold bg-red-100 px-2 py-0.5 rounded-md animate-pulse">⚠️ تجاوزت موعد الولادة بـ ${Math.abs(preg.daysUntilDelivery)} يوم!</span>` : 
@@ -2560,7 +2750,7 @@
       previewEl.classList.remove('hidden');
     }
 
-    // --- MAIN RENDER ENGINE ---
+    // --- 17. MAIN RENDER ENGINE & COMPACT LAYOUTS ---
     function renderApp() {
       const selectedDate = document.getElementById('dateFilterInput').value || getTodayDateString();
       const rawSearch = document.getElementById('searchInput').value.trim();
@@ -2588,7 +2778,7 @@
 
       let displayList = [];
 
-      // Global Search
+      // Global Search Mode
       if (q && q.length > 0) {
         searchBanner.classList.remove('hidden');
         
@@ -2645,7 +2835,7 @@
         }
       }
 
-      // Calculate Daily Income based strictly on visits for the selected date
+      // Calculate Daily Income strictly by visit fee for selected date
       if (currentRole === 'doctor') {
         let totalDailyIncome = 0;
         patients.forEach(p => {
@@ -2663,11 +2853,11 @@
       }
 
       if (displayList.length === 0) {
-        list.innerHTML = `<div class="bg-white rounded-2xl p-12 text-center text-slate-400 font-semibold border">لا توجد مريضات مسجلات لعرضهن حالياً</div>`;
+        list.innerHTML = `<div class="bg-white rounded-2xl p-12 text-center text-slate-400 font-semibold border border-rose-100">لا توجد مريضات مسجلات لعرضهن حالياً</div>`;
         return;
       }
 
-      // Smart Queue Ordering on Daily view
+      // Queue Partitioning
       const isDailyView = (isSec || activeTab === 'daily') && (!q || q.length === 0);
       const waitingCount = displayList.filter(p => p.status === 'waiting').length;
       const completedCount = displayList.filter(p => p.status === 'completed').length;
@@ -2684,7 +2874,7 @@
         divider.className = 'flex items-center gap-3 my-4 py-1';
         divider.innerHTML = `
           <div class="flex-1 border-t border-slate-300"></div>
-          <span class="text-xs font-bold text-slate-500 bg-slate-200/80 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-xs">
+          <span class="text-xs font-bold text-slate-600 bg-slate-100 px-3.5 py-1 rounded-full flex items-center gap-1.5 shadow-2xs border border-slate-200">
             <span>✅</span>
             <span>المريضات اللواتي تم فحصهن اليوم (${completedCount})</span>
           </span>
@@ -2702,7 +2892,7 @@
       }
     }
 
-    // --- SPOTLIGHT WIDGET ---
+    // --- 18. SPOTLIGHT NEXT PATIENT CALL WIDGET ---
     function renderNextPatientSpotlight() {
       const container = document.getElementById('nextPatientSpotlightContainer');
       if (!container) return;
@@ -2721,12 +2911,12 @@
 
       if (!nextPatient) {
         container.innerHTML = `
-          <div class="bg-gradient-to-r from-teal-800 to-slate-800 text-white p-3 rounded-2xl shadow-sm flex justify-between items-center text-xs">
+          <div class="bg-gradient-to-r from-rose-900 to-slate-900 text-white p-3 rounded-2xl shadow-sm flex justify-between items-center text-xs border border-rose-800">
             <div class="flex items-center gap-2">
               <span class="text-base">🎉</span>
               <span class="font-bold">لا توجد مريضات بالانتظار في دور اليوم حالياً (تم فحص جميع الأدوار).</span>
             </div>
-            <button onclick="manualInstantRefresh()" class="bg-white/20 hover:bg-white/30 text-white px-2.5 py-1 rounded-lg text-[11px] font-bold">
+            <button onclick="manualInstantRefresh()" class="bg-white/10 hover:bg-white/20 text-white px-2.5 py-1 rounded-xl text-[11px] font-bold transition">
               🔄 فحص وصول جديد
             </button>
           </div>
@@ -2738,18 +2928,18 @@
       const preg = calculatePregnancy(nextPatient.lmp);
 
       container.innerHTML = `
-        <div class="spotlight-glow bg-gradient-to-r from-amber-600 via-orange-600 to-teal-700 text-white p-3.5 rounded-2xl shadow-lg border border-amber-300/40 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+        <div class="spotlight-pulse bg-gradient-to-r from-rose-700 via-rose-800 to-purple-900 text-white p-3.5 rounded-3xl shadow-lg border border-rose-400/40 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
           <div class="flex items-center gap-3">
-            <div class="w-12 h-12 rounded-2xl bg-white text-amber-950 flex items-center justify-center font-black text-2xl shadow">
+            <div class="w-12 h-12 rounded-2xl bg-white text-rose-900 flex items-center justify-center font-black text-2xl shadow">
               ${waitingTurnNum}
             </div>
             <div>
               <div class="flex items-center gap-2">
                 <h3 class="text-base font-black">${escapeHTML(nextPatient.name)}</h3>
-                ${nextPatient.husband ? `<span class="text-amber-100 text-xs font-semibold">(زوجها: ${escapeHTML(nextPatient.husband)})</span>` : ''}
+                ${nextPatient.husband ? `<span class="text-rose-100 text-xs font-semibold">(زوجها: ${escapeHTML(nextPatient.husband)})</span>` : ''}
                 ${nextPatient.isHighRisk ? `<span class="bg-red-900 text-white text-[10px] px-2 py-0.5 rounded-full font-bold animate-pulse">🚨 عالي الخطورة</span>` : ''}
               </div>
-              <p class="text-xs text-amber-50 mt-0.5 flex items-center gap-2 flex-wrap">
+              <p class="text-xs text-rose-50 mt-0.5 flex items-center gap-2 flex-wrap">
                 <span>الشكوى: <strong>${escapeHTML(nextPatient.complaint) || 'فحص ومتابعة'}</strong></span>
                 ${preg && !preg.isFuture ? `<span>| 🤰 ${escapeHTML(preg.monthName)}</span>` : ''}
                 ${nextPatient.phone ? `<span>| 📞 ${escapeHTML(nextPatient.phone)}</span>` : ''}
@@ -2758,7 +2948,7 @@
           </div>
 
           <div class="flex items-center gap-2 self-end md:self-center">
-            <button onclick="openNewVisitModal('${nextPatient.id}')" class="bg-white text-teal-900 hover:bg-teal-50 px-4 py-2.5 rounded-xl font-black text-xs shadow-md transition transform active:scale-95 flex items-center gap-1.5">
+            <button onclick="openNewVisitModal('${nextPatient.id}')" class="bg-white text-rose-900 hover:bg-rose-50 px-4 py-2.5 rounded-2xl font-black text-xs shadow-md transition transform active:scale-95 flex items-center gap-1.5">
               <span>🩺</span>
               <span>نداء وبدء فحص المريضة الآن</span>
             </button>
@@ -2767,7 +2957,7 @@
       `;
     }
 
-    // --- PATIENT CARD ELEMENT ---
+    // --- 19. MODERN 2026 PATIENT CARD ELEMENT ---
     function createPatientCardElement(p, index) {
       normalizePatientObject(p);
 
@@ -2783,28 +2973,28 @@
       
       const showQueueNumber = (activeTab === 'daily' || currentRole === 'secretary' || activeTab === 'weekly') && (q.length === 0);
 
-      card.className = `bg-white rounded-2xl p-4 shadow-sm border ${p.isHighRisk ? 'border-red-500 ring-2 ring-red-300' : (preg && (preg.isDueWithinMonth || preg.isOverdue) ? 'border-rose-400 ring-2 ring-rose-200' : (isWaiting ? 'border-amber-300 bg-amber-50/20' : 'border-slate-200'))} space-y-3`;
+      card.className = `bg-white rounded-3xl p-4 shadow-sm border ${p.isHighRisk ? 'border-red-500 ring-2 ring-red-300' : (preg && (preg.isDueWithinMonth || preg.isOverdue) ? 'border-rose-400 ring-2 ring-rose-200' : (isWaiting ? 'border-amber-300 bg-amber-50/20' : 'border-rose-100/80'))} space-y-3`;
 
       const latestVisit = visitsList.length > 0 ? visitsList[0] : null;
       const isLatestHighBP = latestVisit ? checkHighBloodPressure(latestVisit.bp) : false;
 
       card.innerHTML = `
         ${p.isHighRisk ? `
-          <div class="bg-red-600 text-white text-xs px-3 py-1.5 rounded-xl font-bold flex justify-between items-center animate-pulse">
+          <div class="bg-red-600 text-white text-xs px-3 py-1.5 rounded-2xl font-bold flex justify-between items-center animate-pulse">
             <span>🚨 شارة تنبيه: حمل عالي الخطورة (High Risk)</span>
             <span class="text-[11px] bg-red-800 px-2 py-0.5 rounded font-normal">${escapeHTML(p.highRiskReason) || 'متابعة خاصة'}</span>
           </div>
         ` : ''}
 
         <!-- Master Demographics Header -->
-        <div class="flex justify-between items-start border-b pb-2">
+        <div class="flex justify-between items-start border-b border-slate-100 pb-2.5">
           <div class="flex items-center gap-3">
             ${showQueueNumber ? `
               <div class="w-10 h-10 rounded-2xl flex items-center justify-center font-black text-lg tracking-tight shadow-sm ${isWaiting ? 'bg-gradient-to-br from-amber-500 to-amber-600 text-white shadow-amber-200 ring-2 ring-amber-300 animate-pulse' : 'bg-slate-100 text-slate-500 border border-slate-200'}">
                 ${queueNumToDisplay}
               </div>
             ` : `
-              <div class="w-10 h-10 rounded-2xl bg-teal-50 border border-teal-200 text-teal-700 flex items-center justify-center text-lg font-bold shadow-xs">
+              <div class="w-10 h-10 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 flex items-center justify-center text-lg font-bold shadow-xs">
                 👤
               </div>
             `}
@@ -2813,16 +3003,16 @@
               <div class="flex items-center gap-2">
                 <h3 class="text-base font-bold text-slate-900">${escapeHTML(p.name)}</h3>
                 ${p.husband ? `<span class="text-slate-600 font-normal text-xs">(زوجها: ${escapeHTML(p.husband)})</span>` : ''}
-                ${isDoctor && visitsList.length > 0 ? `<span class="bg-purple-100 text-purple-800 text-[10px] px-2 py-0.2 rounded-full font-bold">📜 ${visitsList.length} مراجعات موثقة</span>` : ''}
+                ${isDoctor && visitsList.length > 0 ? `<span class="bg-purple-100 text-purple-800 text-[10px] px-2 py-0.2 rounded-full font-bold">📜 ${visitsList.length} مراجعات</span>` : ''}
               </div>
               <div class="flex items-center gap-2 flex-wrap text-xs text-slate-500 mt-0.5">
                 <span>📞 ${escapeHTML(p.phone) || 'بدون هاتف'}</span>
                 ${p.phone ? `
-                  <button type="button" onclick="openWhatsAppModal('${p.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] px-2 py-0.5 rounded-lg font-bold flex items-center gap-1 shadow-sm">
+                  <button type="button" onclick="openWhatsAppModal('${p.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] px-2 py-0.5 rounded-lg font-bold flex items-center gap-1 shadow-sm transition active:scale-95">
                     💬 واتساب
                   </button>
                 ` : ''}
-                <span>| ${p.birthYear ? `🎂 تولد: ${escapeHTML(p.birthYear)} (${calculatedAge} سنة)` : (p.age ? `العمر: ${escapeHTML(p.age)} سنة` : 'العمر: -')}</span>
+                <span>| ${p.birthYear ? `🎂 مواليد: ${escapeHTML(p.birthYear)} (${calculatedAge} سنة)` : (p.age ? `العمر: ${escapeHTML(p.age)} سنة` : 'العمر: -')}</span>
                 ${p.nationalId ? `<span>| 🆔 ${escapeHTML(p.nationalId)}</span>` : ''}
                 ${p.address ? `<span>| 📍 ${escapeHTML(p.address)}</span>` : ''}
               </div>
@@ -2830,30 +3020,30 @@
           </div>
 
           <div class="text-left flex flex-col items-end gap-1">
-            <span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${isWaiting ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}">
+            <span class="text-[10px] px-2.5 py-0.5 rounded-full font-bold ${isWaiting ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-emerald-100 text-emerald-800 border border-emerald-200'}">
               ${isWaiting ? '⏳ بانتظار الفحص' : '✅ تم الفحص'}
             </span>
             <div class="flex gap-1.5 items-center">
-              ${isDoctor && p.blood ? `<span class="text-xs font-bold text-red-600">${escapeHTML(p.blood)}</span>` : ''}
+              ${isDoctor && p.blood ? `<span class="text-xs font-bold text-rose-700 font-mono">${escapeHTML(p.blood)}</span>` : ''}
             </div>
           </div>
         </div>
 
         ${preg && preg.isOverdue ? `
-          <div class="bg-red-50 border border-red-300 p-2.5 rounded-xl text-xs text-red-900 flex items-center justify-between font-bold animate-pulse">
+          <div class="bg-red-50 border border-red-300 p-2.5 rounded-2xl text-xs text-red-900 flex items-center justify-between font-bold animate-pulse">
             <span>⚠️ تنبيه: تجاوزت موعد الولادة المتوقع بـ (${Math.abs(preg.daysUntilDelivery)} يوم)!</span>
             <span class="bg-red-600 text-white px-2 py-0.5 rounded-lg text-[10px]">${preg.monthName}</span>
           </div>
         ` : (preg && preg.isDueWithinMonth ? `
-          <div class="bg-rose-50 border border-rose-300 p-2.5 rounded-xl text-xs text-rose-900 flex items-center justify-between font-bold animate-pulse">
+          <div class="bg-rose-50 border border-rose-300 p-2.5 rounded-2xl text-xs text-rose-900 flex items-center justify-between font-bold animate-pulse">
             <span>🔔 تنبيه ولادة: موعد الولادة المتوقع خلال (${preg.daysUntilDelivery} يوم)!</span>
             <span class="bg-rose-600 text-white px-2 py-0.5 rounded-lg text-[10px]">${preg.monthName}</span>
           </div>
         ` : '')}
 
         ${isDoctor ? `
-          <!-- Static Medical Profile Summary -->
-          <div class="bg-rose-50/60 p-2 rounded-xl text-xs text-rose-950 border border-rose-100 flex flex-wrap gap-x-3 gap-y-1">
+          <!-- Static GPA Strip -->
+          <div class="bg-rose-50/50 p-2 rounded-2xl text-xs text-rose-950 border border-rose-100 flex flex-wrap gap-x-3 gap-y-1">
             <span><strong>حمول (G):</strong> ${escapeHTML(p.g) || 0}</span>
             <span><strong>طبيعي (VD):</strong> ${escapeHTML(p.vd) || 0}</span>
             <span><strong>قيصري (CS):</strong> ${escapeHTML(p.cs) || 0}</span>
@@ -2863,58 +3053,69 @@
           </div>
 
           ${preg && !preg.isFuture ? `
-            <div class="bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl text-xs text-emerald-900 space-y-1">
+            <div class="bg-rose-50/70 border border-rose-200 p-2.5 rounded-2xl text-xs text-rose-950 space-y-1">
               <div class="flex justify-between items-center font-bold">
-                <span>🤰 مرحلة الحمل: <span class="bg-emerald-700 text-white px-2 py-0.5 rounded text-[11px]">${escapeHTML(preg.monthName)}</span> (${escapeHTML(preg.weeks)})</span>
+                <span>🤰 مرحلة الحمل: <span class="bg-rose-800 text-white px-2 py-0.5 rounded text-[11px]">${escapeHTML(preg.monthName)}</span> (${escapeHTML(preg.weeks)})</span>
                 <span>الولادة المتوقعة: <strong>${escapeHTML(preg.edd)}</strong></span>
               </div>
             </div>
           ` : ''}
 
-          <!-- Surgical Alert Banner on Patient Card if Surgeries Exist -->
+          <!-- Surgical History Alert Strip -->
           ${surgeriesList.length > 0 ? `
-            <div class="bg-amber-50 border border-amber-300 p-2.5 rounded-xl text-xs space-y-1.5">
+            <div class="bg-amber-50/80 border border-amber-300 p-2.5 rounded-2xl text-xs space-y-1.5">
               <span class="font-bold text-amber-950 flex items-center gap-1.5">
                 <span>✂️ العمليات والولادات الجراحية الموثقة (${surgeriesList.length}):</span>
               </span>
               <div class="flex gap-1.5 flex-wrap">
                 ${surgeriesList.map(s => `
-                  <span class="bg-amber-200 text-amber-900 font-bold px-2 py-0.5 rounded-lg text-[11px] border border-amber-300 flex items-center gap-1">
+                  <span class="bg-amber-100 text-amber-950 font-bold px-2 py-0.5 rounded-lg text-[11px] border border-amber-300 flex items-center gap-1">
                     <span>${escapeHTML(s.type)}</span>
-                    <span class="text-amber-700 font-normal">(${escapeHTML(s.date)})</span>
-                    ${s.hospital ? `<span class="text-[10px] text-amber-800 font-normal">- ${escapeHTML(s.hospital)}</span>` : ''}
+                    <span class="text-amber-800 font-normal">(${escapeHTML(s.date)})</span>
+                    ${s.hospital ? `<span class="text-[10px] text-amber-700 font-normal">- ${escapeHTML(s.hospital)}</span>` : ''}
                   </span>
                 `).join('')}
               </div>
             </div>
           ` : ''}
 
-          <!-- CARD 1: LATEST OR ACTIVE VISIT -->
+        <!-- إبراز شكوى دور اليوم النشطة دائماً إن وُجدت -->
+          ${isWaiting && p.complaint ? `
+            <div class="bg-amber-50 border-2 border-amber-300 p-2.5 rounded-2xl text-xs text-amber-950 font-bold flex items-center justify-between shadow-2xs">
+              <span class="flex items-center gap-1.5">
+                <span>📋</span>
+                <span>شكوى دور اليوم: <strong class="text-rose-950">${escapeHTML(p.complaint)}</strong></span>
+              </span>
+              <span class="text-[10px] bg-amber-200 text-amber-900 px-2 py-0.5 rounded-lg">بانتظار الفحص</span>
+            </div>
+          ` : ''}
+
+          <!-- معاينة آخر فحص موثق سابقاً -->
           ${latestVisit ? `
-            <div class="bg-amber-50/40 rounded-xl p-3 border-2 border-amber-200 space-y-2 text-xs">
-              <div class="flex justify-between items-center border-b border-amber-200 pb-1.5 flex-wrap gap-1">
-                <span class="font-bold text-amber-950 flex items-center gap-1.5">
-                  <span class="bg-amber-500 text-white px-2 py-0.5 rounded-md text-[10px]">آخر فحص موثق</span>
+            <div class="bg-rose-50/20 rounded-2xl p-3 border border-rose-200 space-y-2 text-xs">
+              <div class="flex justify-between items-center border-b border-rose-100 pb-1.5 flex-wrap gap-1">
+                <span class="font-bold text-rose-950 flex items-center gap-1.5">
+                  <span class="bg-rose-700 text-white px-2 py-0.5 rounded-md text-[10px]">آخر فحص موثق</span>
                   <span>تاريخ: ${escapeHTML(latestVisit.date)}</span>
                   ${latestVisit.complaint ? `<span class="text-slate-600 font-normal">(${escapeHTML(latestVisit.complaint)})</span>` : ''}
                 </span>
                 <div class="flex gap-2 items-center">
-                  ${latestVisit.fee ? `<span class="text-emerald-800 bg-emerald-100 font-bold px-2 py-0.5 rounded border border-emerald-300">${latestVisit.fee.toLocaleString()} ل.س</span>` : ''}
-                  ${latestVisit.bp ? `<span class="${isLatestHighBP ? 'bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-bold border border-red-300' : 'text-slate-600'}">الضغط: <strong>${escapeHTML(latestVisit.bp)}</strong></span>` : ''}
-                  ${latestVisit.weight ? `<span class="text-slate-600">الوزن: <strong>${escapeHTML(latestVisit.weight)} كغ</strong></span>` : ''}
+                  ${latestVisit.fee ? `<span class="text-emerald-800 bg-emerald-100 font-bold px-2 py-0.5 rounded border border-emerald-300 font-mono">${latestVisit.fee.toLocaleString()} ل.س</span>` : ''}
+                  ${latestVisit.bp ? `<span class="${isLatestHighBP ? 'bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-bold border border-red-300' : 'text-slate-600'} font-mono">الضغط: <strong>${escapeHTML(latestVisit.bp)}</strong></span>` : ''}
+                  ${latestVisit.weight ? `<span class="text-slate-600 font-mono">الوزن: <strong>${escapeHTML(latestVisit.weight)} كغ</strong></span>` : ''}
                 </div>
               </div>
 
               ${latestVisit.ultrasound ? `
-                <div class="bg-white p-2 rounded-lg border border-amber-100 text-slate-800">
-                  <span class="font-bold text-amber-900">تقرير الإيكو:</span> ${escapeHTML(latestVisit.ultrasound)}
+                <div class="bg-white p-2 rounded-xl border border-slate-200 text-slate-800">
+                  <span class="font-bold text-rose-950">تقرير الإيكو:</span> ${escapeHTML(latestVisit.ultrasound)}
                 </div>
               ` : ''}
 
               ${latestVisit.rx ? `
-                <div class="bg-yellow-50 p-2 rounded-lg border border-yellow-200">
+                <div class="bg-amber-50/60 p-2 rounded-xl border border-amber-200">
                   <div class="flex justify-between items-center mb-1">
-                    <span class="font-bold text-teal-900">الوصفة الطبية (Rx):</span>
+                    <span class="font-bold text-rose-950">الوصفة الطبية (Rx):</span>
                     <button type="button" onclick="openWhatsAppModal('${p.id}', '${escapeHTML(latestVisit.rx).replace(/'/g, "\\'")}')" class="text-emerald-700 hover:text-emerald-900 text-[10px] font-bold flex items-center gap-0.5">
                       <span>📲</span> <span>إرسال الوصفة</span>
                     </button>
@@ -2924,7 +3125,7 @@
               ` : ''}
 
               ${latestVisit.nextVisitDate ? `
-                <div class="bg-indigo-50 text-indigo-900 p-1.5 rounded-lg border border-indigo-100 font-bold flex justify-between items-center text-[11px]">
+                <div class="bg-purple-50 text-purple-900 p-1.5 rounded-xl border border-purple-100 font-bold flex justify-between items-center text-[11px]">
                   <span>📌 موعد المراجعة القادمة:</span>
                   <span>${escapeHTML(latestVisit.nextVisitDate)}</span>
                 </div>
@@ -2935,39 +3136,39 @@
                   <span class="text-[10px] text-slate-500 font-bold block mb-1">📸 صور إيكو هذه الزيارة:</span>
                   <div class="flex gap-2 flex-wrap">
                     ${latestVisit.photos.map(imgSrc => `
-                      <img src="${imgSrc}" class="w-12 h-12 rounded-lg object-cover border border-slate-300 cursor-pointer shadow-sm hover:opacity-80" onclick="openLightbox('${imgSrc}')">
+                      <img src="${imgSrc}" class="w-12 h-12 rounded-xl object-cover border border-slate-300 cursor-pointer shadow-sm hover:opacity-80" onclick="openLightbox('${imgSrc}')">
                     `).join('')}
                   </div>
                 </div>
               ` : ''}
             </div>
-          ` : (p.complaint ? `
-            <div class="text-xs text-slate-600 bg-slate-50 p-2.5 rounded-xl border">
-              <strong>شكوى زيارة اليوم:</strong> ${escapeHTML(p.complaint)}
+          ` : (!isWaiting && p.complaint ? `
+            <div class="text-xs text-slate-600 bg-slate-50 p-2.5 rounded-2xl border border-slate-200">
+              <strong>شكوى الزيارة:</strong> ${escapeHTML(p.complaint)}
             </div>
           ` : '')}
 
-          <!-- Action Buttons -->
-          <div class="flex justify-between items-center pt-2 border-t text-xs flex-wrap gap-2">
-            <button onclick="requestDeletePatient('${p.id}', '${escapeHTML(p.name)}')" class="text-red-500 hover:text-red-700 font-semibold flex items-center gap-1">
+          <!-- Uniform Grid Bottom Actions -->
+          <div class="flex justify-between items-center pt-2 border-t border-slate-100 text-xs flex-wrap gap-2">
+            <button onclick="requestDeletePatient('${p.id}', '${escapeHTML(p.name)}')" class="text-rose-600 hover:text-rose-800 font-semibold flex items-center gap-1">
               <span>🗑️</span> <span>حذف الملف</span>
             </button>
             <div class="flex gap-1.5 flex-wrap">
-              <button onclick="openSurgeryModal('${p.id}')" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-900 px-3 py-1.5 rounded-xl font-bold border border-indigo-200 shadow-2xs transition flex items-center gap-1">
+              <button onclick="openSurgeryModal('${p.id}')" class="bg-rose-50 hover:bg-rose-100 text-rose-900 px-3 py-1.5 rounded-xl font-bold border border-rose-200 transition flex items-center gap-1 active:scale-95">
                 <span>✂️</span> <span>توثيق جراحة / ولادة</span>
               </button>
-              <button onclick="openDoctorModal('${p.id}')" class="bg-slate-100 hover:bg-slate-200 text-slate-800 px-3 py-1.5 rounded-xl font-bold border border-slate-300 shadow-2xs transition flex items-center gap-1">
+              <button onclick="openDoctorModal('${p.id}')" class="bg-slate-100 hover:bg-slate-200 text-slate-800 px-3 py-1.5 rounded-xl font-bold border border-slate-300 transition flex items-center gap-1 active:scale-95">
                 <span>📂</span> <span>استعراض السجل</span>
               </button>
-              <button onclick="openNewVisitModal('${p.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 rounded-xl font-bold shadow-md transition flex items-center gap-1.5 transform active:scale-95">
+              <button onclick="openNewVisitModal('${p.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 rounded-xl font-bold shadow-md transition flex items-center gap-1.5 active:scale-95">
                 <span>➕</span> <span>فحص زيارة جديدة</span>
               </button>
             </div>
           </div>
         ` : `
-          <!-- Secretary View Only -->
+          <!-- Secretary View -->
           ${p.complaint ? `
-            <div class="text-xs text-slate-600 bg-slate-50 p-2 rounded-lg">
+            <div class="text-xs text-slate-600 bg-slate-50 p-2.5 rounded-xl">
               <strong>شكوى الزيارة:</strong> ${escapeHTML(p.complaint)}
             </div>
           ` : ''}
@@ -2980,7 +3181,7 @@
       return card;
     }
 
-    // --- WEEKLY GROUPED VIEW: Fixed Calculation by Visit Fee ---
+    // --- 20. WEEKLY FINANCIAL VIEW ENGINE ---
     function renderWeeklyGroupedView(container, query) {
       const now = new Date();
       const sevenDaysAgo = new Date();
@@ -3029,7 +3230,7 @@
       document.getElementById('queueStats').innerText = `📊 سجل الأسبوع: ${weekPatients.length} مريضة موزعة على ${sortedDates.length} أيام عمل (مجموع التحصيل: ${totalWeekIncome.toLocaleString()} ل.س)`;
 
       if (sortedDates.length === 0) {
-        container.innerHTML = `<div class="bg-white rounded-2xl p-12 text-center text-slate-400 font-semibold border">لا توجد سجلات خلال الأيام السبعة الماضية</div>`;
+        container.innerHTML = `<div class="bg-white rounded-2xl p-12 text-center text-slate-400 font-semibold border border-rose-100">لا توجد سجلات خلال الأيام السبعة الماضية</div>`;
         return;
       }
 
@@ -3052,9 +3253,9 @@
         const dateSection = document.createElement('div');
         dateSection.className = 'space-y-2.5 pt-2';
         dateSection.innerHTML = `
-          <div class="bg-indigo-900 text-white p-2.5 rounded-xl font-bold text-xs flex justify-between items-center shadow">
+          <div class="bg-rose-950 text-white p-2.5 rounded-2xl font-bold text-xs flex justify-between items-center shadow border border-rose-900">
             <span>📅 يوميات تاريخ: ${escapeHTML(dateStr)} (${groupList.length} مريضة)</span>
-            <span class="bg-indigo-800 text-indigo-200 px-2.5 py-0.5 rounded-lg">تحصيل اليوم: ${groupDayIncome.toLocaleString()} ل.س</span>
+            <span class="bg-rose-900 text-rose-200 px-2.5 py-0.5 rounded-xl font-mono">تحصيل اليوم: ${groupDayIncome.toLocaleString()} ل.س</span>
           </div>
           <div class="space-y-2.5 pr-1 pl-1"></div>
         `;
@@ -3068,7 +3269,7 @@
       });
     }
 
-    // --- SECURE PERMANENT DELETION ---
+    // --- 21. SECURE DELETION ENGINE ---
     function requestDeletePatient(id, name) {
       patientToDeleteId = id;
       document.getElementById('deleteModalPatientName').innerText = `المريضة: ${name}`;
@@ -3103,7 +3304,7 @@
         try {
           await db.collection('patients').doc(targetId).delete();
         } catch (e) {
-          console.warn("Cloud delete error:", e);
+          console.warn("Cloud delete note:", e);
         }
       }
 
@@ -3111,13 +3312,13 @@
     }
 
     async function purgeAllOldTestPatients() {
-      const pin = prompt('أدخلي رمز أمان الطبيبة لتأكيد مسح جميع السجلات القديمة:');
+      const pin = prompt('أدخلي رمز أمان الطبيبة لتأكيد مسح جميع السجلات:');
       if (pin !== getDocPin()) {
         alert('❌ رمز الأمان غير صحيح!');
         return;
       }
 
-      if (!confirm('⚠️ تحذير: سيتم مسح وحذف جميع المريضات المسجلات حالياً نهائياً. هل أنتِ متأكدة؟')) {
+      if (!confirm('⚠️ تحذير: سيتم مسح كافة البطاقات القديمة نهائياً. هل أنتِ متأكدة؟')) {
         return;
       }
 
@@ -3132,7 +3333,7 @@
           snap.docs.forEach((doc) => batch.delete(doc.ref));
           await batch.commit();
         } catch (e) {
-          console.warn("Cloud purge error:", e);
+          console.warn("Cloud purge note:", e);
         }
       }
 
@@ -3142,7 +3343,7 @@
       alert('✨ تم تصفير وحذف جميع السجلات القديمة بنجاح!');
     }
 
-    // --- ROCK-SOLID FIREBASE ENGINE ---
+    // --- 22. REAL-TIME FIREBASE ENGINE & PERMISSIONS ---
     const firebaseConfig = {
       apiKey: "AIzaSyDBUW3lgkFWvDygfgBD4kSBRh4wx9d4h0Q",
       authDomain: "hiam-khder.firebaseapp.com",
@@ -3164,7 +3365,7 @@
         db = firebase.firestore();
 
         db.enablePersistence({ synchronizeTabs: true }).catch((err) => {
-          console.warn("Firestore persistence note:", err.code);
+          console.warn("Persistence note:", err.code);
         });
 
         firebase.auth().onAuthStateChanged((user) => {
@@ -3281,7 +3482,7 @@
           }
         });
       } catch (e) {
-        console.warn("Cloud settings note:", e);
+        console.warn("Settings listener note:", e);
       }
     }
 
@@ -3297,7 +3498,7 @@
             updatedAt: Date.now()
           }, { merge: true });
         } catch (err) {
-          console.warn("Cloud PIN update pending:", err);
+          console.warn("Cloud PIN write note:", err);
         }
       }
     }
@@ -3319,7 +3520,7 @@
       }
     }
 
-    // --- DRUG CHIPS RENDERING ---
+    // --- 23. PHARMACY MANAGEMENT ---
     function renderDrugChips() {
       const container = document.getElementById('quickDrugsContainer');
       if (!container) return;
@@ -3330,7 +3531,7 @@
         btn.type = 'button';
         const colorBadgeClass = getCompanyColorBadge(d.company);
 
-        btn.className = 'chip-btn bg-white hover:bg-slate-50 text-slate-800 px-2.5 py-1.5 rounded-xl text-xs font-bold border border-slate-300 flex items-center gap-1.5 shadow-sm';
+        btn.className = 'chip-btn bg-white hover:bg-rose-50 text-slate-800 px-2.5 py-1.5 rounded-xl text-xs font-bold border border-slate-300 flex items-center gap-1.5 shadow-sm';
         btn.innerHTML = `
           <span>+ ${escapeHTML(d.name)}</span>
           ${d.company ? `<span class="${colorBadgeClass} text-[9px] px-2 py-0.5 rounded-md font-bold shadow-xs">${escapeHTML(d.company)}</span>` : ''}
@@ -3366,7 +3567,7 @@
       drugs.forEach((d, idx) => {
         const item = document.createElement('div');
         const colorBadgeClass = getCompanyColorBadge(d.company);
-        item.className = 'flex justify-between items-center bg-slate-50 p-2 rounded-lg border text-xs';
+        item.className = 'flex justify-between items-center bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-xs';
         item.innerHTML = `
           <div>
             <div class="flex items-center gap-1.5 font-bold text-slate-900">
@@ -3375,7 +3576,7 @@
             </div>
             <p class="text-[11px] text-slate-500 mt-0.5">${escapeHTML(d.dose) || 'بدون تعليمات جرعة'}</p>
           </div>
-          <button type="button" onclick="deleteDrug(${idx})" class="text-red-500 hover:text-red-700 font-bold p-1">&times; حذف</button>
+          <button type="button" onclick="deleteDrug(${idx})" class="text-rose-600 hover:text-rose-800 font-bold p-1">&times; حذف</button>
         `;
         table.appendChild(item);
       });
@@ -3412,7 +3613,7 @@
     }
     function closeDrugsModal() { document.getElementById('drugsModal').classList.add('hidden'); }
 
-    // --- AUTH & ROLE SWITCHING ---
+    // --- 24. AUTHENTICATION & ROLE SWITCHING ---
     function checkPin() {
       const pin = document.getElementById('pinInput').value.trim();
       const docPin = getDocPin();
@@ -3454,7 +3655,7 @@
 
       if (currentRole === 'doctor') {
         roleBadge.innerText = '👑 الطبيبة (كامل الصلاحيات والمالية)';
-        roleBadge.className = 'text-[10px] bg-teal-900 text-teal-200 px-2 py-0.5 rounded-full font-bold';
+        roleBadge.className = 'text-[10px] bg-rose-950 text-rose-200 px-2 py-0.2 rounded-full font-bold';
         docNav.classList.remove('hidden');
         secNav.classList.add('hidden');
         tabsContainer.classList.remove('hidden');
@@ -3462,7 +3663,7 @@
         financialTally.classList.remove('hidden');
       } else {
         roleBadge.innerText = '📋 الاستقبال (مريضات اليوم فقط)';
-        roleBadge.className = 'text-[10px] bg-indigo-900 text-indigo-200 px-2 py-0.5 rounded-full font-bold';
+        roleBadge.className = 'text-[10px] bg-slate-800 text-slate-200 px-2 py-0.2 rounded-full font-bold';
         docNav.classList.add('hidden');
         secNav.classList.remove('hidden');
         tabsContainer.classList.add('hidden');
@@ -3485,40 +3686,118 @@
       const dateControlGroup = document.getElementById('dateControlGroup');
 
       [tabDaily, tabWeekly, tabDueMonth, tabAll].forEach(t => {
-        t.className = 'px-3 py-2 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-slate-100 border';
+        t.className = 'px-3.5 py-2 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-rose-50 border border-slate-200 transition';
       });
 
       if (tab === 'daily') {
-        tabDaily.className = 'px-3 py-2 rounded-xl text-xs font-bold bg-teal-700 text-white shadow';
+        tabDaily.className = 'px-3.5 py-2 rounded-xl text-xs font-bold bg-rose-800 text-white shadow-sm transition';
         dateControlGroup.classList.remove('hidden');
       } else if (tab === 'weekly') {
-        tabWeekly.className = 'px-3 py-2 rounded-xl text-xs font-bold bg-indigo-700 text-white shadow';
+        tabWeekly.className = 'px-3.5 py-2 rounded-xl text-xs font-bold bg-purple-900 text-white shadow-sm transition';
         dateControlGroup.classList.add('hidden');
       } else if (tab === 'dueMonth') {
-        tabDueMonth.className = 'px-3 py-2 rounded-xl text-xs font-bold bg-rose-600 text-white shadow';
+        tabDueMonth.className = 'px-3.5 py-2 rounded-xl text-xs font-bold bg-rose-600 text-white shadow-sm transition';
         dateControlGroup.classList.add('hidden');
       } else if (tab === 'all') {
-        tabAll.className = 'px-3 py-2 rounded-xl text-xs font-bold bg-slate-800 text-white shadow';
+        tabAll.className = 'px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-900 text-white shadow-sm transition';
         dateControlGroup.classList.add('hidden');
       }
       renderApp();
     }
 
-    function formatSyrianPhone(input) {
-      let val = convertArabicNumerals(input.value).replace(/\D/g, '');
-      if (val.length > 0 && !val.startsWith('09')) {
-        if (val.startsWith('9')) val = '0' + val;
-        else if (val.startsWith('0') && val.length > 1 && val[1] !== '9') val = '09' + val.slice(2);
+    // --- 25. PIN SETTINGS MANAGEMENT ---
+    function openChangePinModal() {
+      document.getElementById('currentDocPinDisplay').innerText = getDocPin();
+      document.getElementById('currentSecPinDisplay').innerText = getSecPin();
+      document.getElementById('changePinModal').classList.remove('hidden');
+    }
+    function closeChangePinModal() { document.getElementById('changePinModal').classList.add('hidden'); }
+
+    async function handleDoctorPinUpdate(e) {
+      e.preventDefault();
+      const p = document.getElementById('newDocPin').value.trim();
+      if (p.length < 4) { alert('الرمز يجب أن يكون 4 أرقام على الأقل'); return; }
+      await savePinToCloud('doctor', p);
+      document.getElementById('currentDocPinDisplay').innerText = p;
+      document.getElementById('newDocPin').value = '';
+      alert('✅ تم تحديث رمز الطبيبة ومزامنته!');
+      closeChangePinModal();
+    }
+
+    async function handleSecPinUpdate(e) {
+      e.preventDefault();
+      const p = document.getElementById('newSecPin').value.trim();
+      if (p.length < 4) { alert('الرمز يجب أن يكون 4 أرقام على الأقل'); return; }
+      await savePinToCloud('secretary', p);
+      document.getElementById('currentSecPinDisplay').innerText = p;
+      document.getElementById('newSecPin').value = '';
+      alert('✅ تم تحديث رمز الاستقبال بنجاح!');
+      closeChangePinModal();
+    }
+
+    // --- 26. EXPORT, IMPORT & NON-INTRUSIVE BACKUP ---
+    function exportData(isWeeklyAuto = false) {
+      if (patients.length === 0 && !isWeeklyAuto) {
+        alert('لا توجد سجلات لتصديرها.');
+        return;
       }
-      input.value = val.slice(0, 10);
+      const todayStr = getTodayDateString();
+      const fileName = isWeeklyAuto ? `نسخة_أسبوعية_${todayStr}.json` : `سجل_عيادة_د_هيام_${todayStr}.json`;
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(patients, null, 2));
+      const a = document.createElement('a');
+      a.href = dataStr;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      localStorage.setItem(LAST_BACKUP_KEY, Date.now().toString());
+
+      if (!isWeeklyAuto) {
+        alert(`✅ تم تصدير النسخة الاحتياطية بنجاح: ${fileName}`);
+      }
     }
 
-    function isValidSyrianPhone(phone) {
-      if (!phone) return true;
-      const clean = convertArabicNumerals(phone);
-      return /^09[3-9]\d{7}$/.test(clean);
+    function triggerImport() { document.getElementById('importFileInput').click(); }
+
+    function handleImportFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (!Array.isArray(imported)) { alert('❌ ملف غير صالح.'); return; }
+          if (confirm(`تم العثور على ${imported.length} سجل.\n\nهل ترغبين باستبدال السجلات بالكامل (OK) أم دمجها (Cancel)؟`)) {
+            patients = imported.map(normalizePatientObject);
+          } else {
+            const existingIds = new Set(patients.map(p => p.id || p.name));
+            imported.forEach(imp => { if (!existingIds.has(imp.id || imp.name)) patients.push(normalizePatientObject(imp)); });
+          }
+          notifyDataChanged();
+          alert(`🎉 تم استيراد السجلات بنجاح! الإجمالي: ${patients.length}`);
+        } catch (err) { alert('❌ خطأ في قراءة الملف.'); }
+        event.target.value = '';
+      };
+      reader.readAsText(file);
     }
 
+    function checkWeeklyAutoBackup() {
+      const lastBackup = localStorage.getItem(LAST_BACKUP_KEY);
+      const now = Date.now();
+      const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+
+      if (!lastBackup) {
+        localStorage.setItem(LAST_BACKUP_KEY, now.toString());
+        return;
+      }
+
+      if (patients.length > 0 && (now - parseInt(lastBackup, 10)) >= SEVEN_DAYS_MS) {
+        showRealtimeToast('💡 تذكير: مضى أسبوع على آخر نسخة احتياطية. يمكنكِ الضغط على 💾 لحفظ نسخة.');
+      }
+    }
+
+    // --- 27. DATE & PHOTO ENGINE ---
     function getTodayDateString() {
       const now = new Date();
       const y = now.getFullYear();
@@ -3549,7 +3828,6 @@
       else renderApp();
     }
 
-    // --- PHOTO COMPRESSION ---
     function handlePhotoUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -3590,21 +3868,20 @@
 
     function renderPhotosPreview() {
       const container = document.getElementById('photosPreviewContainer');
-      const noPhotosText = document.getElementById('noPhotosText');
+      if (!container) return;
       container.innerHTML = '';
 
       if (currentAttachedPhotos.length === 0) {
-        container.appendChild(noPhotosText);
-        noPhotosText.classList.remove('hidden');
+        container.innerHTML = `<span class="text-slate-400 text-[11px] self-center pr-2" id="noPhotosText">لا توجد صور لهذه الزيارة</span>`;
         return;
       }
 
       currentAttachedPhotos.forEach((src, idx) => {
         const wrap = document.createElement('div');
-        wrap.className = 'relative w-14 h-14 rounded-lg overflow-hidden border border-slate-300 shadow-sm';
+        wrap.className = 'relative w-14 h-14 rounded-xl overflow-hidden border border-slate-300 shadow-sm';
         wrap.innerHTML = `
           <img src="${src}" class="w-full h-full object-cover cursor-pointer" onclick="openLightbox('${src}')">
-          <button type="button" onclick="removePhoto(${idx})" class="absolute top-0 right-0 bg-red-600 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-bl">&times;</button>
+          <button type="button" onclick="removePhoto(${idx})" class="absolute top-0 right-0 bg-rose-600 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-bl">&times;</button>
         `;
         container.appendChild(wrap);
       });
@@ -3621,95 +3898,6 @@
     }
     function closeLightbox() { document.getElementById('imageLightbox').classList.add('hidden'); }
 
-    // --- PIN MANAGEMENT ---
-    function openChangePinModal() {
-      document.getElementById('currentDocPinDisplay').innerText = getDocPin();
-      document.getElementById('currentSecPinDisplay').innerText = getSecPin();
-      document.getElementById('changePinModal').classList.remove('hidden');
-    }
-    function closeChangePinModal() { document.getElementById('changePinModal').classList.add('hidden'); }
-
-    async function handleDoctorPinUpdate(e) {
-      e.preventDefault();
-      const p = document.getElementById('newDocPin').value.trim();
-      if (p.length < 4) { alert('الرمز يجب أن يكون 4 أرقام على الأقل'); return; }
-      await savePinToCloud('doctor', p);
-      document.getElementById('currentDocPinDisplay').innerText = p;
-      document.getElementById('newDocPin').value = '';
-      alert('✅ تم تحديث رمز الطبيبة ومزامنته!');
-      closeChangePinModal();
-    }
-
-    async function handleSecPinUpdate(e) {
-      e.preventDefault();
-      const p = document.getElementById('newSecPin').value.trim();
-      if (p.length < 4) { alert('الرمز يجب أن يكون 4 أرقام على الأقل'); return; }
-      await savePinToCloud('secretary', p);
-      document.getElementById('currentSecPinDisplay').innerText = p;
-      document.getElementById('newSecPin').value = '';
-      alert('✅ تم تحديث رمز السكرتيرة بنجاح!');
-      closeChangePinModal();
-    }
-
-    // --- BACKUP EXPORT & IMPORT ---
-    function exportData(isWeeklyAuto = false) {
-      if (patients.length === 0 && !isWeeklyAuto) {
-        alert('لا توجد سجلات لتصديرها.');
-        return;
-      }
-      const todayStr = getTodayDateString();
-      const fileName = isWeeklyAuto ? `نسخة_أسبوعية_تلقائية_${todayStr}.json` : `سجل_عيادة_النسائية_${todayStr}.json`;
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(patients, null, 2));
-      const a = document.createElement('a');
-      a.href = dataStr;
-      a.download = fileName;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-
-      localStorage.setItem(LAST_BACKUP_KEY, Date.now().toString());
-
-      if (!isWeeklyAuto) {
-        alert(`✅ تم تصدير النسخة الاحتياطية بنجاح: ${fileName}`);
-      } else {
-        showRealtimeToast('💾 تم حفظ النسخة الاحتياطية الأسبوعية');
-      }
-    }
-
-    function triggerImport() { document.getElementById('importFileInput').click(); }
-
-    function handleImportFile(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = async function(e) {
-        try {
-          const imported = JSON.parse(e.target.result);
-          if (!Array.isArray(imported)) { alert('❌ ملف غير صالح.'); return; }
-          if (confirm(`تم العثور على ${imported.length} سجل.\n\nهل ترغبين باستبدال السجلات بالكامل (OK) أم دمجها (Cancel)؟`)) {
-            patients = imported.map(normalizePatientObject);
-          } else {
-            const existingIds = new Set(patients.map(p => p.id || p.name));
-            imported.forEach(imp => { if (!existingIds.has(imp.id || imp.name)) patients.push(normalizePatientObject(imp)); });
-          }
-          notifyDataChanged();
-          alert(`🎉 تم استيراد السجلات بنجاح! الإجمالي: ${patients.length}`);
-        } catch (err) { alert('❌ خطأ في قراءة الملف.'); }
-        event.target.value = '';
-      };
-      reader.readAsText(file);
-    }
-
-    function checkWeeklyAutoBackup() {
-      const lastBackup = localStorage.getItem(LAST_BACKUP_KEY);
-      const now = Date.now();
-      const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
-      if (patients.length > 0 && (!lastBackup || (now - parseInt(lastBackup, 10)) >= SEVEN_DAYS_MS)) {
-        setTimeout(() => exportData(true), 2500);
-      }
-    }
-
-    // Modal Helpers
     function openSecretaryModal() { 
       document.getElementById('secFormElement').reset();
       document.getElementById('secSelectedPatientId').value = '';
@@ -3731,7 +3919,7 @@
 
     document.getElementById('dateFilterInput').value = getTodayDateString();
 
-    // --- APPLICATION BOOTSTRAP ---
+    // --- 28. APPLICATION INITIALIZATION BOOTSTRAP ---
     (async function initApp() {
       const deletedIds = getDeletedIds();
       const idbList = await getPatientsFromIDB();
@@ -3755,9 +3943,10 @@
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW skipped', err));
+        navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW registration note:', err));
       });
     }
   </script>
 </body>
 </html>
+
