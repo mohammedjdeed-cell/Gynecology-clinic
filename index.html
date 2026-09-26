@@ -565,9 +565,25 @@
           </div>
         </div>
 
-        <div>
+     <div>
           <label class="block font-semibold mb-1 text-slate-700">سبب الزيارة أو الشكوى الحالية</label>
           <input type="text" id="nvComplaint" placeholder="متابعة دورية، إيكو، استشارة، ألم، نزف..." class="w-full p-2.5 border border-slate-300 rounded-xl text-xs bg-slate-50 focus:bg-white font-semibold">
+        </div>
+
+        <!-- LMP & Live Pregnancy Calculator inside New Visit Modal -->
+        <div class="bg-rose-50/70 p-2.5 rounded-2xl border border-rose-200 space-y-2">
+          <div class="flex justify-between items-center flex-wrap gap-2">
+            <label class="block font-bold text-rose-950 text-xs">🤰 أول يوم من آخر دورة شهرية (LMP):</label>
+            <div class="flex items-center gap-1.5 flex-1 max-w-xs">
+              <input type="date" id="nvLMP" oninput="updateNvPregnancyPreview()" onchange="updateNvPregnancyPreview()"
+                     class="w-full p-2 border border-rose-200 rounded-xl font-bold bg-white text-xs text-rose-950 focus:outline-none focus:ring-2 focus:ring-rose-500">
+              <button type="button" onclick="clearNvLMP()" title="مسح تاريخ الدورة" class="btn-touch h-8 px-2.5 bg-white hover:bg-rose-100 text-slate-500 hover:text-rose-700 rounded-lg text-xs border border-rose-200">
+                ✖
+              </button>
+            </div>
+          </div>
+          <!-- Live Preview Box -->
+          <div id="nvPregnancyPreview" class="hidden"></div>
         </div>
 
         <div class="grid grid-cols-2 gap-2.5">
@@ -2248,7 +2264,39 @@
       showRealtimeToast('🗑️ تم حذف الزيارة بنجاح');
     }
 
-    // --- 13. DEDICATED NEW VISIT POPUP WINDOW ---
+   // --- 13. DEDICATED NEW VISIT POPUP WINDOW (WITH LIVE LMP & PREGNANCY CALCULATOR) ---
+    function updateNvPregnancyPreview() {
+      const lmpVal = document.getElementById('nvLMP').value;
+      const previewEl = document.getElementById('nvPregnancyPreview');
+      if (!lmpVal) {
+        previewEl.classList.add('hidden');
+        previewEl.innerHTML = '';
+        return;
+      }
+
+      const preg = calculatePregnancy(lmpVal);
+      if (!preg) { previewEl.classList.add('hidden'); return; }
+
+      if (preg.isFuture) {
+        previewEl.innerHTML = `<div class="bg-amber-100 border border-amber-300 p-2 rounded-xl text-xs text-amber-900 font-bold">⚠️ تنبيه: التاريخ المحدد يقع في المستقبل.</div>`;
+        previewEl.classList.remove('hidden');
+        return;
+      }
+
+      previewEl.innerHTML = `
+        <div class="bg-white border border-rose-300 p-2.5 rounded-xl text-xs text-rose-950 flex justify-between items-center flex-wrap gap-1 font-bold shadow-2xs">
+          <span>🤰 مرحلة الحمل: <span class="${preg.isOverdue ? 'bg-red-700' : 'bg-rose-800'} text-white px-2 py-0.5 rounded text-[11px]">${preg.monthName}</span> (${preg.weeks})</span>
+          <span>📅 موعد الولادة (EDD): <strong class="text-rose-900 underline font-mono">${preg.edd}</strong></span>
+        </div>
+      `;
+      previewEl.classList.remove('hidden');
+    }
+
+    function clearNvLMP() {
+      document.getElementById('nvLMP').value = '';
+      updateNvPregnancyPreview();
+    }
+
     function openNewVisitModal(patientId) {
       const p = patients.find(item => item.id === patientId);
       if (!p) return;
@@ -2258,6 +2306,11 @@
       
       document.getElementById('nvDate').value = getTodayDateString();
       document.getElementById('nvComplaint').value = p.status === 'waiting' ? (p.complaint || '') : '';
+      
+      // Load and preview existing LMP if available
+      document.getElementById('nvLMP').value = p.lmp || '';
+      updateNvPregnancyPreview();
+
       document.getElementById('nvBP').value = '';
       document.getElementById('nvWeight').value = '';
       document.getElementById('nvFee').value = '';
@@ -2300,6 +2353,7 @@
       const rawFee = convertArabicNumerals(document.getElementById('nvFee').value.trim());
       const parsedFee = rawFee !== '' ? (parseInt(rawFee, 10) || 0) : 0;
       const visitDate = document.getElementById('nvDate').value || getTodayDateString();
+      const lmpVal = document.getElementById('nvLMP').value;
 
       const newVisit = {
         id: 'v_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
@@ -2311,6 +2365,7 @@
         ultrasound: document.getElementById('nvUltrasound').value.trim(),
         rx: document.getElementById('nvRx').value.trim(),
         nextVisitDate: document.getElementById('pNextVisitDate').value,
+        lmp: lmpVal,
         photos: [...currentAttachedPhotos],
         timestamp: Date.now()
       };
@@ -2319,6 +2374,8 @@
       patient.visits.unshift(newVisit);
       patient.visits.sort((a, b) => (b.date || '').localeCompare(a.date || '') || ((b.timestamp || 0) - (a.timestamp || 0)));
 
+      // Update LMP in master patient profile
+      patient.lmp = lmpVal;
       patient.status = 'completed';
       patient.visitDate = patient.visits[0].date;
       patient.fee = patient.visits[0].fee;
@@ -2333,7 +2390,7 @@
 
       if (btnSave) { btnSave.disabled = false; btnSave.innerText = 'توثيق وحفظ الزيارة في السجل'; }
       closeNewVisitModal();
-      showRealtimeToast(`✅ تم توثيق الزيارة بنجاح (الكشفية: ${parsedFee.toLocaleString()} ل.س)`);
+      showRealtimeToast(`✅ تم توثيق الزيارة وتحديث موعد آخر دورة بنجاح`);
     }
 
     // --- 14. SURGERIES & DELIVERIES ENGINE ---
