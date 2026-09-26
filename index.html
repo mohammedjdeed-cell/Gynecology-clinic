@@ -22,49 +22,40 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
-  <style>
+<style>
     :root {
-      --primary-rose: #881337;
-      --primary-rose-hover: #4c0519;
-      --bg-warm: #faf7f8;
+      --primary: #881337;
+      --primary-hover: #4c0519;
+      --surface: #ffffff;
+      --bg-app: #f8fafc;
     }
     body {
       font-family: 'Cairo', sans-serif;
-      background-color: var(--bg-warm);
+      background-color: var(--bg-app);
       -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
     }
     .font-mono {
       font-family: 'JetBrains Mono', monospace;
     }
-    .chip-btn {
+    /* Touch buttons micro-interaction */
+    .btn-touch {
+      min-height: 42px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+      user-select: none;
     }
-    .chip-btn:active {
+    .btn-touch:active {
       transform: scale(0.96);
     }
-    @keyframes pulse-gentle {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.95; transform: scale(1.008); }
-    }
-    .spotlight-pulse {
-      animation: pulse-gentle 3s infinite ease-in-out;
-    }
-    /* Custom Scrollbars */
-    ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #f1f5f9;
-      border-radius: 8px;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
-      border-radius: 8px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #94a3b8;
-    }
+    /* Clean scrollbar */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; }
   </style>
 </head>
 <body class="text-slate-800 antialiased selection:bg-rose-200 selection:text-rose-900 min-h-screen flex flex-col justify-between">
@@ -101,94 +92,92 @@
   <input type="file" id="importFileInput" accept=".json" class="hidden" onchange="handleImportFile(event)">
 
   <!-- ==================== 2. SMART MOBILE/DESKTOP HEADER ==================== -->
-  <header class="bg-rose-900 text-white p-3 shadow-md sticky top-0 z-30 border-b border-rose-800">
-    <div class="max-w-5xl mx-auto flex justify-between items-center gap-2">
+ <!-- ==================== 2. SMART MOBILE/DESKTOP HEADER ==================== -->
+  <header class="bg-rose-900 text-white shadow-md sticky top-0 z-30 border-b border-rose-950/40">
+    <div class="max-w-5xl mx-auto px-3 py-2.5 flex justify-between items-center gap-2">
       
-      <!-- Brand & Role Indicator -->
-      <div class="flex items-center gap-2.5">
-        <div class="w-9 h-9 rounded-xl bg-rose-800 flex items-center justify-center text-xl shadow-inner border border-rose-700/50">
+      <!-- Brand Identity & Role Badge -->
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-xl shrink-0 shadow-inner">
           🩺
         </div>
-        <div>
-          <h1 class="text-sm md:text-base font-black leading-tight text-rose-50">عيادة د. هيام خضر</h1>
-          <div class="flex items-center gap-1.5 mt-0.5">
-            <span id="roleBadge" class="text-[10px] bg-rose-950 text-rose-200 px-2 py-0.2 rounded-full font-bold"></span>
-          </div>
+        <div class="min-w-0">
+          <h1 class="text-sm md:text-base font-black truncate text-white leading-tight">عيادة د. هيام خضر</h1>
+          <span id="roleBadge" class="text-[10px] bg-rose-950/80 text-rose-200 border border-rose-800/80 px-2 py-0.5 rounded-md font-bold inline-block mt-0.5"></span>
         </div>
       </div>
       
-      <!-- Doctor Actions Bar (Clean 2026 App Bar) -->
-      <div id="doctorNav" class="flex gap-1.5 items-center">
-        <button onclick="openDoctorNewPatientModal()" class="bg-white text-rose-900 hover:bg-rose-50 font-black px-3 py-1.5 rounded-xl text-xs shadow transition active:scale-95 flex items-center gap-1">
-          <span>➕</span>
+      <!-- Doctor Navigation Bar (Unified Sizes & Tokens) -->
+      <div id="doctorNav" class="flex items-center gap-1.5 shrink-0">
+        <button onclick="openDoctorNewPatientModal()" class="btn-touch h-10 px-3 bg-white text-rose-900 hover:bg-rose-50 rounded-xl font-black text-xs shadow-sm border border-white/40 flex items-center gap-1.5">
+          <span class="text-sm leading-none">➕</span>
           <span class="hidden sm:inline">مريضة جديدة</span>
           <span class="sm:hidden">جديدة</span>
         </button>
 
-        <button onclick="syncAllToCloud()" title="مزامنة فورية كاملة مع السحابة" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-2.5 py-1.5 rounded-xl font-bold flex items-center gap-1 shadow transition active:scale-95">
-          <span>☁️</span>
+        <button onclick="syncAllToCloud()" title="مزامنة سحابية فورية" class="btn-touch h-10 px-3 bg-rose-800 hover:bg-rose-700 text-rose-100 rounded-xl font-bold text-xs border border-rose-700/60 shadow-xs flex items-center gap-1.5">
+          <span class="text-sm leading-none">☁️</span>
           <span class="hidden md:inline">مزامنة</span>
         </button>
 
-        <!-- Administrative Dropdown Menu -->
+        <!-- Tools Dropdown -->
         <div class="relative" id="adminMenuContainer">
-          <button onclick="toggleAdminMenu()" id="btnAdminMenu" title="قائمة الأدوات والإدارة" class="bg-rose-800 hover:bg-rose-700 text-rose-100 text-xs px-2.5 py-1.5 rounded-xl font-bold flex items-center gap-1 border border-rose-700/80 transition active:scale-95">
-            <span>⚙️</span>
+          <button onclick="toggleAdminMenu()" id="btnAdminMenu" title="قائمة الأدوات" class="btn-touch h-10 px-2.5 bg-rose-800 hover:bg-rose-700 text-rose-100 rounded-xl font-bold text-xs border border-rose-700/60 flex items-center gap-1">
+            <span class="text-sm leading-none">⚙️</span>
             <span class="hidden md:inline">الأدوات</span>
-            <span class="text-[10px]">▼</span>
+            <span class="text-[9px] opacity-70">▼</span>
           </button>
 
-          <!-- Dropdown Popup -->
-          <div id="adminDropdownMenu" class="hidden absolute left-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-rose-100 py-1.5 z-40 text-slate-800 text-xs divide-y divide-slate-100 animate-in fade-in duration-150">
+          <div id="adminDropdownMenu" class="hidden absolute left-0 mt-2 w-60 bg-white rounded-2xl shadow-2xl border border-slate-200 py-1.5 z-40 text-slate-800 text-xs divide-y divide-slate-100">
             <div class="py-1">
-              <button onclick="manualInstantRefresh(); closeAdminMenu();" class="w-full text-right px-3.5 py-2 hover:bg-rose-50 flex items-center gap-2 font-semibold">
-                <span>🔄</span> <span>تحديث السجلات فورياً</span>
+              <button onclick="manualInstantRefresh(); closeAdminMenu();" class="w-full text-right px-3.5 py-2.5 hover:bg-rose-50 flex items-center gap-2.5 font-bold text-slate-700">
+                <span class="w-6 text-center">🔄</span> <span>تحديث السجلات فورياً</span>
               </button>
-              <button onclick="openDrugsModal(); closeAdminMenu();" class="w-full text-right px-3.5 py-2 hover:bg-rose-50 flex items-center gap-2 font-semibold">
-                <span>💊</span> <span>إدارة صيدلية الأدوية</span>
+              <button onclick="openDrugsModal(); closeAdminMenu();" class="w-full text-right px-3.5 py-2.5 hover:bg-rose-50 flex items-center gap-2.5 font-bold text-slate-700">
+                <span class="w-6 text-center">💊</span> <span>إدارة صيدلية الأدوية</span>
               </button>
-              <button onclick="cleanDuplicatePatients(true); closeAdminMenu();" class="w-full text-right px-3.5 py-2 hover:bg-rose-50 flex items-center gap-2 font-semibold">
-                <span>🧹</span> <span>فحص ودمج البطاقات المكررة</span>
+              <button onclick="cleanDuplicatePatients(true); closeAdminMenu();" class="w-full text-right px-3.5 py-2.5 hover:bg-rose-50 flex items-center gap-2.5 font-bold text-slate-700">
+                <span class="w-6 text-center">🧹</span> <span>فحص ودمج البطاقات المكررة</span>
               </button>
-              <button onclick="openBackdateModal(); closeAdminMenu();" class="w-full text-right px-3.5 py-2 hover:bg-rose-50 flex items-center gap-2 font-semibold">
-                <span>📁</span> <span>أرشفة فحص بأثر رجعي</span>
+              <button onclick="openBackdateModal(); closeAdminMenu();" class="w-full text-right px-3.5 py-2.5 hover:bg-rose-50 flex items-center gap-2.5 font-bold text-slate-700">
+                <span class="w-6 text-center">📁</span> <span>أرشفة فحص بأثر رجعي</span>
               </button>
             </div>
             <div class="py-1">
-              <button onclick="exportData(false); closeAdminMenu();" class="w-full text-right px-3.5 py-2 hover:bg-rose-50 flex items-center gap-2 font-semibold text-slate-700">
-                <span>💾</span> <span>تصدير نسخة احتياطية (JSON)</span>
+              <button onclick="exportData(false); closeAdminMenu();" class="w-full text-right px-3.5 py-2.5 hover:bg-rose-50 flex items-center gap-2.5 font-bold text-slate-700">
+                <span class="w-6 text-center">💾</span> <span>تصدير نسخة احتياطية (JSON)</span>
               </button>
-              <button onclick="triggerImport(); closeAdminMenu();" class="w-full text-right px-3.5 py-2 hover:bg-rose-50 flex items-center gap-2 font-semibold text-slate-700">
-                <span>📥</span> <span>استيراد نسخة احتياطية</span>
+              <button onclick="triggerImport(); closeAdminMenu();" class="w-full text-right px-3.5 py-2.5 hover:bg-rose-50 flex items-center gap-2.5 font-bold text-slate-700">
+                <span class="w-6 text-center">📥</span> <span>استيراد نسخة احتياطية</span>
               </button>
-              <button onclick="openChangePinModal(); closeAdminMenu();" class="w-full text-right px-3.5 py-2 hover:bg-rose-50 flex items-center gap-2 font-semibold text-slate-700">
-                <span>🔑</span> <span>إدارة رموز الأمان والتصفير</span>
+              <button onclick="openChangePinModal(); closeAdminMenu();" class="w-full text-right px-3.5 py-2.5 hover:bg-rose-50 flex items-center gap-2.5 font-bold text-slate-700">
+                <span class="w-6 text-center">🔑</span> <span>إدارة رموز الأمان والتصفير</span>
               </button>
             </div>
           </div>
         </div>
 
-        <button onclick="lockApp()" title="قفل العيادة" class="bg-rose-950 hover:bg-black/40 text-xs px-2.5 py-1.5 rounded-xl font-bold transition active:scale-95">
+        <button onclick="lockApp()" title="قفل" class="btn-touch h-10 w-10 bg-rose-950/80 hover:bg-black/30 rounded-xl text-sm border border-rose-800 flex items-center justify-center">
           🔒
         </button>
       </div>
 
-      <!-- Secretary Actions Bar -->
-      <div id="secretaryNav" class="hidden flex gap-1.5 items-center">
-        <button onclick="openSecretaryModal()" class="bg-rose-50 hover:bg-white text-rose-900 font-black px-3.5 py-1.5 rounded-xl text-xs shadow transition active:scale-95 flex items-center gap-1.5">
-          <span>➕</span>
-          <span>تسجيل دور جديد</span>
+      <!-- Secretary Navigation Bar (Identical Dimensions) -->
+      <div id="secretaryNav" class="hidden items-center gap-1.5 shrink-0">
+        <button onclick="openSecretaryModal()" class="btn-touch h-10 px-3.5 bg-white text-rose-900 hover:bg-rose-50 rounded-xl font-black text-xs shadow-sm border border-white/40 flex items-center gap-1.5">
+          <span class="text-sm leading-none">➕</span>
+          <span>دور جديد</span>
         </button>
-        <button onclick="syncAllToCloud()" title="مزامنة سحابية" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-2.5 py-1.5 rounded-xl font-bold shadow transition active:scale-95">
+        <button onclick="syncAllToCloud()" title="مزامنة" class="btn-touch h-10 w-10 bg-rose-800 hover:bg-rose-700 text-rose-100 rounded-xl border border-rose-700/60 flex items-center justify-center text-sm">
           ☁️
         </button>
-        <button onclick="openBackdateModal()" title="أرشفة زيارة سابقة" class="bg-rose-800 hover:bg-rose-700 text-rose-100 text-xs px-2.5 py-1.5 rounded-xl font-bold border border-rose-700/60 transition active:scale-95">
-          📁 أرشفة
+        <button onclick="openBackdateModal()" title="أرشفة سابقة" class="btn-touch h-10 px-3 bg-rose-800 hover:bg-rose-700 text-rose-100 rounded-xl font-bold text-xs border border-rose-700/60 flex items-center gap-1">
+          📁 <span class="hidden sm:inline">أرشفة</span>
         </button>
-        <button onclick="manualInstantRefresh()" title="تحديث فوري" class="bg-rose-800 hover:bg-rose-700 text-rose-100 text-xs px-2.5 py-1.5 rounded-xl font-bold transition active:scale-95">
+        <button onclick="manualInstantRefresh()" title="تحديث" class="btn-touch h-10 w-10 bg-rose-800 hover:bg-rose-700 text-rose-100 rounded-xl border border-rose-700/60 flex items-center justify-center text-sm">
           🔄
         </button>
-        <button onclick="lockApp()" title="قفل" class="bg-rose-950 hover:bg-black/40 text-xs px-2.5 py-1.5 rounded-xl font-bold transition active:scale-95">
+        <button onclick="lockApp()" title="قفل" class="btn-touch h-10 w-10 bg-rose-950/80 hover:bg-black/30 rounded-xl text-sm border border-rose-800 flex items-center justify-center">
           🔒
         </button>
       </div>
@@ -203,57 +192,59 @@
   </div>
 
   <!-- ==================== 3. MAIN DASHBOARD ==================== -->
-  <main class="max-w-5xl mx-auto p-3.5 space-y-3.5 flex-1 w-full">
+<!-- ==================== 3. MAIN DASHBOARD ==================== -->
+  <main class="max-w-5xl mx-auto p-3 md:p-4 space-y-3 flex-1 w-full">
     
-    <!-- Doctor Tabs Navigation -->
-    <div id="tabsContainer" class="flex gap-1.5 border-b border-rose-200/60 pb-2 overflow-x-auto no-scrollbar">
-      <button onclick="setActiveTab('daily')" id="tabDaily" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-rose-800 text-white shadow-sm transition">
+    <!-- Doctor Tabs Navigation (Touch Padded) -->
+    <div id="tabsContainer" class="flex gap-1.5 pb-1 overflow-x-auto no-scrollbar">
+      <button onclick="setActiveTab('daily')" id="tabDaily" class="btn-touch h-10 px-4 rounded-xl text-xs font-bold bg-rose-900 text-white shadow-xs shrink-0 whitespace-nowrap">
         📅 سجل اليوميات
       </button>
-      <button onclick="setActiveTab('weekly')" id="tabWeekly" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-rose-50 border border-slate-200 transition">
+      <button onclick="setActiveTab('weekly')" id="tabWeekly" class="btn-touch h-10 px-4 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-rose-50/50 border border-slate-200 shrink-0 whitespace-nowrap">
         📊 سجل الأسبوع المالي
       </button>
-      <button onclick="setActiveTab('dueMonth')" id="tabDueMonth" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-rose-50 border border-slate-200 transition flex items-center gap-1.5">
+      <button onclick="setActiveTab('dueMonth')" id="tabDueMonth" class="btn-touch h-10 px-4 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-rose-50/50 border border-slate-200 shrink-0 whitespace-nowrap flex items-center gap-1.5">
         <span>🤰 ولادات هذا الشهر</span>
         <span id="dueThisMonthCount" class="bg-rose-600 text-white px-1.5 py-0.2 rounded-full text-[10px] font-mono hidden">0</span>
       </button>
-      <button onclick="setActiveTab('all')" id="tabAll" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-rose-50 border border-slate-200 transition">
-        📋 أرشيف المريضات العام
+      <button onclick="setActiveTab('all')" id="tabAll" class="btn-touch h-10 px-4 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-rose-50/50 border border-slate-200 shrink-0 whitespace-nowrap">
+        📋 أرشيف المريضات
       </button>
     </div>
 
-    <!-- Date Filter & Comprehensive Live Search -->
-    <div class="bg-white p-3 rounded-2xl shadow-sm border border-rose-100/80 flex flex-col md:flex-row gap-2.5 justify-between items-center">
-      <div id="dateControlGroup" class="flex items-center gap-1.5 flex-wrap w-full md:w-auto">
-        <span class="text-xs font-bold text-slate-600">📅 التاريخ:</span>
+    <!-- Date Filter & Search Bar (Uniform 42px Touch Heights) -->
+    <div class="bg-white p-2.5 rounded-2xl shadow-xs border border-slate-200 flex flex-col md:flex-row gap-2 justify-between items-center">
+      <div id="dateControlGroup" class="flex items-center gap-1.5 w-full md:w-auto">
         <input type="date" id="dateFilterInput" onchange="handleDateInputChange()" 
-               class="p-2 border border-slate-300 rounded-xl text-xs font-bold bg-slate-50 focus:outline-none focus:border-rose-600 text-slate-800">
-        <button onclick="setDateToToday()" class="bg-rose-50 hover:bg-rose-100 text-rose-900 border border-rose-200 text-xs px-2.5 py-2 rounded-xl font-bold transition">اليوم</button>
-        <button onclick="setDateToYesterday()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs px-2.5 py-2 rounded-xl font-bold transition">الأمس</button>
+               class="btn-touch h-10 px-3 border border-slate-300 rounded-xl text-xs font-bold bg-slate-50 focus:bg-white focus:outline-none focus:border-rose-700 text-slate-800 flex-1 md:flex-none">
+        <button onclick="setDateToToday()" class="btn-touch h-10 px-3 bg-rose-50 hover:bg-rose-100 text-rose-900 border border-rose-200/80 rounded-xl font-bold text-xs">اليوم</button>
+        <button onclick="setDateToYesterday()" class="btn-touch h-10 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-xl font-bold text-xs">الأمس</button>
       </div>
 
       <div class="w-full md:w-80">
-        <input type="text" id="searchInput" oninput="renderApp()" placeholder="🔍 بحث شامل بالاسم، الزوج، الهاتف، السكن..." 
-               class="w-full p-2.5 border border-slate-300 rounded-xl text-xs focus:outline-none focus:border-rose-600 bg-slate-50 font-medium">
+        <div class="relative">
+          <input type="text" id="searchInput" oninput="renderApp()" placeholder="🔍 بحث شامل بالاسم، الهاتف، الزوج..." 
+                 class="h-10 w-full pl-3 pr-3 border border-slate-300 rounded-xl text-xs bg-slate-50 focus:bg-white focus:outline-none focus:border-rose-700 font-medium placeholder:text-slate-400">
+        </div>
       </div>
     </div>
 
     <!-- Global Search Banner Indicator -->
-    <div id="globalSearchAlertBanner" class="hidden bg-amber-50 border border-amber-300 p-2.5 rounded-2xl text-xs text-amber-950 flex justify-between items-center font-bold">
-      <span id="globalSearchAlertText">🔍 نتائج البحث الشامل في كامل أرشيف العيادة:</span>
-      <button onclick="clearSearchInput()" class="text-xs text-rose-700 hover:underline">إلغاء البحث والعودة</button>
+    <div id="globalSearchAlertBanner" class="hidden bg-rose-50 border border-rose-200 p-2.5 rounded-xl text-xs text-rose-950 flex justify-between items-center font-bold">
+      <span id="globalSearchAlertText">🔍 نتائج البحث الشامل في الأرشيف:</span>
+      <button onclick="clearSearchInput()" class="text-xs text-rose-700 underline hover:text-rose-900">إلغاء البحث والعودة</button>
     </div>
 
-    <!-- Real-time Stats & Income Bar -->
-    <div class="bg-slate-900 text-white p-3 rounded-2xl shadow-sm flex justify-between items-center flex-wrap gap-2 text-xs font-bold border border-slate-800">
-      <div id="queueStats" class="text-slate-200"></div>
-      <div class="flex items-center gap-2.5">
-        <div id="financialTally" class="bg-emerald-950 text-emerald-300 px-3 py-1 rounded-xl border border-emerald-800/80 flex items-center gap-1.5 font-mono">
-          <span class="text-slate-300 font-sans">💰 الصندوق:</span>
+    <!-- Uniform Stats & Income Bar -->
+    <div class="bg-slate-900 text-white p-2.5 px-3.5 rounded-2xl shadow-xs flex justify-between items-center flex-wrap gap-2 text-xs font-bold border border-slate-800">
+      <div id="queueStats" class="text-slate-200 text-xs"></div>
+      <div class="flex items-center gap-2">
+        <div id="financialTally" class="bg-slate-800 text-rose-200 px-3 py-1.5 rounded-xl border border-slate-700 flex items-center gap-1.5 font-mono">
+          <span class="text-slate-300 font-sans text-xs">💰 الصندوق:</span>
           <span id="dailyTotalIncome" class="font-black text-emerald-400 text-sm">0</span>
           <span class="text-[11px] font-sans">ل.س</span>
         </div>
-        <button onclick="syncAllToCloud()" title="فحص المزامنة" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-xl text-[11px] flex items-center gap-1 border border-slate-700 transition">
+        <button onclick="syncAllToCloud()" title="فحص المزامنة" class="btn-touch h-8 px-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-[11px] border border-slate-700">
           <span id="syncStatus">🟢 متصل</span>
         </button>
       </div>
@@ -261,7 +252,6 @@
 
     <!-- Spotlight Widget: Next Patient In Queue -->
     <div id="nextPatientSpotlightContainer"></div>
-
     <!-- Patient Cards List -->
     <div id="patientList" class="space-y-3"></div>
   </main>
@@ -2893,6 +2883,7 @@
     }
 
     // --- 18. SPOTLIGHT NEXT PATIENT CALL WIDGET ---
+  // --- 18. SPOTLIGHT NEXT PATIENT CALL WIDGET (UNIFIED ROSE PALETTE) ---
     function renderNextPatientSpotlight() {
       const container = document.getElementById('nextPatientSpotlightContainer');
       if (!container) return;
@@ -2911,13 +2902,13 @@
 
       if (!nextPatient) {
         container.innerHTML = `
-          <div class="bg-gradient-to-r from-rose-900 to-slate-900 text-white p-3 rounded-2xl shadow-sm flex justify-between items-center text-xs border border-rose-800">
+          <div class="bg-white text-slate-700 p-3 rounded-2xl shadow-xs border border-slate-200 flex justify-between items-center text-xs">
             <div class="flex items-center gap-2">
-              <span class="text-base">🎉</span>
-              <span class="font-bold">لا توجد مريضات بالانتظار في دور اليوم حالياً (تم فحص جميع الأدوار).</span>
+              <span class="w-8 h-8 rounded-lg bg-rose-50 text-rose-800 flex items-center justify-center font-bold text-base">✨</span>
+              <span class="font-bold text-slate-800">لا توجد مريضات بالانتظار في دور اليوم (تم فحص جميع الأدوار).</span>
             </div>
-            <button onclick="manualInstantRefresh()" class="bg-white/10 hover:bg-white/20 text-white px-2.5 py-1 rounded-xl text-[11px] font-bold transition">
-              🔄 فحص وصول جديد
+            <button onclick="manualInstantRefresh()" class="btn-touch h-8 px-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold border border-slate-300">
+              🔄 تحديث
             </button>
           </div>
         `;
@@ -2928,36 +2919,34 @@
       const preg = calculatePregnancy(nextPatient.lmp);
 
       container.innerHTML = `
-        <div class="spotlight-pulse bg-gradient-to-r from-rose-700 via-rose-800 to-purple-900 text-white p-3.5 rounded-3xl shadow-lg border border-rose-400/40 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
-          <div class="flex items-center gap-3">
-            <div class="w-12 h-12 rounded-2xl bg-white text-rose-900 flex items-center justify-center font-black text-2xl shadow">
+        <div class="bg-rose-900 text-white p-3.5 rounded-2xl shadow-md border border-rose-950 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="w-11 h-11 rounded-xl bg-white text-rose-950 flex items-center justify-center font-black text-xl shrink-0 shadow-xs">
               ${waitingTurnNum}
             </div>
-            <div>
-              <div class="flex items-center gap-2">
-                <h3 class="text-base font-black">${escapeHTML(nextPatient.name)}</h3>
-                ${nextPatient.husband ? `<span class="text-rose-100 text-xs font-semibold">(زوجها: ${escapeHTML(nextPatient.husband)})</span>` : ''}
-                ${nextPatient.isHighRisk ? `<span class="bg-red-900 text-white text-[10px] px-2 py-0.5 rounded-full font-bold animate-pulse">🚨 عالي الخطورة</span>` : ''}
+            <div class="min-w-0">
+              <div class="flex items-center gap-2 flex-wrap">
+                <h3 class="text-sm font-black text-white">${escapeHTML(nextPatient.name)}</h3>
+                ${nextPatient.husband ? `<span class="text-rose-200 text-xs font-normal">(زوجها: ${escapeHTML(nextPatient.husband)})</span>` : ''}
+                ${nextPatient.isHighRisk ? `<span class="bg-rose-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold">🚨 عالي الخطورة</span>` : ''}
               </div>
-              <p class="text-xs text-rose-50 mt-0.5 flex items-center gap-2 flex-wrap">
-                <span>الشكوى: <strong>${escapeHTML(nextPatient.complaint) || 'فحص ومتابعة'}</strong></span>
-                ${preg && !preg.isFuture ? `<span>| 🤰 ${escapeHTML(preg.monthName)}</span>` : ''}
-                ${nextPatient.phone ? `<span>| 📞 ${escapeHTML(nextPatient.phone)}</span>` : ''}
+              <p class="text-xs text-rose-100 mt-0.5 flex items-center gap-2 flex-wrap">
+                <span>الشكوى: <strong class="text-white">${escapeHTML(nextPatient.complaint) || 'فحص ومتابعة'}</strong></span>
+                ${preg && !preg.isFuture ? `<span class="opacity-80">| 🤰 ${escapeHTML(preg.monthName)}</span>` : ''}
+                ${nextPatient.phone ? `<span class="font-mono text-rose-200" dir="ltr">${escapeHTML(nextPatient.phone)}</span>` : ''}
               </p>
             </div>
           </div>
 
-          <div class="flex items-center gap-2 self-end md:self-center">
-            <button onclick="openNewVisitModal('${nextPatient.id}')" class="bg-white text-rose-900 hover:bg-rose-50 px-4 py-2.5 rounded-2xl font-black text-xs shadow-md transition transform active:scale-95 flex items-center gap-1.5">
-              <span>🩺</span>
-              <span>نداء وبدء فحص المريضة الآن</span>
-            </button>
-          </div>
+          <button onclick="openNewVisitModal('${nextPatient.id}')" class="btn-touch h-10 px-4 bg-white text-rose-950 hover:bg-rose-50 rounded-xl font-black text-xs shadow-md shrink-0 w-full md:w-auto flex items-center justify-center gap-1.5">
+            <span>🩺</span>
+            <span>بدء فحص المريضة الآن</span>
+          </button>
         </div>
       `;
     }
 
-    // --- 19. MODERN 2026 PATIENT CARD ELEMENT ---
+    // --- 19. UNIFIED MODERN PATIENT CARD (TOUCH-FRIENDLY & NO OVERLAPS) ---
     function createPatientCardElement(p, index) {
       normalizePatientObject(p);
 
@@ -2970,211 +2959,158 @@
       const visitsList = p.visits || [];
       const surgeriesList = p.surgeries || [];
       const q = document.getElementById('searchInput').value.trim();
-      
       const showQueueNumber = (activeTab === 'daily' || currentRole === 'secretary' || activeTab === 'weekly') && (q.length === 0);
 
-      card.className = `bg-white rounded-3xl p-4 shadow-sm border ${p.isHighRisk ? 'border-red-500 ring-2 ring-red-300' : (preg && (preg.isDueWithinMonth || preg.isOverdue) ? 'border-rose-400 ring-2 ring-rose-200' : (isWaiting ? 'border-amber-300 bg-amber-50/20' : 'border-rose-100/80'))} space-y-3`;
+      card.className = `bg-white rounded-2xl p-3.5 shadow-xs border ${p.isHighRisk ? 'border-rose-400 ring-1 ring-rose-200' : (isWaiting ? 'border-amber-300 bg-amber-50/15' : 'border-slate-200')} space-y-3`;
 
       const latestVisit = visitsList.length > 0 ? visitsList[0] : null;
       const isLatestHighBP = latestVisit ? checkHighBloodPressure(latestVisit.bp) : false;
 
       card.innerHTML = `
         ${p.isHighRisk ? `
-          <div class="bg-red-600 text-white text-xs px-3 py-1.5 rounded-2xl font-bold flex justify-between items-center animate-pulse">
-            <span>🚨 شارة تنبيه: حمل عالي الخطورة (High Risk)</span>
-            <span class="text-[11px] bg-red-800 px-2 py-0.5 rounded font-normal">${escapeHTML(p.highRiskReason) || 'متابعة خاصة'}</span>
+          <div class="bg-rose-800 text-white text-xs px-3 py-1.5 rounded-xl font-bold flex justify-between items-center">
+            <span>🚨 حمل عالي الخطورة (High Risk)</span>
+            <span class="text-[11px] bg-rose-950 px-2 py-0.5 rounded font-normal">${escapeHTML(p.highRiskReason) || 'متابعة خاصة'}</span>
           </div>
         ` : ''}
 
-        <!-- Master Demographics Header -->
-        <div class="flex justify-between items-start border-b border-slate-100 pb-2.5">
-          <div class="flex items-center gap-3">
+        <!-- 1. Header Row -->
+        <div class="flex justify-between items-start gap-2 border-b border-slate-100 pb-2.5">
+          <div class="flex items-center gap-2.5 min-w-0">
             ${showQueueNumber ? `
-              <div class="w-10 h-10 rounded-2xl flex items-center justify-center font-black text-lg tracking-tight shadow-sm ${isWaiting ? 'bg-gradient-to-br from-amber-500 to-amber-600 text-white shadow-amber-200 ring-2 ring-amber-300 animate-pulse' : 'bg-slate-100 text-slate-500 border border-slate-200'}">
+              <div class="w-10 h-10 rounded-xl flex items-center justify-center font-black text-base shrink-0 shadow-2xs ${isWaiting ? 'bg-amber-500 text-white' : 'bg-slate-100 text-slate-600 border border-slate-200'}">
                 ${queueNumToDisplay}
               </div>
             ` : `
-              <div class="w-10 h-10 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 flex items-center justify-center text-lg font-bold shadow-xs">
+              <div class="w-10 h-10 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 flex items-center justify-center text-lg font-bold shrink-0">
                 👤
               </div>
             `}
 
-            <div>
-              <div class="flex items-center gap-2">
-                <h3 class="text-base font-bold text-slate-900">${escapeHTML(p.name)}</h3>
-                ${p.husband ? `<span class="text-slate-600 font-normal text-xs">(زوجها: ${escapeHTML(p.husband)})</span>` : ''}
-                ${isDoctor && visitsList.length > 0 ? `<span class="bg-purple-100 text-purple-800 text-[10px] px-2 py-0.2 rounded-full font-bold">📜 ${visitsList.length} مراجعات</span>` : ''}
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <h3 class="text-sm font-black text-slate-900 truncate">${escapeHTML(p.name)}</h3>
+                ${p.husband ? `<span class="text-slate-500 text-xs font-normal truncate">(زوجها: ${escapeHTML(p.husband)})</span>` : ''}
+                ${isDoctor && visitsList.length > 0 ? `<span class="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.2 rounded-md font-bold">📜 ${visitsList.length} مراجعات</span>` : ''}
               </div>
               <div class="flex items-center gap-2 flex-wrap text-xs text-slate-500 mt-0.5">
-                <span>📞 ${escapeHTML(p.phone) || 'بدون هاتف'}</span>
                 ${p.phone ? `
-                  <button type="button" onclick="openWhatsAppModal('${p.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] px-2 py-0.5 rounded-lg font-bold flex items-center gap-1 shadow-sm transition active:scale-95">
+                  <button type="button" onclick="openWhatsAppModal('${p.id}')" class="btn-touch h-6 px-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-[10px] rounded-md font-bold flex items-center gap-1">
                     💬 واتساب
                   </button>
-                ` : ''}
-                <span>| ${p.birthYear ? `🎂 مواليد: ${escapeHTML(p.birthYear)} (${calculatedAge} سنة)` : (p.age ? `العمر: ${escapeHTML(p.age)} سنة` : 'العمر: -')}</span>
-                ${p.nationalId ? `<span>| 🆔 ${escapeHTML(p.nationalId)}</span>` : ''}
-                ${p.address ? `<span>| 📍 ${escapeHTML(p.address)}</span>` : ''}
+                  <span class="font-mono text-slate-600" dir="ltr">${escapeHTML(p.phone)}</span>
+                ` : '<span class="text-slate-400">بدون هاتف</span>'}
+                <span>| ${p.birthYear ? `🎂 ${calculatedAge} سنة` : ''}</span>
+                ${p.address ? `<span class="truncate">| 📍 ${escapeHTML(p.address)}</span>` : ''}
               </div>
             </div>
           </div>
 
-          <div class="text-left flex flex-col items-end gap-1">
-            <span class="text-[10px] px-2.5 py-0.5 rounded-full font-bold ${isWaiting ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-emerald-100 text-emerald-800 border border-emerald-200'}">
+          <div class="text-left flex flex-col items-end gap-1 shrink-0">
+            <span class="text-[10px] px-2.5 py-0.5 rounded-md font-bold ${isWaiting ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-slate-100 text-slate-700 border border-slate-200'}">
               ${isWaiting ? '⏳ بانتظار الفحص' : '✅ تم الفحص'}
             </span>
-            <div class="flex gap-1.5 items-center">
-              ${isDoctor && p.blood ? `<span class="text-xs font-bold text-rose-700 font-mono">${escapeHTML(p.blood)}</span>` : ''}
-            </div>
+            ${isDoctor && p.blood && p.blood !== 'غير محدد' ? `<span class="text-xs font-bold text-rose-800 font-mono">${escapeHTML(p.blood)}</span>` : ''}
           </div>
         </div>
 
-        ${preg && preg.isOverdue ? `
-          <div class="bg-red-50 border border-red-300 p-2.5 rounded-2xl text-xs text-red-900 flex items-center justify-between font-bold animate-pulse">
-            <span>⚠️ تنبيه: تجاوزت موعد الولادة المتوقع بـ (${Math.abs(preg.daysUntilDelivery)} يوم)!</span>
-            <span class="bg-red-600 text-white px-2 py-0.5 rounded-lg text-[10px]">${preg.monthName}</span>
-          </div>
-        ` : (preg && preg.isDueWithinMonth ? `
-          <div class="bg-rose-50 border border-rose-300 p-2.5 rounded-2xl text-xs text-rose-900 flex items-center justify-between font-bold animate-pulse">
-            <span>🔔 تنبيه ولادة: موعد الولادة المتوقع خلال (${preg.daysUntilDelivery} يوم)!</span>
-            <span class="bg-rose-600 text-white px-2 py-0.5 rounded-lg text-[10px]">${preg.monthName}</span>
-          </div>
-        ` : '')}
-
         ${isDoctor ? `
-          <!-- Static GPA Strip -->
-          <div class="bg-rose-50/50 p-2 rounded-2xl text-xs text-rose-950 border border-rose-100 flex flex-wrap gap-x-3 gap-y-1">
-            <span><strong>حمول (G):</strong> ${escapeHTML(p.g) || 0}</span>
-            <span><strong>طبيعي (VD):</strong> ${escapeHTML(p.vd) || 0}</span>
-            <span><strong>قيصري (CS):</strong> ${escapeHTML(p.cs) || 0}</span>
-            <span><strong>إجهاض (A):</strong> ${escapeHTML(p.a) || 0}</span>
-            ${p.allergies ? `<span class="text-red-600 font-bold">⚠️ تحسس: ${escapeHTML(p.allergies)}</span>` : ''}
-            ${p.obsNotes ? `<span class="w-full text-slate-600 mt-0.5">📝 ${escapeHTML(p.obsNotes)}</span>` : ''}
+          <!-- 2. Structured GPA Tiles (No overlapping text) -->
+          <div class="grid grid-cols-4 sm:grid-cols-6 gap-1.5 text-center text-xs">
+            <div class="bg-rose-50/60 border border-rose-100 p-1.5 rounded-xl">
+              <span class="block text-[10px] text-slate-500 font-bold">حمول G</span>
+              <span class="font-black text-rose-900">${escapeHTML(p.g) || 0}</span>
+            </div>
+            <div class="bg-rose-50/60 border border-rose-100 p-1.5 rounded-xl">
+              <span class="block text-[10px] text-slate-500 font-bold">طبيعي VD</span>
+              <span class="font-black text-rose-900">${escapeHTML(p.vd) || 0}</span>
+            </div>
+            <div class="bg-rose-50/60 border border-rose-100 p-1.5 rounded-xl">
+              <span class="block text-[10px] text-slate-500 font-bold">قيصري CS</span>
+              <span class="font-black text-rose-900">${escapeHTML(p.cs) || 0}</span>
+            </div>
+            <div class="bg-rose-50/60 border border-rose-100 p-1.5 rounded-xl">
+              <span class="block text-[10px] text-slate-500 font-bold">إجهاض A</span>
+              <span class="font-black text-rose-900">${escapeHTML(p.a) || 0}</span>
+            </div>
+            ${p.allergies ? `
+              <div class="col-span-4 sm:col-span-2 bg-red-50 border border-red-200 p-1.5 rounded-xl text-right px-2.5">
+                <span class="block text-[10px] text-red-600 font-bold">⚠️ تحسس دوائي:</span>
+                <span class="font-bold text-red-950 truncate block">${escapeHTML(p.allergies)}</span>
+              </div>
+            ` : ''}
           </div>
 
+          <!-- Pregnancy Stage Alert -->
           ${preg && !preg.isFuture ? `
-            <div class="bg-rose-50/70 border border-rose-200 p-2.5 rounded-2xl text-xs text-rose-950 space-y-1">
-              <div class="flex justify-between items-center font-bold">
-                <span>🤰 مرحلة الحمل: <span class="bg-rose-800 text-white px-2 py-0.5 rounded text-[11px]">${escapeHTML(preg.monthName)}</span> (${escapeHTML(preg.weeks)})</span>
-                <span>الولادة المتوقعة: <strong>${escapeHTML(preg.edd)}</strong></span>
-              </div>
+            <div class="bg-rose-50/80 border border-rose-200 p-2.5 rounded-xl text-xs flex justify-between items-center text-rose-950 font-bold">
+              <span>🤰 ${escapeHTML(preg.monthName)} (${escapeHTML(preg.weeks)})</span>
+              <span class="text-[11px] font-mono text-rose-800">EDD: ${escapeHTML(preg.edd)}</span>
             </div>
           ` : ''}
 
-          <!-- Surgical History Alert Strip -->
+          <!-- Documented Surgeries Pill Strip -->
           ${surgeriesList.length > 0 ? `
-            <div class="bg-amber-50/80 border border-amber-300 p-2.5 rounded-2xl text-xs space-y-1.5">
-              <span class="font-bold text-amber-950 flex items-center gap-1.5">
-                <span>✂️ العمليات والولادات الجراحية الموثقة (${surgeriesList.length}):</span>
-              </span>
-              <div class="flex gap-1.5 flex-wrap">
-                ${surgeriesList.map(s => `
-                  <span class="bg-amber-100 text-amber-950 font-bold px-2 py-0.5 rounded-lg text-[11px] border border-amber-300 flex items-center gap-1">
-                    <span>${escapeHTML(s.type)}</span>
-                    <span class="text-amber-800 font-normal">(${escapeHTML(s.date)})</span>
-                    ${s.hospital ? `<span class="text-[10px] text-amber-700 font-normal">- ${escapeHTML(s.hospital)}</span>` : ''}
-                  </span>
-                `).join('')}
-              </div>
-            </div>
-          ` : ''}
-
-        <!-- إبراز شكوى دور اليوم النشطة دائماً إن وُجدت -->
-          ${isWaiting && p.complaint ? `
-            <div class="bg-amber-50 border-2 border-amber-300 p-2.5 rounded-2xl text-xs text-amber-950 font-bold flex items-center justify-between shadow-2xs">
-              <span class="flex items-center gap-1.5">
-                <span>📋</span>
-                <span>شكوى دور اليوم: <strong class="text-rose-950">${escapeHTML(p.complaint)}</strong></span>
-              </span>
-              <span class="text-[10px] bg-amber-200 text-amber-900 px-2 py-0.5 rounded-lg">بانتظار الفحص</span>
-            </div>
-          ` : ''}
-
-          <!-- معاينة آخر فحص موثق سابقاً -->
-          ${latestVisit ? `
-            <div class="bg-rose-50/20 rounded-2xl p-3 border border-rose-200 space-y-2 text-xs">
-              <div class="flex justify-between items-center border-b border-rose-100 pb-1.5 flex-wrap gap-1">
-                <span class="font-bold text-rose-950 flex items-center gap-1.5">
-                  <span class="bg-rose-700 text-white px-2 py-0.5 rounded-md text-[10px]">آخر فحص موثق</span>
-                  <span>تاريخ: ${escapeHTML(latestVisit.date)}</span>
-                  ${latestVisit.complaint ? `<span class="text-slate-600 font-normal">(${escapeHTML(latestVisit.complaint)})</span>` : ''}
+            <div class="bg-slate-50 border border-slate-200 p-2 rounded-xl text-xs flex items-center gap-1.5 flex-wrap">
+              <span class="font-bold text-slate-700 text-[11px]">✂️ الجراحات:</span>
+              ${surgeriesList.map(s => `
+                <span class="bg-white border border-slate-300 text-slate-800 px-2 py-0.5 rounded-md text-[10px] font-bold">
+                  ${escapeHTML(s.type)} <span class="font-normal text-slate-500">(${escapeHTML(s.date)})</span>
                 </span>
-                <div class="flex gap-2 items-center">
-                  ${latestVisit.fee ? `<span class="text-emerald-800 bg-emerald-100 font-bold px-2 py-0.5 rounded border border-emerald-300 font-mono">${latestVisit.fee.toLocaleString()} ل.س</span>` : ''}
-                  ${latestVisit.bp ? `<span class="${isLatestHighBP ? 'bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-bold border border-red-300' : 'text-slate-600'} font-mono">الضغط: <strong>${escapeHTML(latestVisit.bp)}</strong></span>` : ''}
-                  ${latestVisit.weight ? `<span class="text-slate-600 font-mono">الوزن: <strong>${escapeHTML(latestVisit.weight)} كغ</strong></span>` : ''}
+              `).join('')}
+            </div>
+          ` : ''}
+
+          <!-- Today's Intake Complaint Alert -->
+          ${isWaiting && p.complaint ? `
+            <div class="bg-amber-50 border border-amber-200 p-2.5 rounded-xl text-xs text-amber-950 font-bold flex justify-between items-center">
+              <span>📋 شكوى اليوم: <span class="font-semibold">${escapeHTML(p.complaint)}</span></span>
+              <span class="bg-amber-100 text-amber-900 text-[10px] px-2 py-0.5 rounded">بانتظار الطبيبة</span>
+            </div>
+          ` : ''}
+
+          <!-- Latest Visit Preview Tile -->
+          ${latestVisit ? `
+            <div class="bg-slate-50 rounded-xl p-2.5 border border-slate-200 space-y-1.5 text-xs">
+              <div class="flex justify-between items-center text-slate-700 font-bold">
+                <span>آخر فحص: <span class="text-slate-900">${escapeHTML(latestVisit.date)}</span> ${latestVisit.complaint ? `<span class="font-normal text-slate-500">(${escapeHTML(latestVisit.complaint)})</span>` : ''}</span>
+                <div class="flex gap-1.5 items-center">
+                  ${latestVisit.fee ? `<span class="bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.2 rounded font-mono font-bold">${latestVisit.fee.toLocaleString()} ل.س</span>` : ''}
+                  ${latestVisit.bp ? `<span class="font-mono text-[11px] ${isLatestHighBP ? 'text-red-600 font-bold' : 'text-slate-500'}">BP: ${escapeHTML(latestVisit.bp)}</span>` : ''}
                 </div>
               </div>
-
-              ${latestVisit.ultrasound ? `
-                <div class="bg-white p-2 rounded-xl border border-slate-200 text-slate-800">
-                  <span class="font-bold text-rose-950">تقرير الإيكو:</span> ${escapeHTML(latestVisit.ultrasound)}
-                </div>
-              ` : ''}
-
+              ${latestVisit.ultrasound ? `<p class="bg-white p-2 rounded-lg border border-slate-200 text-slate-700 leading-relaxed">${escapeHTML(latestVisit.ultrasound)}</p>` : ''}
               ${latestVisit.rx ? `
-                <div class="bg-amber-50/60 p-2 rounded-xl border border-amber-200">
-                  <div class="flex justify-between items-center mb-1">
-                    <span class="font-bold text-rose-950">الوصفة الطبية (Rx):</span>
-                    <button type="button" onclick="openWhatsAppModal('${p.id}', '${escapeHTML(latestVisit.rx).replace(/'/g, "\\'")}')" class="text-emerald-700 hover:text-emerald-900 text-[10px] font-bold flex items-center gap-0.5">
-                      <span>📲</span> <span>إرسال الوصفة</span>
-                    </button>
-                  </div>
-                  <p class="text-slate-800 whitespace-pre-line">${escapeHTML(latestVisit.rx)}</p>
-                </div>
-              ` : ''}
-
-              ${latestVisit.nextVisitDate ? `
-                <div class="bg-purple-50 text-purple-900 p-1.5 rounded-xl border border-purple-100 font-bold flex justify-between items-center text-[11px]">
-                  <span>📌 موعد المراجعة القادمة:</span>
-                  <span>${escapeHTML(latestVisit.nextVisitDate)}</span>
-                </div>
-              ` : ''}
-
-              ${latestVisit.photos && latestVisit.photos.length > 0 ? `
-                <div class="pt-1">
-                  <span class="text-[10px] text-slate-500 font-bold block mb-1">📸 صور إيكو هذه الزيارة:</span>
-                  <div class="flex gap-2 flex-wrap">
-                    ${latestVisit.photos.map(imgSrc => `
-                      <img src="${imgSrc}" class="w-12 h-12 rounded-xl object-cover border border-slate-300 cursor-pointer shadow-sm hover:opacity-80" onclick="openLightbox('${imgSrc}')">
-                    `).join('')}
-                  </div>
+                <div class="bg-rose-50/40 p-2 rounded-lg border border-rose-100 flex justify-between items-center">
+                  <span class="truncate text-slate-800">💊 <strong>Rx:</strong> ${escapeHTML(latestVisit.rx)}</span>
+                  <button type="button" onclick="openWhatsAppModal('${p.id}', '${escapeHTML(latestVisit.rx).replace(/'/g, "\\'")}')" class="text-emerald-700 text-[11px] font-bold shrink-0 mr-2">📲 إرسال</button>
                 </div>
               ` : ''}
             </div>
-          ` : (!isWaiting && p.complaint ? `
-            <div class="text-xs text-slate-600 bg-slate-50 p-2.5 rounded-2xl border border-slate-200">
-              <strong>شكوى الزيارة:</strong> ${escapeHTML(p.complaint)}
-            </div>
-          ` : '')}
+          ` : ''}
 
-          <!-- Uniform Grid Bottom Actions -->
-          <div class="flex justify-between items-center pt-2 border-t border-slate-100 text-xs flex-wrap gap-2">
-            <button onclick="requestDeletePatient('${p.id}', '${escapeHTML(p.name)}')" class="text-rose-600 hover:text-rose-800 font-semibold flex items-center gap-1">
-              <span>🗑️</span> <span>حذف الملف</span>
+          <!-- 3. Bottom Uniform Touch Action Bar (Consistent Heights & Icons) -->
+          <div class="grid grid-cols-4 gap-1.5 pt-1 border-t border-slate-100">
+            <button onclick="requestDeletePatient('${p.id}', '${escapeHTML(p.name)}')" class="btn-touch h-10 bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-700 rounded-xl font-bold text-xs border border-slate-200 flex items-center justify-center gap-1">
+              <span>🗑️</span>
+              <span class="hidden sm:inline">حذف</span>
             </button>
-            <div class="flex gap-1.5 flex-wrap">
-              <button onclick="openSurgeryModal('${p.id}')" class="bg-rose-50 hover:bg-rose-100 text-rose-900 px-3 py-1.5 rounded-xl font-bold border border-rose-200 transition flex items-center gap-1 active:scale-95">
-                <span>✂️</span> <span>توثيق جراحة / ولادة</span>
-              </button>
-              <button onclick="openDoctorModal('${p.id}')" class="bg-slate-100 hover:bg-slate-200 text-slate-800 px-3 py-1.5 rounded-xl font-bold border border-slate-300 transition flex items-center gap-1 active:scale-95">
-                <span>📂</span> <span>استعراض السجل</span>
-              </button>
-              <button onclick="openNewVisitModal('${p.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 rounded-xl font-bold shadow-md transition flex items-center gap-1.5 active:scale-95">
-                <span>➕</span> <span>فحص زيارة جديدة</span>
-              </button>
-            </div>
+            <button onclick="openSurgeryModal('${p.id}')" class="btn-touch h-10 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-bold text-xs border border-slate-200 flex items-center justify-center gap-1">
+              <span>✂️</span>
+              <span class="hidden sm:inline">جراحة</span>
+            </button>
+            <button onclick="openDoctorModal('${p.id}')" class="btn-touch h-10 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-bold text-xs border border-slate-200 flex items-center justify-center gap-1">
+              <span>📂</span>
+              <span>السجل</span>
+            </button>
+            <button onclick="openNewVisitModal('${p.id}')" class="btn-touch h-10 bg-rose-900 hover:bg-rose-950 text-white rounded-xl font-bold text-xs shadow-xs flex items-center justify-center gap-1">
+              <span>➕</span>
+              <span>فحص</span>
+            </button>
           </div>
         ` : `
           <!-- Secretary View -->
-          ${p.complaint ? `
-            <div class="text-xs text-slate-600 bg-slate-50 p-2.5 rounded-xl">
-              <strong>شكوى الزيارة:</strong> ${escapeHTML(p.complaint)}
-            </div>
-          ` : ''}
-          <div class="text-left text-xs text-slate-400">
-            ${isWaiting ? 'المريضة بانتظار دورها لدى الطبيبة' : 'اكتمل الفحص بواسطة الطبيبة'}
-          </div>
+          ${p.complaint ? `<div class="text-xs text-slate-600 bg-slate-50 p-2 rounded-lg"><strong>شكوى اليوم:</strong> ${escapeHTML(p.complaint)}</div>` : ''}
         `}
       `;
 
