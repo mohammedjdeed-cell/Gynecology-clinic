@@ -38,19 +38,18 @@
     .font-mono {
       font-family: 'JetBrains Mono', monospace;
     }
-    /* Touch buttons micro-interaction */
-    .btn-touch {
-      min-height: 42px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Touch buttons with real tactile feedback */
+    .btn-touch, button, [role="button"] {
+      touch-action: manipulation;
+      transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.15s, opacity 0.15s;
       user-select: none;
+      -webkit-tap-highlight-color: transparent;
     }
-    .btn-touch:active {
-      transform: scale(0.96);
+    .btn-touch:active, button:active {
+      transform: scale(0.93) translateY(1px) !important;
+      filter: brightness(0.92);
     }
-    /* Clean scrollbar */
+    /* Smooth horizontal tab scroll without scrollbar */
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     ::-webkit-scrollbar { width: 5px; height: 5px; }
@@ -91,41 +90,39 @@
 
   <input type="file" id="importFileInput" accept=".json" class="hidden" onchange="handleImportFile(event)">
 
-  <!-- ==================== 2. SMART MOBILE/DESKTOP HEADER ==================== -->
  <!-- ==================== 2. SMART MOBILE/DESKTOP HEADER ==================== -->
+<!-- ==================== 2. SMART MOBILE/DESKTOP HEADER ==================== -->
   <header class="bg-rose-900 text-white shadow-md sticky top-0 z-30 border-b border-rose-950/40">
-    <div class="max-w-5xl mx-auto px-3 py-2.5 flex justify-between items-center gap-2">
+    <div class="max-w-5xl mx-auto px-2.5 sm:px-4 py-2 flex justify-between items-center gap-1.5 sm:gap-2">
       
-      <!-- Brand Identity & Role Badge -->
-      <div class="flex items-center gap-2.5 min-w-0">
-        <div class="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-xl shrink-0 shadow-inner">
+      <!-- Brand & Title (Never cut off on 6-inch screens) -->
+      <div class="flex items-center gap-2 min-w-0 flex-1">
+        <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-base sm:text-xl shrink-0 shadow-inner">
           🩺
         </div>
         <div class="min-w-0">
-          <h1 class="text-sm md:text-base font-black truncate text-white leading-tight">عيادة د. هيام خضر</h1>
-          <span id="roleBadge" class="text-[10px] bg-rose-950/80 text-rose-200 border border-rose-800/80 px-2 py-0.5 rounded-md font-bold inline-block mt-0.5"></span>
+          <h1 class="text-xs sm:text-sm md:text-base font-black truncate text-white leading-tight">عيادة د. هيام خضر</h1>
+          <span id="roleBadge" class="text-[9px] sm:text-[10px] bg-rose-950/90 text-rose-200 border border-rose-800/80 px-1.5 py-0.2 rounded font-bold inline-block mt-0.5 truncate max-w-[140px] sm:max-w-none"></span>
         </div>
       </div>
       
-      <!-- Doctor Navigation Bar (Unified Sizes & Tokens) -->
-      <div id="doctorNav" class="flex items-center gap-1.5 shrink-0">
-        <button onclick="openDoctorNewPatientModal()" class="btn-touch h-10 px-3 bg-white text-rose-900 hover:bg-rose-50 rounded-xl font-black text-xs shadow-sm border border-white/40 flex items-center gap-1.5">
+      <!-- Doctor Actions Bar (Compact & Touch-Friendly) -->
+      <div id="doctorNav" class="flex items-center gap-1 sm:gap-1.5 shrink-0">
+        <button onclick="openDoctorNewPatientModal()" class="btn-touch h-9 sm:h-10 px-2 sm:px-3 bg-white text-rose-900 hover:bg-rose-50 rounded-xl font-black text-xs shadow-xs border border-white/40 flex items-center gap-1">
           <span class="text-sm leading-none">➕</span>
           <span class="hidden sm:inline">مريضة جديدة</span>
-          <span class="sm:hidden">جديدة</span>
+          <span class="sm:hidden text-[11px]">جديدة</span>
         </button>
 
-        <button onclick="syncAllToCloud()" title="مزامنة سحابية فورية" class="btn-touch h-10 px-3 bg-rose-800 hover:bg-rose-700 text-rose-100 rounded-xl font-bold text-xs border border-rose-700/60 shadow-xs flex items-center gap-1.5">
-          <span class="text-sm leading-none">☁️</span>
-          <span class="hidden md:inline">مزامنة</span>
+        <button onclick="syncAllToCloud()" title="مزامنة" class="btn-touch h-9 w-9 sm:h-10 sm:w-10 bg-rose-800 hover:bg-rose-700 text-rose-100 rounded-xl border border-rose-700/60 flex items-center justify-center text-sm">
+          ☁️
         </button>
 
         <!-- Tools Dropdown -->
         <div class="relative" id="adminMenuContainer">
-          <button onclick="toggleAdminMenu()" id="btnAdminMenu" title="قائمة الأدوات" class="btn-touch h-10 px-2.5 bg-rose-800 hover:bg-rose-700 text-rose-100 rounded-xl font-bold text-xs border border-rose-700/60 flex items-center gap-1">
-            <span class="text-sm leading-none">⚙️</span>
-            <span class="hidden md:inline">الأدوات</span>
-            <span class="text-[9px] opacity-70">▼</span>
+          <button onclick="toggleAdminMenu()" id="btnAdminMenu" title="الأدوات" class="btn-touch h-9 sm:h-10 px-2 sm:px-2.5 bg-rose-800 hover:bg-rose-700 text-rose-100 rounded-xl font-bold text-xs border border-rose-700/60 flex items-center gap-1">
+            <span class="text-sm">⚙️</span>
+            <span class="text-[8px] opacity-70">▼</span>
           </button>
 
           <div id="adminDropdownMenu" class="hidden absolute left-0 mt-2 w-60 bg-white rounded-2xl shadow-2xl border border-slate-200 py-1.5 z-40 text-slate-800 text-xs divide-y divide-slate-100">
@@ -157,34 +154,33 @@
           </div>
         </div>
 
-        <button onclick="lockApp()" title="قفل" class="btn-touch h-10 w-10 bg-rose-950/80 hover:bg-black/30 rounded-xl text-sm border border-rose-800 flex items-center justify-center">
+        <button onclick="lockApp()" title="قفل" class="btn-touch h-9 w-9 sm:h-10 sm:w-10 bg-rose-950/80 hover:bg-black/30 rounded-xl text-sm border border-rose-800 flex items-center justify-center">
           🔒
         </button>
       </div>
 
-      <!-- Secretary Navigation Bar (Identical Dimensions) -->
-      <div id="secretaryNav" class="hidden items-center gap-1.5 shrink-0">
-        <button onclick="openSecretaryModal()" class="btn-touch h-10 px-3.5 bg-white text-rose-900 hover:bg-rose-50 rounded-xl font-black text-xs shadow-sm border border-white/40 flex items-center gap-1.5">
-          <span class="text-sm leading-none">➕</span>
+      <!-- Secretary Actions Bar -->
+      <div id="secretaryNav" class="hidden items-center gap-1 sm:gap-1.5 shrink-0">
+        <button onclick="openSecretaryModal()" class="btn-touch h-9 sm:h-10 px-2.5 sm:px-3 bg-white text-rose-900 hover:bg-rose-50 rounded-xl font-black text-xs shadow-xs border border-white/40 flex items-center gap-1">
+          <span class="text-sm">➕</span>
           <span>دور جديد</span>
         </button>
-        <button onclick="syncAllToCloud()" title="مزامنة" class="btn-touch h-10 w-10 bg-rose-800 hover:bg-rose-700 text-rose-100 rounded-xl border border-rose-700/60 flex items-center justify-center text-sm">
+        <button onclick="syncAllToCloud()" title="مزامنة" class="btn-touch h-9 w-9 sm:h-10 sm:w-10 bg-rose-800 hover:bg-rose-700 text-rose-100 rounded-xl border border-rose-700/60 flex items-center justify-center text-sm">
           ☁️
         </button>
-        <button onclick="openBackdateModal()" title="أرشفة سابقة" class="btn-touch h-10 px-3 bg-rose-800 hover:bg-rose-700 text-rose-100 rounded-xl font-bold text-xs border border-rose-700/60 flex items-center gap-1">
+        <button onclick="openBackdateModal()" title="أرشفة سابقة" class="btn-touch h-9 sm:h-10 px-2.5 bg-rose-800 hover:bg-rose-700 text-rose-100 rounded-xl font-bold text-xs border border-rose-700/60 flex items-center gap-1">
           📁 <span class="hidden sm:inline">أرشفة</span>
         </button>
-        <button onclick="manualInstantRefresh()" title="تحديث" class="btn-touch h-10 w-10 bg-rose-800 hover:bg-rose-700 text-rose-100 rounded-xl border border-rose-700/60 flex items-center justify-center text-sm">
+        <button onclick="manualInstantRefresh()" title="تحديث" class="btn-touch h-9 w-9 sm:h-10 sm:w-10 bg-rose-800 hover:bg-rose-700 text-rose-100 rounded-xl border border-rose-700/60 flex items-center justify-center text-sm">
           🔄
         </button>
-        <button onclick="lockApp()" title="قفل" class="btn-touch h-10 w-10 bg-rose-950/80 hover:bg-black/30 rounded-xl text-sm border border-rose-800 flex items-center justify-center">
+        <button onclick="lockApp()" title="قفل" class="btn-touch h-9 w-9 sm:h-10 sm:w-10 bg-rose-950/80 hover:bg-black/30 rounded-xl text-sm border border-rose-800 flex items-center justify-center">
           🔒
         </button>
       </div>
 
     </div>
   </header>
-
   <!-- Notification Toast -->
   <div id="realtimeToast" class="fixed bottom-4 left-4 bg-slate-900/95 backdrop-blur text-white px-4 py-3 rounded-2xl text-xs font-bold shadow-2xl flex items-center gap-2.5 transform translate-y-28 transition-transform duration-300 z-50 pointer-events-none border border-slate-700">
     <span class="text-rose-400 text-base">⚡</span>
@@ -196,22 +192,26 @@
   <main class="max-w-5xl mx-auto p-3 md:p-4 space-y-3 flex-1 w-full">
     
     <!-- Doctor Tabs Navigation (Touch Padded) -->
+    <!-- Doctor Tabs Navigation (With Operations Database Tab) -->
     <div id="tabsContainer" class="flex gap-1.5 pb-1 overflow-x-auto no-scrollbar">
-      <button onclick="setActiveTab('daily')" id="tabDaily" class="btn-touch h-10 px-4 rounded-xl text-xs font-bold bg-rose-900 text-white shadow-xs shrink-0 whitespace-nowrap">
+      <button onclick="setActiveTab('daily')" id="tabDaily" class="btn-touch h-10 px-3.5 rounded-xl text-xs font-bold bg-rose-900 text-white shadow-xs shrink-0 whitespace-nowrap">
         📅 سجل اليوميات
       </button>
-      <button onclick="setActiveTab('weekly')" id="tabWeekly" class="btn-touch h-10 px-4 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-rose-50/50 border border-slate-200 shrink-0 whitespace-nowrap">
+      <button onclick="setActiveTab('weekly')" id="tabWeekly" class="btn-touch h-10 px-3.5 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-rose-50/50 border border-slate-200 shrink-0 whitespace-nowrap">
         📊 سجل الأسبوع المالي
       </button>
-      <button onclick="setActiveTab('dueMonth')" id="tabDueMonth" class="btn-touch h-10 px-4 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-rose-50/50 border border-slate-200 shrink-0 whitespace-nowrap flex items-center gap-1.5">
+      <button onclick="setActiveTab('dueMonth')" id="tabDueMonth" class="btn-touch h-10 px-3.5 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-rose-50/50 border border-slate-200 shrink-0 whitespace-nowrap flex items-center gap-1.5">
         <span>🤰 ولادات هذا الشهر</span>
         <span id="dueThisMonthCount" class="bg-rose-600 text-white px-1.5 py-0.2 rounded-full text-[10px] font-mono hidden">0</span>
       </button>
-      <button onclick="setActiveTab('all')" id="tabAll" class="btn-touch h-10 px-4 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-rose-50/50 border border-slate-200 shrink-0 whitespace-nowrap">
+      <button onclick="setActiveTab('surgeries')" id="tabSurgeries" class="btn-touch h-10 px-3.5 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-rose-50/50 border border-slate-200 shrink-0 whitespace-nowrap flex items-center gap-1.5">
+        <span>✂️ سجل العمليات والولادات</span>
+        <span id="allSurgeriesCountBadge" class="bg-slate-800 text-white px-1.5 py-0.2 rounded-full text-[10px] font-mono">0</span>
+      </button>
+      <button onclick="setActiveTab('all')" id="tabAll" class="btn-touch h-10 px-3.5 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-rose-50/50 border border-slate-200 shrink-0 whitespace-nowrap">
         📋 أرشيف المريضات
       </button>
     </div>
-
     <!-- Date Filter & Search Bar (Uniform 42px Touch Heights) -->
     <div class="bg-white p-2.5 rounded-2xl shadow-xs border border-slate-200 flex flex-col md:flex-row gap-2 justify-between items-center">
       <div id="dateControlGroup" class="flex items-center gap-1.5 w-full md:w-auto">
@@ -2761,7 +2761,9 @@
       } else {
         dueBadge.classList.add('hidden');
       }
-
+const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length || 0), 0);
+      const surgBadge = document.getElementById('allSurgeriesCountBadge');
+      if (surgBadge) surgBadge.innerText = totalSurgCount;
       const isSec = (currentRole === 'secretary');
 
       renderNextPatientSpotlight();
@@ -2788,6 +2790,10 @@
 
         if (!isSec && activeTab === 'weekly') {
           renderWeeklyGroupedView(list, '');
+          return;
+        }
+        if (!isSec && activeTab === 'surgeries') {
+          renderSurgeriesLedger();
           return;
         }
 
@@ -3581,6 +3587,154 @@
       document.getElementById('lockScreen').classList.remove('hidden');
     }
 
+    // --- HAPTIC VIBRATION ENGINE ---
+    function triggerHaptic(duration = 12) {
+      if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        try { navigator.vibrate(duration); } catch(e){}
+      }
+    }
+
+    // Attach native touch haptics globally to all clickable elements
+    document.addEventListener('touchstart', (e) => {
+      if (e.target.closest('button, .btn-touch, a, input[type="submit"]')) {
+        triggerHaptic(10);
+      }
+    }, { passive: true });
+
+    let activeSurgeryFilter = 'all';
+
+    function setSurgeryFilter(type) {
+      activeSurgeryFilter = type;
+      renderSurgeriesLedger();
+    }
+
+    // --- SURGICAL OPERATIONS & DELIVERIES DATABASE LEDGER ---
+    function renderSurgeriesLedger() {
+      const container = document.getElementById('patientList');
+      const q = normalizeArabic(document.getElementById('searchInput').value.trim());
+      container.innerHTML = '';
+
+      // Collect all surgeries across all patients
+      const allSurgList = [];
+      patients.forEach(p => {
+        if (p.surgeries && p.surgeries.length > 0) {
+          p.surgeries.forEach(s => {
+            allSurgList.push({ ...s, patient: p });
+          });
+        }
+      });
+
+      // Update badge
+      const surgBadge = document.getElementById('allSurgeriesCountBadge');
+      if (surgBadge) surgBadge.innerText = allSurgList.length;
+
+      // Filter by type and query
+      let filtered = allSurgList.filter(item => {
+        const matchesFilter = (activeSurgeryFilter === 'all') || item.type.includes(activeSurgeryFilter);
+        if (!q) return matchesFilter;
+        return matchesFilter && (
+          normalizeArabic(item.patient.name).includes(q) ||
+          normalizeArabic(item.type).includes(q) ||
+          normalizeArabic(item.hospital).includes(q) ||
+          normalizeArabic(item.surgeon).includes(q) ||
+          normalizeArabic(item.report).includes(q)
+        );
+      });
+
+      // Sort descending by surgery date
+      filtered.sort((a, b) => (b.date || '').localeCompare(a.date || '') || ((b.timestamp || 0) - (a.timestamp || 0)));
+
+      // Surgeries Stats Bar
+      const totalCS = allSurgList.filter(s => s.type.includes('قيصرية')).length;
+      const totalVD = allSurgList.filter(s => s.type.includes('ولادة طبيعية')).length;
+      const totalGyn = allSurgList.length - (totalCS + totalVD);
+
+      document.getElementById('queueStats').innerText = `✂️ قاعدة بيانات العمليات: إجمالي ${allSurgList.length} عمل جراحي (${totalCS} قيصرية | ${totalVD} ولادة طبيعية | ${totalGyn} جراحة نسائية)`;
+
+      // Filter Chips Bar
+      const filterBar = document.createElement('div');
+      filterBar.className = 'bg-white p-2 rounded-2xl border border-slate-200 flex gap-1.5 overflow-x-auto no-scrollbar';
+      
+      const filterChips = [
+        { id: 'all', label: 'الكل' },
+        { id: 'قيصرية', label: '👶 القيصريات' },
+        { id: 'ولادة طبيعية', label: '🤱 ولادات طبيعية' },
+        { id: 'تجريف', label: '🩺 تجريف رحم D&C' },
+        { id: 'استئصال رحم', label: '🏥 استئصال رحم' },
+        { id: 'ورم ليفي', label: '🎗️ استئصال أورام ليفية' },
+        { id: 'تنظير', label: '🔬 تنظير حوض' }
+      ];
+
+      filterBar.innerHTML = filterChips.map(c => `
+        <button onclick="setSurgeryFilter('${c.id}')" class="btn-touch h-8 px-3 rounded-lg text-xs font-bold shrink-0 whitespace-nowrap transition ${activeSurgeryFilter === c.id ? 'bg-rose-900 text-white shadow-2xs' : 'bg-slate-100 text-slate-700 hover:bg-rose-50'}">
+          ${c.label}
+        </button>
+      `).join('');
+
+      container.appendChild(filterBar);
+
+      if (filtered.length === 0) {
+        const emptyDiv = document.createElement('div');
+        emptyDiv.className = 'bg-white rounded-2xl p-12 text-center text-slate-400 font-semibold border border-slate-200';
+        emptyDiv.innerText = 'لا توجد عمليات جراحية مسجلة مطابقة للبحث أو الفلتر المختار.';
+        container.appendChild(emptyDiv);
+        return;
+      }
+
+      // Render Surgery Record Cards
+      filtered.forEach((s) => {
+        const card = document.createElement('div');
+        card.className = 'bg-white rounded-2xl p-3.5 shadow-xs border border-slate-200 space-y-2.5';
+        card.innerHTML = `
+          <div class="flex justify-between items-start gap-2 border-b border-slate-100 pb-2">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-900 border border-amber-200 flex items-center justify-center text-lg font-bold shrink-0">
+                ✂️
+              </div>
+              <div class="min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <h4 class="text-sm font-black text-slate-900">${escapeHTML(s.patient.name)}</h4>
+                  ${s.patient.husband ? `<span class="text-slate-500 text-xs font-normal">(زوجها: ${escapeHTML(s.patient.husband)})</span>` : ''}
+                  <span class="bg-rose-100 text-rose-900 text-[10px] font-bold px-2 py-0.5 rounded-md border border-rose-200">${escapeHTML(s.type)}</span>
+                </div>
+                <div class="text-[11px] text-slate-500 flex items-center gap-2 flex-wrap mt-0.5 font-mono">
+                  <span>📅 التاريخ: <strong>${escapeHTML(s.date)}</strong></span>
+                  ${s.hospital ? `<span>| 🏥 ${escapeHTML(s.hospital)}</span>` : ''}
+                  ${s.anesthesia ? `<span>| 💉 تخدير: ${escapeHTML(s.anesthesia)}</span>` : ''}
+                  ${s.surgeon ? `<span>| 👩‍⚕️ ${escapeHTML(s.surgeon)}</span>` : ''}
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-1 shrink-0">
+              <button onclick="openDoctorModal('${s.patient.id}')" class="btn-touch h-8 px-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg text-xs font-bold border border-slate-300">
+                📂 الملف
+              </button>
+              <button onclick="deleteSurgeryRecord('${s.patient.id}', '${s.id}')" class="btn-touch h-8 px-2 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg text-xs font-bold border border-rose-200">
+                🗑️
+              </button>
+            </div>
+          </div>
+
+          ${s.babyGender ? `
+            <div class="bg-rose-50/70 border border-rose-200 p-2.5 rounded-xl text-xs text-rose-950 flex justify-between items-center flex-wrap gap-2">
+              <span class="font-bold">👶 بيانات المولود: <strong>${escapeHTML(s.babyGender)}</strong></span>
+              ${s.babyWeight ? `<span>الوزن: <strong>${escapeHTML(s.babyWeight)} كغ</strong></span>` : ''}
+              ${s.babyStatus ? `<span>الحالة: <strong>${escapeHTML(s.babyStatus)}</strong></span>` : ''}
+            </div>
+          ` : ''}
+
+          ${s.report ? `
+            <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-xs text-slate-700 leading-relaxed">
+              <strong class="text-slate-900 block mb-0.5">📝 التقرير الجراحي والموجودات:</strong>
+              ${escapeHTML(s.report)}
+            </div>
+          ` : '<p class="text-[11px] text-slate-400 italic">لا توجد ملاحظات تفصيلية مدونة لهذا الإجراء.</p>'}
+        `;
+        container.appendChild(card);
+      });
+    }
+
     function applyRoleUI() {
       const roleBadge = document.getElementById('roleBadge');
       const docNav = document.getElementById('doctorNav');
@@ -3590,16 +3744,16 @@
       const financialTally = document.getElementById('financialTally');
 
       if (currentRole === 'doctor') {
-        roleBadge.innerText = '👑 الطبيبة (كامل الصلاحيات والمالية)';
-        roleBadge.className = 'text-[10px] bg-rose-950 text-rose-200 px-2 py-0.2 rounded-full font-bold';
+        roleBadge.innerText = '👑 الطبيبة';
+        roleBadge.className = 'text-[9px] sm:text-[10px] bg-rose-950 text-rose-200 border border-rose-800 px-1.5 py-0.5 rounded font-bold inline-block';
         docNav.classList.remove('hidden');
         secNav.classList.add('hidden');
         tabsContainer.classList.remove('hidden');
         dateControlGroup.classList.remove('hidden');
         financialTally.classList.remove('hidden');
       } else {
-        roleBadge.innerText = '📋 الاستقبال (مريضات اليوم فقط)';
-        roleBadge.className = 'text-[10px] bg-slate-800 text-slate-200 px-2 py-0.2 rounded-full font-bold';
+        roleBadge.innerText = '📋 الاستقبال';
+        roleBadge.className = 'text-[9px] sm:text-[10px] bg-slate-800 text-slate-200 border border-slate-700 px-1.5 py-0.5 rounded font-bold inline-block';
         docNav.classList.add('hidden');
         secNav.classList.remove('hidden');
         tabsContainer.classList.add('hidden');
@@ -3618,29 +3772,32 @@
       const tabDaily = document.getElementById('tabDaily');
       const tabWeekly = document.getElementById('tabWeekly');
       const tabDueMonth = document.getElementById('tabDueMonth');
+      const tabSurgeries = document.getElementById('tabSurgeries');
       const tabAll = document.getElementById('tabAll');
       const dateControlGroup = document.getElementById('dateControlGroup');
 
-      [tabDaily, tabWeekly, tabDueMonth, tabAll].forEach(t => {
-        t.className = 'px-3.5 py-2 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-rose-50 border border-slate-200 transition';
+      [tabDaily, tabWeekly, tabDueMonth, tabSurgeries, tabAll].forEach(t => {
+        if (t) t.className = 'btn-touch h-10 px-3.5 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-rose-50/50 border border-slate-200 shrink-0 whitespace-nowrap transition';
       });
 
       if (tab === 'daily') {
-        tabDaily.className = 'px-3.5 py-2 rounded-xl text-xs font-bold bg-rose-800 text-white shadow-sm transition';
+        tabDaily.className = 'btn-touch h-10 px-3.5 rounded-xl text-xs font-bold bg-rose-900 text-white shadow-xs shrink-0 whitespace-nowrap';
         dateControlGroup.classList.remove('hidden');
       } else if (tab === 'weekly') {
-        tabWeekly.className = 'px-3.5 py-2 rounded-xl text-xs font-bold bg-purple-900 text-white shadow-sm transition';
+        tabWeekly.className = 'btn-touch h-10 px-3.5 rounded-xl text-xs font-bold bg-slate-900 text-white shadow-xs shrink-0 whitespace-nowrap';
         dateControlGroup.classList.add('hidden');
       } else if (tab === 'dueMonth') {
-        tabDueMonth.className = 'px-3.5 py-2 rounded-xl text-xs font-bold bg-rose-600 text-white shadow-sm transition';
+        tabDueMonth.className = 'btn-touch h-10 px-3.5 rounded-xl text-xs font-bold bg-rose-700 text-white shadow-xs shrink-0 whitespace-nowrap';
+        dateControlGroup.classList.add('hidden');
+      } else if (tab === 'surgeries') {
+        tabSurgeries.className = 'btn-touch h-10 px-3.5 rounded-xl text-xs font-bold bg-amber-800 text-white shadow-xs shrink-0 whitespace-nowrap';
         dateControlGroup.classList.add('hidden');
       } else if (tab === 'all') {
-        tabAll.className = 'px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-900 text-white shadow-sm transition';
+        tabAll.className = 'btn-touch h-10 px-3.5 rounded-xl text-xs font-bold bg-slate-900 text-white shadow-xs shrink-0 whitespace-nowrap';
         dateControlGroup.classList.add('hidden');
       }
       renderApp();
     }
-
     // --- 25. PIN SETTINGS MANAGEMENT ---
     function openChangePinModal() {
       document.getElementById('currentDocPinDisplay').innerText = getDocPin();
