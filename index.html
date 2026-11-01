@@ -9,6 +9,7 @@
   <title>عيادة النسائية والتوليد وجراحتها - د. هيام خضر</title>
   
   <link rel="manifest" href="./manifest.json">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
   <link rel="stylesheet" href="./css/styles.css">
   
   <!-- Tailwind CSS & Google Fonts -->
@@ -68,23 +69,19 @@
       <div>
         <h2 class="text-xl font-black text-rose-950">عيادة النسائية والتوليد</h2>
         <p class="text-xs text-slate-500 font-bold mt-1">الدكتورة هيام خضر</p>
-        <p class="text-[11px] text-slate-400 mt-0.5">أدخلي رمز الدخول للمتابعة (الطبيبة أو الاستقبال)</p>
+        <p class="text-[11px] text-slate-400 mt-0.5">سجّلي الدخول بحساب العيادة (الطبيبة أو الاستقبال)</p>
       </div>
 
-      <div class="space-y-2">
-        <input type="password" id="pinInput" maxlength="8" placeholder="••••" 
-               class="w-full text-center text-3xl tracking-[0.4em] py-3 border-2 border-rose-200 rounded-2xl focus:outline-none focus:border-rose-700 font-bold bg-rose-50/30 text-rose-950 shadow-inner">
-        <p id="pinError" class="text-xs text-rose-600 font-bold hidden">⚠️ رمز الدخول غير صحيح، يرجى المحاولة ثانية</p>
-      </div>
-
-      <button onclick="checkPin()" class="w-full bg-rose-700 hover:bg-rose-800 text-white font-black py-3.5 rounded-2xl shadow-lg shadow-rose-900/20 active:scale-98 transition duration-150">
-        دخول إلى العيادة
-      </button>
-
-      <div class="text-[11px] text-slate-400 border-t border-rose-100 pt-3 space-y-1">
-        <p>رمز الطبيبة الافتراضي: <span class="font-mono font-bold text-rose-800">1234</span></p>
-        <p>رمز الاستقبال الافتراضي: <span class="font-mono font-bold text-slate-600">0000</span></p>
-      </div>
+      <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-2">
+        <input type="email" id="loginEmail" required autocomplete="username" dir="ltr" placeholder="البريد الإلكتروني"
+               class="w-full text-center text-sm py-3 border-2 border-rose-200 rounded-2xl focus:outline-none focus:border-rose-700 font-bold bg-rose-50/30 text-rose-950 shadow-inner">
+        <input type="password" id="loginPassword" required autocomplete="current-password" dir="ltr" placeholder="كلمة المرور"
+               class="w-full text-center text-sm py-3 border-2 border-rose-200 rounded-2xl focus:outline-none focus:border-rose-700 font-bold bg-rose-50/30 text-rose-950 shadow-inner">
+        <p id="loginError" class="text-xs text-rose-600 font-bold hidden"></p>
+        <button type="submit" id="loginBtn" class="w-full bg-rose-700 hover:bg-rose-800 text-white font-black py-3.5 rounded-2xl shadow-lg shadow-rose-900/20 active:scale-98 transition duration-150">
+          دخول إلى العيادة
+        </button>
+      </form>
     </div>
   </div>
 
@@ -148,7 +145,7 @@
                 <span class="w-6 text-center">📥</span> <span>استيراد نسخة احتياطية</span>
               </button>
               <button onclick="openChangePinModal(); closeAdminMenu();" class="w-full text-right px-3.5 py-2.5 hover:bg-rose-50 flex items-center gap-2.5 font-bold text-slate-700">
-                <span class="w-6 text-center">🔑</span> <span>إدارة رموز الأمان والتصفير</span>
+                <span class="w-6 text-center">🔑</span> <span>الحساب وكلمة المرور والتصفير</span>
               </button>
             </div>
           </div>
@@ -1060,21 +1057,17 @@
       <div class="flex justify-between items-center border-b border-rose-100 pb-2">
         <div class="flex items-center gap-2">
           <span class="text-xl">🔑</span>
-          <h2 class="text-base font-black text-rose-950">إدارة الرموز والإعدادات</h2>
+          <h2 class="text-base font-black text-rose-950">الحساب والإعدادات</h2>
         </div>
         <button type="button" onclick="closeChangePinModal()" class="text-gray-400 hover:text-rose-600 text-2xl font-bold p-1">&times;</button>
       </div>
 
-      <form onsubmit="handleDoctorPinUpdate(event)" class="space-y-2 bg-rose-50/30 p-3 rounded-2xl border border-rose-200">
-        <h3 class="font-bold text-rose-950">1. تغيير رمز الطبيبة (الحالي: <span id="currentDocPinDisplay" class="font-mono text-rose-800 font-bold"></span>)</h3>
-        <input type="password" id="newDocPin" required minlength="4" maxlength="8" placeholder="رمز الطبيبة الجديد" class="w-full p-2 border border-slate-300 rounded-xl text-center font-bold">
-        <button type="submit" class="w-full py-2 bg-rose-800 hover:bg-rose-900 text-white rounded-xl font-bold transition active:scale-95">تحديث رمز الطبيبة ومزامنته</button>
-      </form>
-
-      <form onsubmit="handleSecPinUpdate(event)" class="space-y-2 bg-slate-50 p-3 rounded-2xl border border-slate-200">
-        <h3 class="font-bold text-slate-800">2. تغيير رمز الاستقبال (الحالي: <span id="currentSecPinDisplay" class="font-mono text-slate-700 font-bold"></span>)</h3>
-        <input type="password" id="newSecPin" required minlength="4" maxlength="8" placeholder="رمز الاستقبال الجديد" class="w-full p-2 border border-slate-300 rounded-xl text-center font-bold">
-        <button type="submit" class="w-full py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold transition active:scale-95">تحديث رمز الاستقبال ومزامنته</button>
+      <form onsubmit="handlePasswordUpdate(event)" class="space-y-2 bg-rose-50/30 p-3 rounded-2xl border border-rose-200">
+        <h3 class="font-bold text-rose-950">تغيير كلمة مرور الحساب: <span id="currentAccountEmail" dir="ltr" class="font-mono text-rose-800 font-bold"></span></h3>
+        <input type="password" id="currentPassword" required autocomplete="current-password" placeholder="كلمة المرور الحالية" class="w-full p-2 border border-slate-300 rounded-xl text-center font-bold">
+        <input type="password" id="newPassword" required minlength="8" autocomplete="new-password" placeholder="كلمة المرور الجديدة (8 أحرف على الأقل)" class="w-full p-2 border border-slate-300 rounded-xl text-center font-bold">
+        <button type="submit" class="w-full py-2 bg-rose-800 hover:bg-rose-900 text-white rounded-xl font-bold transition active:scale-95">تحديث كلمة المرور</button>
+        <p class="text-[10px] text-slate-500">لتغيير كلمة مرور حساب الاستقبال: سجّلي الدخول بحساب الاستقبال، أو من لوحة Firebase.</p>
       </form>
 
       <div class="bg-red-50 p-3 rounded-2xl border border-red-200 space-y-1.5 text-center">
@@ -1094,13 +1087,13 @@
       <div>
         <h3 class="text-base font-black text-slate-900">تأكيد حذف ملف المريضة</h3>
         <p id="deleteModalPatientName" class="text-xs text-red-600 font-bold mt-1"></p>
-        <p class="text-[11px] text-slate-500 mt-1">لحذف هذا الملف نهائياً ومنع استعادته، أدخلي رمز أمان الطبيبة:</p>
+        <p class="text-[11px] text-slate-500 mt-1">لحذف هذا الملف نهائياً ومنع استعادته، أدخلي كلمة مرور حساب الطبيبة:</p>
       </div>
 
       <div>
-        <input type="password" id="deletePinInput" maxlength="8" placeholder="••••" 
-               class="w-full text-center text-xl tracking-[0.3em] py-2.5 border-2 border-red-200 rounded-xl focus:outline-none focus:border-red-600 font-bold bg-slate-50">
-        <p id="deletePinError" class="text-xs text-red-500 font-bold mt-1.5 hidden">⚠️ رمز الأمان غير صحيح!</p>
+        <input type="password" id="deletePinInput" autocomplete="current-password" placeholder="كلمة المرور"
+               class="w-full text-center text-base py-2.5 border-2 border-red-200 rounded-xl focus:outline-none focus:border-red-600 font-bold bg-slate-50">
+        <p id="deletePinError" class="text-xs text-red-500 font-bold mt-1.5 hidden">⚠️ كلمة المرور غير صحيحة!</p>
       </div>
 
       <div class="flex gap-2 pt-2">
@@ -1113,11 +1106,9 @@
   <!-- ==================== JAVASCRIPT ENGINE ==================== -->
   <script>
     // --- 1. CONFIGURATION & PERMANENT STORAGE KEYS ---
-    const DEFAULT_DOC_PIN = "1234";
-    const DEFAULT_SEC_PIN = "0000";
-    const DOC_PIN_KEY = "clinic_doc_pin";
-    const SEC_PIN_KEY = "clinic_sec_pin";
-    const CURRENT_ROLE_KEY = "clinic_user_role";
+    // Roles come from Firestore users/{uid}.role; this key only caches it per uid for offline start-up.
+    const ROLE_CACHE_KEY = "clinic_role_cache_v1";
+    const SYNCED_PHOTOS_KEY = "clinic_synced_photo_sets_v1";
     const PRIMARY_DB_KEY = "syria_obgyn_permanent_records_v15";
     const DELETED_IDS_KEY = "clinic_deleted_tombstones_v15";
     const DRUGS_KEY = "clinic_custom_drugs_v6";
@@ -1278,6 +1269,7 @@
                            (v.bp && v.bp.trim()) || 
                            (v.weight && v.weight.trim()) || 
                            (v.photos && v.photos.length > 0) ||
+                           (v.photoCount > 0) ||
                            hasFee;
         return hasContent || (v.date && v.complaint);
       });
@@ -1328,7 +1320,7 @@
 
     let patients = loadInitialPatients();
     let drugs = JSON.parse(localStorage.getItem(DRUGS_KEY) || JSON.stringify(DEFAULT_DRUGS));
-    let currentRole = sessionStorage.getItem(CURRENT_ROLE_KEY) || null;
+    let currentRole = null;
     let activeTab = 'daily';
     let currentAttachedPhotos = [];
     let patientToDeleteId = null;
@@ -1515,7 +1507,7 @@
 
         if (db) {
           toDeleteFromCloud.forEach(async (delId) => {
-            try { await db.collection('patients').doc(delId).delete(); } catch (err) {}
+            try { await deletePatientFromCloud(delId); } catch (err) { console.warn('Cloud merge delete note:', err); }
           });
 
           toUpdateInCloud.forEach(async (primaryP) => {
@@ -1542,26 +1534,20 @@
       let failCount = 0;
 
       for (const p of patients) {
-        try {
-          await syncPatientToCloud(p);
-          successCount++;
-        } catch (err) {
-          failCount++;
-        }
+        if (await syncPatientToCloud(p, { silent: true })) successCount++;
+        else failCount++;
       }
 
-      try {
-        await db.collection('settings').doc('security').set({
-          docPin: getDocPin(),
-          secPin: getSecPin(),
-          updatedAt: Date.now()
-        }, { merge: true });
-
-        await db.collection('settings').doc('drugs').set({
-          list: drugs,
-          updatedAt: Date.now()
-        });
-      } catch (e) {}
+      if (currentRole === 'doctor') {
+        try {
+          await db.collection('settings').doc('drugs').set({
+            list: cleanObjectForFirestore(drugs),
+            updatedAt: Date.now()
+          });
+        } catch (e) {
+          console.warn("Drugs cloud sync error:", e);
+        }
+      }
 
       document.getElementById('syncStatus').innerText = '🟢 متصل ومزامن';
       
@@ -1577,8 +1563,16 @@
       document.getElementById('syncReportModal').classList.add('hidden');
     }
 
-    function getDocPin() { return localStorage.getItem(DOC_PIN_KEY) || DEFAULT_DOC_PIN; }
-    function getSecPin() { return localStorage.getItem(SEC_PIN_KEY) || DEFAULT_SEC_PIN; }
+    // Safe JS string argument inside an HTML attribute, e.g. onclick="fn(${jsArg(x)})".
+    // escapeHTML alone is not enough there: the browser decodes &#039; back to ' before running the JS.
+    function jsArg(value) {
+      return escapeHTML(JSON.stringify(value === null || value === undefined ? '' : String(value)));
+    }
+
+    // Only accept the JPEG data URLs produced by handlePhotoUpload.
+    function isSafePhotoSrc(src) {
+      return typeof src === 'string' && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(src);
+    }
 
     function escapeHTML(str) {
       if (str === null || str === undefined) return '';
@@ -2114,6 +2108,10 @@
 
       renderArchiveVisitsTimeline(p);
       document.getElementById('doctorModal').classList.remove('hidden');
+
+      loadMissingVisitPhotos(p).then((changed) => {
+        if (changed && activeArchivePatient === p) renderArchiveVisitsTimeline(p);
+      });
     }
 
     function closeDoctorModal() {
@@ -2179,7 +2177,7 @@
                 <span>✂️ ${escapeHTML(s.type)}</span>
                 <span class="text-amber-800 text-[11px]">(${escapeHTML(s.date)})</span>
               </span>
-              <button type="button" onclick="deleteSurgeryRecord('${patient.id}', '${s.id}')" class="text-rose-600 hover:text-rose-800 text-[11px] font-bold p-1">🗑️ حذف</button>
+              <button type="button" onclick="deleteSurgeryRecord(${jsArg(patient.id)}, ${jsArg(s.id)})" class="text-rose-600 hover:text-rose-800 text-[11px] font-bold p-1">🗑️ حذف</button>
             </div>
             <div class="flex gap-3 text-[11px] text-slate-600 font-mono">
               ${s.hospital ? `<span>المشفى: <strong>${escapeHTML(s.hospital)}</strong></span>` : ''}
@@ -2209,7 +2207,7 @@
             </span>
             <div class="flex items-center gap-2">
               ${v.fee ? `<span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-lg border border-emerald-300 font-mono">${v.fee.toLocaleString()} ل.س</span>` : ''}
-              <button type="button" onclick="deleteVisitFromArchive('${patient.id}', '${v.id}')" class="text-rose-600 hover:text-rose-800 text-[11px] font-bold p-1">🗑️ حذف</button>
+              <button type="button" onclick="deleteVisitFromArchive(${jsArg(patient.id)}, ${jsArg(v.id)})" class="text-rose-600 hover:text-rose-800 text-[11px] font-bold p-1">🗑️ حذف</button>
             </div>
           </div>
 
@@ -2229,7 +2227,7 @@
             <div class="bg-amber-50/60 p-2.5 rounded-xl border border-amber-200 text-slate-800">
               <div class="flex justify-between items-center mb-0.5">
                 <strong class="text-rose-950">العلاج (Rx):</strong>
-                <button type="button" onclick="openWhatsAppModal('${patient.id}', '${escapeHTML(v.rx).replace(/'/g, "\\'")}')" class="text-emerald-700 text-[10px] font-bold">📲 إرسال واتساب</button>
+                <button type="button" onclick="openWhatsAppModal(${jsArg(patient.id)}, ${jsArg(v.rx)})" class="text-emerald-700 text-[10px] font-bold">📲 إرسال واتساب</button>
               </div>
               <p class="whitespace-pre-line font-sans">${escapeHTML(v.rx)}</p>
             </div>
@@ -2237,7 +2235,7 @@
 
           ${v.photos && v.photos.length > 0 ? `
             <div class="flex gap-2 flex-wrap pt-1">
-              ${v.photos.map(src => `<img src="${src}" class="w-12 h-12 rounded-xl object-cover border border-slate-300 cursor-pointer hover:opacity-80" onclick="openLightbox('${src}')">`).join('')}
+              ${v.photos.filter(isSafePhotoSrc).map(src => `<img src="${src}" class="w-12 h-12 rounded-xl object-cover border border-slate-300 cursor-pointer hover:opacity-80" onclick="openLightbox(this.src)">`).join('')}
             </div>
           ` : ''}
         `;
@@ -2807,6 +2805,14 @@
       const searchAlertText = document.getElementById('globalSearchAlertText');
       list.innerHTML = '';
 
+      if (!currentRole) {
+        document.getElementById('nextPatientSpotlightContainer').innerHTML = '';
+        document.getElementById('queueStats').innerHTML = '';
+        document.getElementById('dailyTotalIncome').innerText = '0';
+        searchBanner.classList.add('hidden');
+        return;
+      }
+
       const dueMonthPatients = patients.filter(p => {
         const preg = calculatePregnancy(p.lmp);
         return preg && !preg.isFuture && (preg.isDueWithinMonth || preg.isDueInCurrentMonth || preg.isOverdue);
@@ -3001,7 +3007,7 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
             </div>
           </div>
 
-          <button onclick="openNewVisitModal('${nextPatient.id}')" class="btn-touch h-10 px-4 bg-white text-rose-950 hover:bg-rose-50 rounded-xl font-black text-xs shadow-md shrink-0 w-full md:w-auto flex items-center justify-center gap-1.5">
+          <button onclick="openNewVisitModal(${jsArg(nextPatient.id)})" class="btn-touch h-10 px-4 bg-white text-rose-950 hover:bg-rose-50 rounded-xl font-black text-xs shadow-md shrink-0 w-full md:w-auto flex items-center justify-center gap-1.5">
             <span>🩺</span>
             <span>بدء فحص المريضة الآن</span>
           </button>
@@ -3058,7 +3064,7 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
               </div>
               <div class="flex items-center gap-2 flex-wrap text-xs text-slate-500 mt-0.5">
                 ${p.phone ? `
-                  <button type="button" onclick="openWhatsAppModal('${p.id}')" class="btn-touch h-6 px-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-[10px] rounded-md font-bold flex items-center gap-1">
+                  <button type="button" onclick="openWhatsAppModal(${jsArg(p.id)})" class="btn-touch h-6 px-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-[10px] rounded-md font-bold flex items-center gap-1">
                     💬 واتساب
                   </button>
                   <span class="font-mono text-slate-600" dir="ltr">${escapeHTML(p.phone)}</span>
@@ -3146,7 +3152,7 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
               ${latestVisit.rx ? `
                 <div class="bg-rose-50/40 p-2 rounded-lg border border-rose-100 flex justify-between items-center">
                   <span class="truncate text-slate-800">💊 <strong>Rx:</strong> ${escapeHTML(latestVisit.rx)}</span>
-                  <button type="button" onclick="openWhatsAppModal('${p.id}', '${escapeHTML(latestVisit.rx).replace(/'/g, "\\'")}')" class="text-emerald-700 text-[11px] font-bold shrink-0 mr-2">📲 إرسال</button>
+                  <button type="button" onclick="openWhatsAppModal(${jsArg(p.id)}, ${jsArg(latestVisit.rx)})" class="text-emerald-700 text-[11px] font-bold shrink-0 mr-2">📲 إرسال</button>
                 </div>
               ` : ''}
             </div>
@@ -3154,19 +3160,19 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
 
           <!-- 3. Bottom Uniform Touch Action Bar (Consistent Heights & Icons) -->
           <div class="grid grid-cols-4 gap-1.5 pt-1 border-t border-slate-100">
-            <button onclick="requestDeletePatient('${p.id}', '${escapeHTML(p.name)}')" class="btn-touch h-10 bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-700 rounded-xl font-bold text-xs border border-slate-200 flex items-center justify-center gap-1">
+            <button onclick="requestDeletePatient(${jsArg(p.id)}, ${jsArg(p.name)})" class="btn-touch h-10 bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-700 rounded-xl font-bold text-xs border border-slate-200 flex items-center justify-center gap-1">
               <span>🗑️</span>
               <span class="hidden sm:inline">حذف</span>
             </button>
-            <button onclick="openSurgeryModal('${p.id}')" class="btn-touch h-10 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-bold text-xs border border-slate-200 flex items-center justify-center gap-1">
+            <button onclick="openSurgeryModal(${jsArg(p.id)})" class="btn-touch h-10 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-bold text-xs border border-slate-200 flex items-center justify-center gap-1">
               <span>✂️</span>
               <span class="hidden sm:inline">جراحة</span>
             </button>
-            <button onclick="openDoctorModal('${p.id}')" class="btn-touch h-10 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-bold text-xs border border-slate-200 flex items-center justify-center gap-1">
+            <button onclick="openDoctorModal(${jsArg(p.id)})" class="btn-touch h-10 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-bold text-xs border border-slate-200 flex items-center justify-center gap-1">
               <span>📂</span>
               <span>السجل</span>
             </button>
-            <button onclick="openNewVisitModal('${p.id}')" class="btn-touch h-10 bg-rose-900 hover:bg-rose-950 text-white rounded-xl font-bold text-xs shadow-xs flex items-center justify-center gap-1">
+            <button onclick="openNewVisitModal(${jsArg(p.id)})" class="btn-touch h-10 bg-rose-900 hover:bg-rose-950 text-white rounded-xl font-bold text-xs shadow-xs flex items-center justify-center gap-1">
               <span>➕</span>
               <span>فحص</span>
             </button>
@@ -3282,12 +3288,36 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
       document.getElementById('deleteModal').classList.add('hidden');
     }
 
-    async function confirmDeletePatientWithPin() {
-      const enteredPin = document.getElementById('deletePinInput').value.trim();
-      const docPin = getDocPin();
+    // Re-checks the signed-in doctor's password with Firebase (needs internet).
+    async function reauthenticateDoctor(password) {
+      if (currentRole !== 'doctor') return { ok: false, msg: '⚠️ هذا الإجراء متاح لحساب الطبيبة فقط.' };
+      const user = firebase.auth().currentUser;
+      if (!user || !password) return { ok: false, msg: '⚠️ كلمة المرور غير صحيحة!' };
+      try {
+        const cred = firebase.auth.EmailAuthProvider.credential(user.email, password);
+        await user.reauthenticateWithCredential(cred);
+        return { ok: true };
+      } catch (err) {
+        if (err.code === 'auth/network-request-failed') return { ok: false, msg: '⚠️ يلزم اتصال بالإنترنت لتأكيد الحذف.' };
+        return { ok: false, msg: '⚠️ كلمة المرور غير صحيحة!' };
+      }
+    }
 
-      if (enteredPin !== docPin) {
-        document.getElementById('deletePinError').classList.remove('hidden');
+    async function deletePatientFromCloud(patientId) {
+      const ref = db.collection('patients').doc(patientId);
+      const photoSnap = await ref.collection('photos').get();
+      const batch = db.batch();
+      photoSnap.docs.forEach((d) => batch.delete(d.ref));
+      batch.delete(ref);
+      await batch.commit();
+    }
+
+    async function confirmDeletePatientWithPin() {
+      const errorEl = document.getElementById('deletePinError');
+      const check = await reauthenticateDoctor(document.getElementById('deletePinInput').value);
+      if (!check.ok) {
+        errorEl.innerText = check.msg;
+        errorEl.classList.remove('hidden');
         return;
       }
 
@@ -3301,9 +3331,10 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
 
       if (db) {
         try {
-          await db.collection('patients').doc(targetId).delete();
+          await deletePatientFromCloud(targetId);
         } catch (e) {
           console.warn("Cloud delete note:", e);
+          showRealtimeToast('⚠️ تعذر حذف الملف من السحابة، أعيدي المحاولة لاحقاً');
         }
       }
 
@@ -3311,9 +3342,11 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
     }
 
     async function purgeAllOldTestPatients() {
-      const pin = prompt('أدخلي رمز أمان الطبيبة لتأكيد مسح جميع السجلات:');
-      if (pin !== getDocPin()) {
-        alert('❌ رمز الأمان غير صحيح!');
+      const password = prompt('أدخلي كلمة مرور حساب الطبيبة لتأكيد مسح جميع السجلات:');
+      if (password === null) return;
+      const check = await reauthenticateDoctor(password);
+      if (!check.ok) {
+        alert(check.msg);
         return;
       }
 
@@ -3328,11 +3361,12 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
       if (db) {
         try {
           const snap = await db.collection('patients').get();
-          const batch = db.batch();
-          snap.docs.forEach((doc) => batch.delete(doc.ref));
-          await batch.commit();
+          for (const doc of snap.docs) {
+            await deletePatientFromCloud(doc.id);
+          }
         } catch (e) {
           console.warn("Cloud purge note:", e);
+          showRealtimeToast('⚠️ تعذر حذف بعض السجلات من السحابة');
         }
       }
 
@@ -3355,6 +3389,7 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
 
     let isInitialSyncDone = false;
     let unsubscribePatientsListener = null;
+    let settingsUnsubscribers = [];
 
     try {
       if (typeof firebase !== 'undefined') {
@@ -3367,25 +3402,100 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
           console.warn("Persistence note:", err.code);
         });
 
-        firebase.auth().onAuthStateChanged((user) => {
-          if (user) {
-            setupFirestoreRealtimeListeners();
-          } else {
-            firebase.auth().signInAnonymously().catch((err) => {
-              console.warn("Anonymous auth note:", err.message);
-              setupFirestoreRealtimeListeners();
-            });
-          }
-        });
+        firebase.auth().onAuthStateChanged(handleAuthStateChanged);
+      } else {
+        showLoginError('⚠️ تعذر تحميل نظام الدخول. تحققي من الاتصال بالإنترنت ثم أعيدي فتح التطبيق.');
       }
     } catch (e) {
-      console.warn('Firebase init fallback mode:', e);
-      const statusEl = document.getElementById('syncStatus');
-      if (statusEl) statusEl.innerText = '🟡 محلي آمن';
+      console.warn('Firebase init error:', e);
+      showLoginError('⚠️ تعذر تشغيل نظام الدخول. تحققي من الاتصال بالإنترنت ثم أعيدي فتح التطبيق.');
+    }
+
+    // --- AUTHENTICATION: Firebase email/password + role from users/{uid} ---
+    function showLoginError(msg) {
+      const el = document.getElementById('loginError');
+      if (!el) return;
+      el.innerText = msg;
+      el.classList.toggle('hidden', !msg);
+    }
+
+    function readRoleCache() {
+      try { return JSON.parse(localStorage.getItem(ROLE_CACHE_KEY) || '{}'); } catch (e) { return {}; }
+    }
+
+    async function fetchUserRole(user) {
+      try {
+        const snap = await db.collection('users').doc(user.uid).get();
+        const role = snap.exists ? snap.data().role : null;
+        const cache = readRoleCache();
+        if (role) cache[user.uid] = role; else delete cache[user.uid];
+        localStorage.setItem(ROLE_CACHE_KEY, JSON.stringify(cache));
+        return role;
+      } catch (err) {
+        // Offline start-up: fall back to the role last confirmed by the server for this account.
+        console.warn('Role fetch note:', err);
+        return readRoleCache()[user.uid] || null;
+      }
+    }
+
+    async function handleAuthStateChanged(user) {
+      if (!user) {
+        stopFirestoreListeners();
+        currentRole = null;
+        showLockScreen();
+        return;
+      }
+
+      const role = await fetchUserRole(user);
+      if (role !== 'doctor' && role !== 'secretary') {
+        showLoginError('⚠️ هذا الحساب غير مفعّل في العيادة. اطلبي من الطبيبة إضافة صلاحية له.');
+        await firebase.auth().signOut();
+        return;
+      }
+
+      currentRole = role;
+      showLoginError('');
+      document.getElementById('loginPassword').value = '';
+      document.getElementById('lockScreen').classList.add('hidden');
+      applyRoleUI();
+      setupFirestoreRealtimeListeners();
+      if (currentRole === 'doctor') checkWeeklyAutoBackup();
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      if (typeof firebase === 'undefined' || !firebase.apps.length) {
+        showLoginError('⚠️ تعذر تحميل نظام الدخول. تحققي من الاتصال بالإنترنت.');
+        return;
+      }
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      const btn = document.getElementById('loginBtn');
+      btn.disabled = true;
+      showLoginError('');
+      try {
+        await firebase.auth().signInWithEmailAndPassword(email, password);
+      } catch (err) {
+        const msg = err.code === 'auth/network-request-failed'
+          ? '⚠️ لا يوجد اتصال بالإنترنت. أول تسجيل دخول يحتاج اتصالاً.'
+          : err.code === 'auth/too-many-requests'
+            ? '⚠️ محاولات كثيرة خاطئة. انتظري قليلاً ثم أعيدي المحاولة.'
+            : '⚠️ البريد الإلكتروني أو كلمة المرور غير صحيحة.';
+        showLoginError(msg);
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    function stopFirestoreListeners() {
+      if (unsubscribePatientsListener) { unsubscribePatientsListener(); unsubscribePatientsListener = null; }
+      settingsUnsubscribers.forEach((unsub) => unsub());
+      settingsUnsubscribers = [];
+      isInitialSyncDone = false;
     }
 
     function setupFirestoreRealtimeListeners() {
-      if (!db || unsubscribePatientsListener) return;
+      if (!db || !currentRole || unsubscribePatientsListener) return;
 
       unsubscribePatientsListener = db.collection('patients').onSnapshot({ includeMetadataChanges: false }, (snapshot) => {
         const deletedIds = getDeletedIds();
@@ -3402,9 +3512,16 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
             const existingIdx = patients.findIndex(p => p.id === docId);
 
             if (existingIdx >= 0) {
-              if ((!incomingPatient.photos || incomingPatient.photos.length === 0) && patients[existingIdx].photos) {
-                incomingPatient.photos = patients[existingIdx].photos;
+              const existing = patients[existingIdx];
+              if ((!incomingPatient.photos || incomingPatient.photos.length === 0) && existing.photos) {
+                incomingPatient.photos = existing.photos;
               }
+              // Photos live in patients/{id}/photos now, so cloud copies of visits arrive without them.
+              incomingPatient.visits.forEach((v) => {
+                if (v.photos && v.photos.length > 0) return;
+                const local = (existing.visits || []).find((lv) => lv.id === v.id);
+                if (local && local.photos && local.photos.length > 0) v.photos = local.photos;
+              });
               patients[existingIdx] = incomingPatient;
             } else {
               patients.unshift(incomingPatient);
@@ -3425,80 +3542,144 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
           }
         }
 
-        const statusEl = document.getElementById('syncStatus');
-        if (statusEl) statusEl.innerText = '🟢 متصل ومزامن';
+        isListenerHealthy = true;
+        updateSyncStatus();
       }, (err) => {
         console.warn('Firestore sync warning:', err);
-        const statusEl = document.getElementById('syncStatus');
-        if (statusEl) statusEl.innerText = '🟡 محلي آمن';
+        isListenerHealthy = false;
+        updateSyncStatus();
       });
 
-      listenToPinAndDrugsChanges();
+      listenToDrugsChanges();
+    }
+
+    // --- SYNC STATUS: failed writes stay visible until a later write of that patient succeeds ---
+    const failedSyncIds = new Set();
+    let pendingWrites = 0;
+    let isListenerHealthy = true;
+
+    function updateSyncStatus() {
+      const statusEl = document.getElementById('syncStatus');
+      if (!statusEl) return;
+      if (failedSyncIds.size > 0) statusEl.innerText = `🔴 تعذر رفع ${failedSyncIds.size} ملف`;
+      else if (!isListenerHealthy) statusEl.innerText = '🟡 محلي (غير متصل)';
+      else if (pendingWrites > 0) statusEl.innerText = '⏳ بانتظار الاتصال';
+      else statusEl.innerText = '🟢 متصل ومزامن';
     }
 
     function cleanObjectForFirestore(obj) {
       return JSON.parse(JSON.stringify(obj, (k, v) => (v === undefined ? null : v)));
     }
 
-    async function syncPatientToCloud(patient) {
+    // Firestore resolves writes only once the server confirms them, which never happens while offline.
+    // The write is already queued locally by then, so stop waiting after a few seconds.
+    function trackCloudWrite(promise, patientId, silent) {
+      pendingWrites++;
+      updateSyncStatus();
+      const tracked = promise.then(() => {
+        failedSyncIds.delete(patientId);
+        return true;
+      }).catch((err) => {
+        console.warn('Cloud sync write warning:', err);
+        failedSyncIds.add(patientId);
+        if (!silent) {
+          showRealtimeToast(err && err.code === 'permission-denied'
+            ? '🔴 لا يملك هذا الحساب صلاحية الحفظ في السحابة'
+            : '🔴 تعذر رفع الملف إلى السحابة، سيُعاد عند المزامنة');
+        }
+        return false;
+      }).finally(() => {
+        pendingWrites--;
+        updateSyncStatus();
+      });
+      const timeout = new Promise((resolve) => setTimeout(() => resolve(true), 6000));
+      return Promise.race([tracked, timeout]);
+    }
+
+    function readSyncedPhotoSets() {
+      try { return new Set(JSON.parse(localStorage.getItem(SYNCED_PHOTOS_KEY) || '[]')); } catch (e) { return new Set(); }
+    }
+
+    function markPhotoSetSynced(key) {
+      const set = readSyncedPhotoSets();
+      set.add(key);
+      localStorage.setItem(SYNCED_PHOTOS_KEY, JSON.stringify([...set]));
+    }
+
+    // Visit photos are stored in patients/{id}/photos/{visitId} so the patient document
+    // stays far below Firestore's 1 MB limit. The patient document only keeps photoCount.
+    async function syncPatientToCloud(patient, { silent = false } = {}) {
       const deletedIds = getDeletedIds();
-      if (!patient || !patient.id || deletedIds.has(patient.id)) return;
-      if (!db) return;
+      if (!patient || !patient.id || deletedIds.has(patient.id)) return false;
+      if (!db || !currentRole) return false;
 
       const lightPatient = { ...patient };
-      const photosSize = JSON.stringify(lightPatient.photos || []).length;
-      
-      if (photosSize > 250000) {
-        delete lightPatient.photos;
-      }
+      delete lightPatient.photos;
+      lightPatient.visits = (patient.visits || []).map((v) => {
+        const photos = (Array.isArray(v.photos) ? v.photos : []).filter(isSafePhotoSrc);
+        const { photos: _omit, ...rest } = v;
+        return { ...rest, photoCount: photos.length || v.photoCount || 0 };
+      });
 
-      const payload = cleanObjectForFirestore(lightPatient);
+      const patientRef = db.collection('patients').doc(patient.id);
+      const writes = [trackCloudWrite(patientRef.set(cleanObjectForFirestore(lightPatient), { merge: true }), patient.id, silent)];
 
+      const synced = readSyncedPhotoSets();
+      (patient.visits || []).forEach((v) => {
+        const photos = (Array.isArray(v.photos) ? v.photos : []).filter(isSafePhotoSrc);
+        if (photos.length === 0) return;
+        const key = `${patient.id}/${v.id}:${photos.length}`;
+        if (synced.has(key)) return;
+        if (JSON.stringify(photos).length > 900000) {
+          if (!silent) showRealtimeToast('⚠️ صور هذه الزيارة كبيرة جداً للرفع، احذفي بعضها');
+          return;
+        }
+        const write = patientRef.collection('photos').doc(v.id).set({ visitId: v.id, list: photos, updatedAt: Date.now() });
+        write.then(() => markPhotoSetSynced(key)).catch(() => {});
+        writes.push(trackCloudWrite(write, patient.id, silent));
+      });
+
+      const results = await Promise.all(writes);
+      return results.every(Boolean);
+    }
+
+    // Fetch visit photos that exist in the cloud but not on this device yet.
+    async function loadMissingVisitPhotos(patient) {
+      if (!db || !patient) return false;
+      const missing = (patient.visits || []).filter((v) => v.photoCount > 0 && !(v.photos && v.photos.length));
+      if (missing.length === 0) return false;
       try {
-        await db.collection('patients').doc(patient.id).set(payload, { merge: true });
+        const snap = await db.collection('patients').doc(patient.id).collection('photos').get();
+        let changed = false;
+        snap.docs.forEach((d) => {
+          const v = patient.visits.find((x) => x.id === d.id);
+          const list = (d.data().list || []).filter(isSafePhotoSrc);
+          if (v && list.length && !(v.photos && v.photos.length)) {
+            v.photos = list;
+            changed = true;
+          }
+        });
+        if (changed) saveDataPermanently();
+        return changed;
       } catch (err) {
-        console.warn('Cloud sync write warning:', err);
+        console.warn('Photo fetch note:', err);
+        return false;
       }
     }
 
-    function listenToPinAndDrugsChanges() {
+    function listenToDrugsChanges() {
       if (!db) return;
       try {
-        db.collection('settings').doc('security').onSnapshot((doc) => {
-          if (doc.exists) {
-            const data = doc.data();
-            if (data.docPin) localStorage.setItem(DOC_PIN_KEY, data.docPin);
-            if (data.secPin) localStorage.setItem(SEC_PIN_KEY, data.secPin);
-          }
-        });
-
-        db.collection('settings').doc('drugs').onSnapshot((doc) => {
+        settingsUnsubscribers.push(db.collection('settings').doc('drugs').onSnapshot((doc) => {
           if (doc.exists && doc.data().list) {
             drugs = doc.data().list;
             localStorage.setItem(DRUGS_KEY, JSON.stringify(drugs));
             renderDrugChips();
             renderDrugsTable();
           }
-        });
+        }, (err) => console.warn("Drugs listener note:", err)));
       } catch (e) {
         console.warn("Settings listener note:", e);
-      }
-    }
-
-    async function savePinToCloud(type, newPin) {
-      if (type === 'doctor') localStorage.setItem(DOC_PIN_KEY, newPin);
-      else localStorage.setItem(SEC_PIN_KEY, newPin);
-
-      if (db) {
-        try {
-          await db.collection('settings').doc('security').set({
-            docPin: getDocPin(),
-            secPin: getSecPin(),
-            updatedAt: Date.now()
-          }, { merge: true });
-        } catch (err) {
-          console.warn("Cloud PIN write note:", err);
-        }
       }
     }
 
@@ -3507,7 +3688,7 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
       renderDrugChips();
       renderDrugsTable();
 
-      if (db) {
+      if (db && currentRole === 'doctor') {
         try {
           await db.collection('settings').doc('drugs').set({
             list: cleanObjectForFirestore(drugs),
@@ -3613,35 +3794,20 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
     function closeDrugsModal() { document.getElementById('drugsModal').classList.add('hidden'); }
 
     // --- 24. AUTHENTICATION & ROLE SWITCHING ---
-    function checkPin() {
-      const pin = document.getElementById('pinInput').value.trim();
-      const docPin = getDocPin();
-      const secPin = getSecPin();
-
-      if (pin === docPin) {
-        currentRole = "doctor";
-        sessionStorage.setItem(CURRENT_ROLE_KEY, "doctor");
-        document.getElementById('lockScreen').classList.add('hidden');
-        document.getElementById('pinError').classList.add('hidden');
-        document.getElementById('pinInput').value = "";
-        applyRoleUI();
-        checkWeeklyAutoBackup();
-      } else if (pin === secPin) {
-        currentRole = "secretary";
-        sessionStorage.setItem(CURRENT_ROLE_KEY, "secretary");
-        document.getElementById('lockScreen').classList.add('hidden');
-        document.getElementById('pinError').classList.add('hidden');
-        document.getElementById('pinInput').value = "";
-        applyRoleUI();
-      } else {
-        document.getElementById('pinError').classList.remove('hidden');
-      }
+    // Hide every patient detail from the page while signed out.
+    function showLockScreen() {
+      document.getElementById('lockScreen').classList.remove('hidden');
+      document.querySelectorAll('.fixed.inset-0:not(#lockScreen)').forEach((m) => m.classList.add('hidden'));
+      renderApp();
     }
 
-    function lockApp() {
-      sessionStorage.removeItem(CURRENT_ROLE_KEY);
+    async function lockApp() {
+      stopFirestoreListeners();
       currentRole = null;
-      document.getElementById('lockScreen').classList.remove('hidden');
+      showLockScreen();
+      if (typeof firebase !== 'undefined' && firebase.apps.length) {
+        try { await firebase.auth().signOut(); } catch (e) { console.warn('Sign-out note:', e); }
+      }
     }
 
     // --- HAPTIC VIBRATION ENGINE ---
@@ -3723,7 +3889,7 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
       ];
 
       filterBar.innerHTML = filterChips.map(c => `
-        <button onclick="setSurgeryFilter('${c.id}')" class="btn-touch h-8 px-3 rounded-lg text-xs font-bold shrink-0 whitespace-nowrap transition ${activeSurgeryFilter === c.id ? 'bg-rose-900 text-white shadow-2xs' : 'bg-slate-100 text-slate-700 hover:bg-rose-50'}">
+        <button onclick="setSurgeryFilter(${jsArg(c.id)})" class="btn-touch h-8 px-3 rounded-lg text-xs font-bold shrink-0 whitespace-nowrap transition ${activeSurgeryFilter === c.id ? 'bg-rose-900 text-white shadow-2xs' : 'bg-slate-100 text-slate-700 hover:bg-rose-50'}">
           ${c.label}
         </button>
       `).join('');
@@ -3764,10 +3930,10 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
             </div>
 
             <div class="flex items-center gap-1 shrink-0">
-              <button onclick="openDoctorModal('${s.patient.id}')" class="btn-touch h-8 px-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg text-xs font-bold border border-slate-300">
+              <button onclick="openDoctorModal(${jsArg(s.patient.id)})" class="btn-touch h-8 px-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg text-xs font-bold border border-slate-300">
                 📂 الملف
               </button>
-              <button onclick="deleteSurgeryRecord('${s.patient.id}', '${s.id}')" class="btn-touch h-8 px-2 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg text-xs font-bold border border-rose-200">
+              <button onclick="deleteSurgeryRecord(${jsArg(s.patient.id)}, ${jsArg(s.id)})" class="btn-touch h-8 px-2 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg text-xs font-bold border border-rose-200">
                 🗑️
               </button>
             </div>
@@ -3857,32 +4023,32 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
     }
     // --- 25. PIN SETTINGS MANAGEMENT ---
     function openChangePinModal() {
-      document.getElementById('currentDocPinDisplay').innerText = getDocPin();
-      document.getElementById('currentSecPinDisplay').innerText = getSecPin();
+      const user = (typeof firebase !== 'undefined' && firebase.apps.length) ? firebase.auth().currentUser : null;
+      document.getElementById('currentAccountEmail').innerText = user ? user.email : '';
       document.getElementById('changePinModal').classList.remove('hidden');
     }
     function closeChangePinModal() { document.getElementById('changePinModal').classList.add('hidden'); }
 
-    async function handleDoctorPinUpdate(e) {
+    async function handlePasswordUpdate(e) {
       e.preventDefault();
-      const p = document.getElementById('newDocPin').value.trim();
-      if (p.length < 4) { alert('الرمز يجب أن يكون 4 أرقام على الأقل'); return; }
-      await savePinToCloud('doctor', p);
-      document.getElementById('currentDocPinDisplay').innerText = p;
-      document.getElementById('newDocPin').value = '';
-      alert('✅ تم تحديث رمز الطبيبة ومزامنته!');
-      closeChangePinModal();
-    }
-
-    async function handleSecPinUpdate(e) {
-      e.preventDefault();
-      const p = document.getElementById('newSecPin').value.trim();
-      if (p.length < 4) { alert('الرمز يجب أن يكون 4 أرقام على الأقل'); return; }
-      await savePinToCloud('secretary', p);
-      document.getElementById('currentSecPinDisplay').innerText = p;
-      document.getElementById('newSecPin').value = '';
-      alert('✅ تم تحديث رمز الاستقبال بنجاح!');
-      closeChangePinModal();
+      const user = firebase.auth().currentUser;
+      const currentPw = document.getElementById('currentPassword').value;
+      const newPw = document.getElementById('newPassword').value;
+      if (!user) return;
+      if (newPw.length < 8) { alert('كلمة المرور يجب أن تكون 8 أحرف على الأقل'); return; }
+      try {
+        await user.reauthenticateWithCredential(firebase.auth.EmailAuthProvider.credential(user.email, currentPw));
+        await user.updatePassword(newPw);
+        document.getElementById('currentPassword').value = '';
+        document.getElementById('newPassword').value = '';
+        alert('✅ تم تحديث كلمة المرور بنجاح!');
+        closeChangePinModal();
+      } catch (err) {
+        console.warn('Password update note:', err);
+        alert(err.code === 'auth/network-request-failed'
+          ? '⚠️ يلزم اتصال بالإنترنت لتغيير كلمة المرور.'
+          : (err.code === 'auth/weak-password' ? '⚠️ كلمة المرور الجديدة ضعيفة.' : '⚠️ كلمة المرور الحالية غير صحيحة.'));
+      }
     }
 
     // --- 26. EXPORT, IMPORT & NON-INTRUSIVE BACKUP ---
@@ -4030,7 +4196,7 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
         const wrap = document.createElement('div');
         wrap.className = 'relative w-14 h-14 rounded-xl overflow-hidden border border-slate-300 shadow-sm';
         wrap.innerHTML = `
-          <img src="${src}" class="w-full h-full object-cover cursor-pointer" onclick="openLightbox('${src}')">
+          <img src="${isSafePhotoSrc(src) ? src : ''}" class="w-full h-full object-cover cursor-pointer" onclick="openLightbox(this.src)">
           <button type="button" onclick="removePhoto(${idx})" class="absolute top-0 right-0 bg-rose-600 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-bl">&times;</button>
         `;
         container.appendChild(wrap);
@@ -4043,6 +4209,7 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
     }
 
     function openLightbox(src) {
+      if (!isSafePhotoSrc(src)) return;
       document.getElementById('lightboxImg').src = src;
       document.getElementById('imageLightbox').classList.remove('hidden');
     }
@@ -4058,10 +4225,6 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
       setTimeout(() => document.getElementById('secName').focus(), 150);
     }
     function closeSecretaryModal() { document.getElementById('secretaryModal').classList.add('hidden'); }
-
-    document.getElementById('pinInput').addEventListener('keyup', (e) => {
-      if (e.key === 'Enter') checkPin();
-    });
 
     document.getElementById('deletePinInput').addEventListener('keyup', (e) => {
       if (e.key === 'Enter') confirmDeletePatientWithPin();
@@ -4082,12 +4245,8 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
         }
       }
 
-      if (currentRole) {
-        document.getElementById('lockScreen').classList.add('hidden');
-        applyRoleUI();
-        if (currentRole === 'doctor') checkWeeklyAutoBackup();
-      }
-      renderApp();
+      // The lock screen stays up until Firebase confirms a signed-in account with a role.
+      if (currentRole) renderApp();
       renderDrugChips();
     })();
 
