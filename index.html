@@ -600,6 +600,19 @@
           <textarea id="nvUltrasound" rows="2" placeholder="تقرير الفحص السريري والإيكو..." class="w-full p-2.5 border border-slate-300 rounded-xl text-sm bg-slate-50 focus:bg-white"></textarea>
         </div>
 
+        <!-- Lab Results (typed) -->
+        <details id="nvLabsDetails" class="bg-sky-50/60 rounded-xl border border-sky-200 group">
+          <summary class="cursor-pointer select-none p-2.5 font-bold text-sky-950 text-xs flex justify-between items-center">
+            <span>🧪 نتائج التحاليل <span id="nvLabsFilledCount" class="text-[10px] text-sky-700 font-normal"></span></span>
+            <span class="text-[10px] text-sky-700 group-open:rotate-180 transition">▼</span>
+          </summary>
+          <div class="p-2.5 pt-0 space-y-2">
+            <div id="nvLabsFields" class="grid grid-cols-2 gap-2"></div>
+            <textarea id="nvLabsOther" rows="2" placeholder="تحاليل أخرى (اكتبي اسم التحليل والنتيجة)..." class="w-full p-2 border border-sky-200 rounded-xl text-xs bg-white"></textarea>
+            <p class="text-[10px] text-slate-500">القيم خارج المجال المرجعي للحمل تظهر باللون الأحمر.</p>
+          </div>
+        </details>
+
         <!-- Photos -->
         <div class="space-y-1.5">
           <div class="flex justify-between items-center">
@@ -1270,6 +1283,7 @@
                            (v.weight && v.weight.trim()) || 
                            (v.photos && v.photos.length > 0) ||
                            (v.photoCount > 0) ||
+                           hasLabs(v.labs) ||
                            hasFee;
         return hasContent || (v.date && v.complaint);
       });
@@ -2194,7 +2208,15 @@
         container.appendChild(divider);
       }
 
-      // 2. عرض الزيارات السريرية
+      // 2. تطور التحاليل الرقمية عبر الزيارات
+      const trends = labTrendsHTML(visits);
+      if (trends) {
+        const trendBox = document.createElement('div');
+        trendBox.innerHTML = trends;
+        container.appendChild(trendBox);
+      }
+
+      // 3. عرض الزيارات السريرية
       visits.forEach((v, idx) => {
         const item = document.createElement('div');
         item.className = 'bg-slate-50 hover:bg-rose-50/30 p-3.5 rounded-2xl border border-slate-200 transition space-y-2 text-xs';
@@ -2220,6 +2242,14 @@
           ${v.ultrasound ? `
             <div class="bg-white p-2.5 rounded-xl border border-slate-200 text-slate-800">
               <strong class="text-rose-950">تقرير الإيكو:</strong> ${escapeHTML(v.ultrasound)}
+            </div>
+          ` : ''}
+
+          ${hasLabs(v.labs) ? `
+            <div class="bg-sky-50/60 p-2.5 rounded-xl border border-sky-200 space-y-1.5">
+              <strong class="text-sky-950">🧪 التحاليل:</strong>
+              <div class="flex flex-wrap gap-1.5">${labChipsHTML(v.labs)}</div>
+              ${v.labs.other ? `<p class="whitespace-pre-line text-slate-800">${escapeHTML(v.labs.other)}</p>` : ''}
             </div>
           ` : ''}
 
@@ -2260,6 +2290,144 @@
       await syncPatientToCloud(p);
       renderArchiveVisitsTimeline(p);
       showRealtimeToast('🗑️ تم حذف الزيارة بنجاح');
+    }
+
+    // --- 12b. TYPED LAB RESULTS ---
+    // Pregnancy reference points used only to colour a value red; the doctor decides.
+    // Adjust low/high here to match the clinic's laboratory.
+    const LAB_TESTS = [
+      { key: 'hb',         label: 'خضاب الدم', code: 'Hb',              unit: 'g/dL',    type: 'number', low: 11 },
+      { key: 'plt',        label: 'الصفيحات', code: 'PLT',              unit: '×10³/µL', type: 'number', low: 150 },
+      { key: 'fbs',        label: 'سكر صيامي', code: 'FBS',             unit: 'mg/dL',   type: 'number', high: 92 },
+      { key: 'ogtt2h',     label: 'سكر بعد ساعتين', code: 'OGTT',       unit: 'mg/dL',   type: 'number', high: 153 },
+      { key: 'tsh',        label: 'هرمون الدرق', code: 'TSH',           unit: 'mIU/L',   type: 'number', high: 4 },
+      { key: 'urine',      label: 'تحليل البول',                 type: 'select', options: ['طبيعي', 'إنتان', 'بروتين', 'سكر'], normal: ['طبيعي'] },
+      { key: 'hbsag',      label: 'التهاب الكبد B', code: 'HBsAg',      type: 'select', options: ['سلبي', 'إيجابي'], normal: ['سلبي'] },
+      { key: 'toxoIgm',    label: 'المقوسات', code: 'Toxo IgM',         type: 'select', options: ['سلبي', 'إيجابي'], normal: ['سلبي'] },
+      { key: 'rubellaIgg', label: 'الحصبة الألمانية', code: 'Rubella IgG', type: 'select', options: ['منيعة', 'غير منيعة'], normal: ['منيعة'] }
+    ];
+
+    // Latin test codes are marked left-to-right so brackets don't flip inside Arabic text.
+    function labLabelHTML(test) {
+      return escapeHTML(test.label) + (test.code ? ` <span dir="ltr" class="inline-block">(${escapeHTML(test.code)})</span>` : '');
+    }
+
+    function isLabAbnormal(test, value) {
+      if (value === undefined || value === null || value === '') return false;
+      if (test.type === 'number') {
+        const n = Number(value);
+        if (!Number.isFinite(n)) return false;
+        return (test.low !== undefined && n < test.low) || (test.high !== undefined && n > test.high);
+      }
+      return !(test.normal || []).includes(value);
+    }
+
+    function renderLabInputs(labs = {}) {
+      const container = document.getElementById('nvLabsFields');
+      container.innerHTML = LAB_TESTS.map((t) => {
+        const id = `nvLab_${t.key}`;
+        const field = t.type === 'number'
+          ? `<input type="text" inputmode="decimal" id="${id}" dir="ltr" placeholder="${escapeHTML(t.unit)}" class="w-full p-2 border border-slate-300 rounded-xl text-xs bg-white font-mono text-center">`
+          : `<select id="${id}" class="w-full p-2 border border-slate-300 rounded-xl text-xs bg-white">
+               <option value="">—</option>
+               ${t.options.map((o) => `<option value="${escapeHTML(o)}">${escapeHTML(o)}</option>`).join('')}
+             </select>`;
+        return `<label class="block space-y-0.5"><span class="block text-[11px] font-bold text-slate-700">${labLabelHTML(t)}</span>${field}</label>`;
+      }).join('');
+
+      LAB_TESTS.forEach((t) => {
+        const el = document.getElementById(`nvLab_${t.key}`);
+        el.value = labs[t.key] !== undefined ? String(labs[t.key]) : '';
+        el.addEventListener('input', () => updateLabInputState(t));
+        el.addEventListener('change', () => updateLabInputState(t));
+        updateLabInputState(t);
+      });
+      document.getElementById('nvLabsOther').value = labs.other || '';
+      updateLabsFilledCount();
+    }
+
+    function readLabInput(test) {
+      const raw = document.getElementById(`nvLab_${test.key}`).value.trim();
+      if (!raw) return null;
+      if (test.type !== 'number') return raw;
+      // Accept Arabic digits and the Arabic decimal separator (٫) or a comma as the decimal point.
+      const normalized = convertArabicNumerals(raw).replace(/[٫,،]/g, '.');
+      if (!/^\d+(\.\d+)?$/.test(normalized)) return NaN;
+      return parseFloat(normalized);
+    }
+
+    function updateLabInputState(test) {
+      const el = document.getElementById(`nvLab_${test.key}`);
+      const value = readLabInput(test);
+      const invalid = Number.isNaN(value);
+      const abnormal = !invalid && isLabAbnormal(test, value);
+      el.classList.toggle('border-red-500', invalid || abnormal);
+      el.classList.toggle('bg-red-50', invalid || abnormal);
+      el.classList.toggle('text-red-700', abnormal);
+      el.classList.toggle('border-slate-300', !(invalid || abnormal));
+      el.title = invalid ? 'قيمة غير رقمية' : '';
+      updateLabsFilledCount();
+    }
+
+    function updateLabsFilledCount() {
+      const filled = LAB_TESTS.filter((t) => readLabInput(t) !== null).length;
+      document.getElementById('nvLabsFilledCount').innerText = filled ? `(${filled})` : '';
+    }
+
+    // Returns the filled-in labs, or null when a number field holds something that is not a number.
+    function collectLabValues() {
+      const labs = {};
+      for (const t of LAB_TESTS) {
+        const value = readLabInput(t);
+        if (value === null) continue;
+        if (Number.isNaN(value)) {
+          document.getElementById('nvLabsDetails').open = true;
+          document.getElementById(`nvLab_${t.key}`).focus();
+          alert(`⚠️ قيمة "${t.label}${t.code ? ` (${t.code})` : ''}" يجب أن تكون رقماً.`);
+          return null;
+        }
+        labs[t.key] = value;
+      }
+      const other = document.getElementById('nvLabsOther').value.trim();
+      if (other) labs.other = other;
+      return labs;
+    }
+
+    function hasLabs(labs) {
+      return !!labs && typeof labs === 'object' && Object.keys(labs).length > 0;
+    }
+
+    function labChipsHTML(labs, { abnormalOnly = false } = {}) {
+      if (!hasLabs(labs)) return '';
+      const chips = LAB_TESTS
+        .filter((t) => labs[t.key] !== undefined && labs[t.key] !== '')
+        .filter((t) => !abnormalOnly || isLabAbnormal(t, labs[t.key]))
+        .map((t) => {
+          const bad = isLabAbnormal(t, labs[t.key]);
+          return `<span class="${bad ? 'bg-red-100 text-red-800 border-red-300' : 'bg-white text-slate-800 border-sky-200'} border px-2 py-0.5 rounded-lg text-[11px]">
+            ${bad ? '⚠️ ' : ''}${labLabelHTML(t)}: <strong class="font-mono">${escapeHTML(labs[t.key])}</strong>${t.unit ? ` <span dir="ltr" class="text-[10px] text-slate-500">${escapeHTML(t.unit)}</span>` : ''}
+          </span>`;
+        });
+      return chips.join('');
+    }
+
+    // One line per numeric test that has two or more results, oldest first.
+    function labTrendsHTML(visits) {
+      const ordered = [...(visits || [])].reverse();
+      const rows = LAB_TESTS.filter((t) => t.type === 'number').map((t) => {
+        const points = ordered.filter((v) => v.labs && Number.isFinite(Number(v.labs[t.key])));
+        if (points.length < 2) return '';
+        const steps = points.map((v) => {
+          const bad = isLabAbnormal(t, v.labs[t.key]);
+          return `<span class="${bad ? 'text-red-700' : 'text-slate-900'} font-mono font-bold">${escapeHTML(v.labs[t.key])}</span><span class="text-[10px] text-slate-400"> (${escapeHTML(v.date || '')})</span>`;
+        }).join(' <span class="text-sky-600">←</span> ');
+        return `<div class="flex flex-wrap items-center gap-1"><span class="font-bold text-sky-950">${labLabelHTML(t)}:</span> ${steps}</div>`;
+      }).filter(Boolean);
+      if (rows.length === 0) return '';
+      return `<div class="bg-sky-50/70 p-3 rounded-2xl border border-sky-200 text-xs space-y-1.5">
+        <div class="font-bold text-sky-950">📈 تطور التحاليل عبر الزيارات</div>
+        ${rows.join('')}
+      </div>`;
     }
 
    // --- 13. DEDICATED NEW VISIT POPUP WINDOW (WITH LIVE LMP & PREGNANCY CALCULATOR) ---
@@ -2316,6 +2484,8 @@
       document.getElementById('nvRx').value = '';
       document.getElementById('pNextVisitDate').value = '';
       document.getElementById('bpWarningText').classList.add('hidden');
+      document.getElementById('nvLabsDetails').open = false;
+      renderLabInputs();
 
       currentAttachedPhotos = [];
       renderPhotosPreview();
@@ -2341,6 +2511,8 @@
 
     async function handleNewVisitSubmit(e) {
       e.preventDefault();
+      const labs = collectLabValues();
+      if (labs === null) return;
       const btnSave = document.getElementById('btnSaveNewVisit');
       if (btnSave) { btnSave.disabled = true; btnSave.innerText = 'جاري الحفظ...'; }
 
@@ -2364,6 +2536,7 @@
         rx: document.getElementById('nvRx').value.trim(),
         nextVisitDate: document.getElementById('pNextVisitDate').value,
         lmp: lmpVal,
+        labs,
         photos: [...currentAttachedPhotos],
         timestamp: Date.now()
       };
@@ -3149,6 +3322,9 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
                 </div>
               </div>
               ${latestVisit.ultrasound ? `<p class="bg-white p-2 rounded-lg border border-slate-200 text-slate-700 leading-relaxed">${escapeHTML(latestVisit.ultrasound)}</p>` : ''}
+              ${isDoctor && labChipsHTML(latestVisit.labs, { abnormalOnly: true }) ? `
+                <div class="flex flex-wrap gap-1.5 items-center"><span class="text-[11px] font-bold text-red-800">🧪 تحاليل خارج المجال:</span>${labChipsHTML(latestVisit.labs, { abnormalOnly: true })}</div>
+              ` : ''}
               ${latestVisit.rx ? `
                 <div class="bg-rose-50/40 p-2 rounded-lg border border-rose-100 flex justify-between items-center">
                   <span class="truncate text-slate-800">💊 <strong>Rx:</strong> ${escapeHTML(latestVisit.rx)}</span>

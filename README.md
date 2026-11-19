@@ -36,6 +36,9 @@ Until step 4 is published, the database is still protected only by whatever rule
 - `patients/{id}`: patient profile, visits and surgeries. Visits keep only `photoCount`.
 - `patients/{id}/photos/{visitId}`: the photos of one visit (`list` of JPEG data URLs).
   This keeps patient documents under Firestore's 1 MB limit. Photos load when the archive is opened.
+- Each visit may hold `labs`: typed lab results (Hb, PLT, FBS, OGTT, TSH, urine, HBsAg,
+  Toxo IgM, Rubella IgG, plus free text). Values outside the pregnancy reference points are
+  shown in red; the reference points are in `LAB_TESTS` in `index.html` and can be adjusted.
 - `settings/drugs`: the shared drug list.
 - `users/{uid}`: staff roles (only editable from the console).
 
