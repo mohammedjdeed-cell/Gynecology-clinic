@@ -15,6 +15,19 @@ its Firestore document `users/{uid}`:
 
 Access is enforced on the server by [`firestore.rules`](firestore.rules), not by the page.
 
+### Google sign-in
+
+Accounts can also sign in with Google. The simplest path is to create the email/password account
+first, sign in, then open **الحساب والإعدادات → ربط حساب Google**. Linking keeps the same UID, so the
+existing `users/{uid}` role applies and both sign-in methods work afterwards.
+
+Signing in with Google *without* linking first creates a new account with a new UID; it shows
+"account not activated" until a `users/{uid}` document is added for that UID.
+
+Google-only accounts confirm deletions with a Google pop-up instead of a password. Needs
+**Authentication → Sign-in method → Google** enabled, and the app's domain in
+**Authentication → Settings → Authorized domains**.
+
 ## One-time Firebase setup (project `hiam-khder`)
 
 Do these in the [Firebase console](https://console.firebase.google.com/project/hiam-khder), in this order:

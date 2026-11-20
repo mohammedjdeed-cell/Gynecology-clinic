@@ -82,6 +82,15 @@
           دخول إلى العيادة
         </button>
       </form>
+
+      <div class="flex items-center gap-2 text-[11px] text-slate-400 font-bold">
+        <span class="flex-1 h-px bg-slate-200"></span>أو<span class="flex-1 h-px bg-slate-200"></span>
+      </div>
+      <button type="button" id="googleLoginBtn" onclick="handleGoogleLogin()"
+              class="w-full flex items-center justify-center gap-2 bg-white hover:bg-slate-50 border-2 border-slate-200 text-slate-700 font-black py-3 rounded-2xl active:scale-98 transition duration-150">
+        <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>
+        الدخول بحساب Google
+      </button>
     </div>
   </div>
 
@@ -1075,7 +1084,14 @@
         <button type="button" onclick="closeChangePinModal()" class="text-gray-400 hover:text-rose-600 text-2xl font-bold p-1">&times;</button>
       </div>
 
-      <form onsubmit="handlePasswordUpdate(event)" class="space-y-2 bg-rose-50/30 p-3 rounded-2xl border border-rose-200">
+      <div class="space-y-1.5 bg-slate-50 p-3 rounded-2xl border border-slate-200">
+        <h3 class="font-bold text-slate-900">الدخول بحساب Google</h3>
+        <p id="googleLinkStatus" dir="auto" class="text-[11px] text-slate-600 font-bold"></p>
+        <button type="button" id="googleLinkBtn" onclick="linkGoogleAccount()" class="w-full py-2 bg-white hover:bg-slate-100 border-2 border-slate-300 text-slate-800 rounded-xl font-bold transition active:scale-95">ربط حساب Google بهذا الحساب</button>
+        <p class="text-[10px] text-slate-500">بعد الربط يعمل زر Google في شاشة الدخول، مع نفس الصلاحيات والبيانات.</p>
+      </div>
+
+      <form id="passwordChangeForm" onsubmit="handlePasswordUpdate(event)" class="space-y-2 bg-rose-50/30 p-3 rounded-2xl border border-rose-200">
         <h3 class="font-bold text-rose-950">تغيير كلمة مرور الحساب: <span id="currentAccountEmail" dir="ltr" class="font-mono text-rose-800 font-bold"></span></h3>
         <input type="password" id="currentPassword" required autocomplete="current-password" placeholder="كلمة المرور الحالية" class="w-full p-2 border border-slate-300 rounded-xl text-center font-bold">
         <input type="password" id="newPassword" required minlength="8" autocomplete="new-password" placeholder="كلمة المرور الجديدة (8 أحرف على الأقل)" class="w-full p-2 border border-slate-300 rounded-xl text-center font-bold">
@@ -1100,7 +1116,7 @@
       <div>
         <h3 class="text-base font-black text-slate-900">تأكيد حذف ملف المريضة</h3>
         <p id="deleteModalPatientName" class="text-xs text-red-600 font-bold mt-1"></p>
-        <p class="text-[11px] text-slate-500 mt-1">لحذف هذا الملف نهائياً ومنع استعادته، أدخلي كلمة مرور حساب الطبيبة:</p>
+        <p id="deleteModalHint" class="text-[11px] text-slate-500 mt-1">لحذف هذا الملف نهائياً ومنع استعادته، أدخلي كلمة مرور حساب الطبيبة:</p>
       </div>
 
       <div>
@@ -3454,9 +3470,21 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
     function requestDeletePatient(id, name) {
       patientToDeleteId = id;
       document.getElementById('deleteModalPatientName').innerText = `المريضة: ${name}`;
-      document.getElementById('deletePinInput').value = '';
+      const pwInput = document.getElementById('deletePinInput');
+      pwInput.value = '';
+      // Google-only accounts have no password: confirm with Google instead.
+      const usesPassword = doctorUsesPassword();
+      pwInput.classList.toggle('hidden', !usesPassword);
+      document.getElementById('deleteModalHint').innerText = usesPassword
+        ? 'لحذف هذا الملف نهائياً ومنع استعادته، أدخلي كلمة مرور حساب الطبيبة:'
+        : 'لحذف هذا الملف نهائياً ومنع استعادته، اضغطي تأكيد ثم اختاري حساب Google الخاص بالطبيبة.';
       document.getElementById('deletePinError').classList.add('hidden');
       document.getElementById('deleteModal').classList.remove('hidden');
+    }
+
+    function doctorUsesPassword() {
+      const user = (typeof firebase !== 'undefined' && firebase.apps.length) ? firebase.auth().currentUser : null;
+      return !user || hasProvider(user, 'password') || !hasProvider(user, 'google.com');
     }
 
     function closeDeleteModal() {
@@ -3464,17 +3492,25 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
       document.getElementById('deleteModal').classList.add('hidden');
     }
 
-    // Re-checks the signed-in doctor's password with Firebase (needs internet).
+    // Re-checks the signed-in doctor with Firebase (needs internet):
+    // her password, or her Google account when she has no password.
     async function reauthenticateDoctor(password) {
       if (currentRole !== 'doctor') return { ok: false, msg: '⚠️ هذا الإجراء متاح لحساب الطبيبة فقط.' };
       const user = firebase.auth().currentUser;
-      if (!user || !password) return { ok: false, msg: '⚠️ كلمة المرور غير صحيحة!' };
+      if (!user) return { ok: false, msg: '⚠️ كلمة المرور غير صحيحة!' };
       try {
-        const cred = firebase.auth.EmailAuthProvider.credential(user.email, password);
-        await user.reauthenticateWithCredential(cred);
+        if (doctorUsesPassword()) {
+          if (!password) return { ok: false, msg: '⚠️ كلمة المرور غير صحيحة!' };
+          const cred = firebase.auth.EmailAuthProvider.credential(user.email, password);
+          await user.reauthenticateWithCredential(cred);
+        } else {
+          await user.reauthenticateWithPopup(googleProvider());
+        }
         return { ok: true };
       } catch (err) {
         if (err.code === 'auth/network-request-failed') return { ok: false, msg: '⚠️ يلزم اتصال بالإنترنت لتأكيد الحذف.' };
+        if (isPopupCancel(err)) return { ok: false, msg: 'تم إلغاء التأكيد.' };
+        if (err.code === 'auth/user-mismatch' || err.code === 'auth/popup-blocked') return { ok: false, msg: googleErrorMessage(err) };
         return { ok: false, msg: '⚠️ كلمة المرور غير صحيحة!' };
       }
     }
@@ -3518,8 +3554,11 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
     }
 
     async function purgeAllOldTestPatients() {
-      const password = prompt('أدخلي كلمة مرور حساب الطبيبة لتأكيد مسح جميع السجلات:');
-      if (password === null) return;
+      let password = '';
+      if (doctorUsesPassword()) {
+        password = prompt('أدخلي كلمة مرور حساب الطبيبة لتأكيد مسح جميع السجلات:');
+        if (password === null) return;
+      }
       const check = await reauthenticateDoctor(password);
       if (!check.ok) {
         alert(check.msg);
@@ -3579,6 +3618,11 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
         });
 
         firebase.auth().onAuthStateChanged(handleAuthStateChanged);
+        // Shows errors from a Google sign-in that used the full-page redirect.
+        firebase.auth().getRedirectResult().catch((err) => {
+          console.warn('Google redirect note:', err);
+          showLoginError(googleErrorMessage(err));
+        });
       } else {
         showLoginError('⚠️ تعذر تحميل نظام الدخول. تحققي من الاتصال بالإنترنت ثم أعيدي فتح التطبيق.');
       }
@@ -3660,6 +3704,85 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
         showLoginError(msg);
       } finally {
         btn.disabled = false;
+      }
+    }
+
+    // --- Google sign-in (an account linked to Google keeps the same UID, so its role still applies) ---
+    function googleProvider() {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
+      return provider;
+    }
+
+    function hasProvider(user, providerId) {
+      return !!(user && user.providerData.some((p) => p && p.providerId === providerId));
+    }
+
+    function googleErrorMessage(err) {
+      switch (err && err.code) {
+        case 'auth/network-request-failed': return '⚠️ لا يوجد اتصال بالإنترنت. الدخول بحساب Google يحتاج اتصالاً.';
+        case 'auth/account-exists-with-different-credential':
+          return '⚠️ هذا البريد مسجّل بكلمة مرور. ادخلي بكلمة المرور أولاً، ثم اربطي حساب Google من الإعدادات.';
+        case 'auth/credential-already-in-use':
+          return '⚠️ حساب Google هذا مستخدم في حساب آخر. احذفي ذلك الحساب من Firebase (Authentication → Users) ثم أعيدي الربط.';
+        case 'auth/provider-already-linked': return 'حساب Google مربوط مسبقاً بهذا الحساب.';
+        case 'auth/operation-not-allowed': return '⚠️ الدخول بحساب Google غير مفعّل بعد في إعدادات Firebase.';
+        case 'auth/unauthorized-domain': return '⚠️ عنوان التطبيق غير مضاف في Firebase (Authorized domains).';
+        case 'auth/user-mismatch': return '⚠️ اختاري نفس حساب Google المربوط بهذا الحساب.';
+        default: return '⚠️ تعذر الدخول بحساب Google. أعيدي المحاولة.';
+      }
+    }
+
+    function isPopupCancel(err) {
+      return err && (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request');
+    }
+
+    async function handleGoogleLogin() {
+      if (typeof firebase === 'undefined' || !firebase.apps.length) {
+        showLoginError('⚠️ تعذر تحميل نظام الدخول. تحققي من الاتصال بالإنترنت.');
+        return;
+      }
+      const btn = document.getElementById('googleLoginBtn');
+      btn.disabled = true;
+      showLoginError('');
+      try {
+        await firebase.auth().signInWithPopup(googleProvider());
+      } catch (err) {
+        if (err.code === 'auth/popup-blocked' || err.code === 'auth/operation-not-supported-in-this-environment') {
+          // Some installed phone apps cannot open pop-ups: use a full-page redirect instead.
+          await firebase.auth().signInWithRedirect(googleProvider());
+          return;
+        }
+        if (!isPopupCancel(err)) showLoginError(googleErrorMessage(err));
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    function updateGoogleLinkUI() {
+      const user = (typeof firebase !== 'undefined' && firebase.apps.length) ? firebase.auth().currentUser : null;
+      const linked = hasProvider(user, 'google.com');
+      const hasPw = hasProvider(user, 'password');
+      const status = document.getElementById('googleLinkStatus');
+      const btn = document.getElementById('googleLinkBtn');
+      if (!status || !btn) return;
+      const gEmail = linked ? (user.providerData.find((p) => p.providerId === 'google.com') || {}).email : '';
+      status.innerText = linked ? `✅ مربوط: ${gEmail || ''}` : 'غير مربوط بعد';
+      btn.classList.toggle('hidden', linked);
+      document.getElementById('passwordChangeForm').classList.toggle('hidden', !hasPw);
+    }
+
+    async function linkGoogleAccount() {
+      const user = firebase.auth().currentUser;
+      if (!user) return;
+      try {
+        await user.linkWithPopup(googleProvider());
+        await user.reload();
+        updateGoogleLinkUI();
+        alert('✅ تم ربط حساب Google. يمكنك الآن الدخول بزر Google أو بكلمة المرور.');
+      } catch (err) {
+        console.warn('Google link note:', err);
+        if (!isPopupCancel(err)) alert(googleErrorMessage(err));
       }
     }
 
@@ -4201,6 +4324,7 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
     function openChangePinModal() {
       const user = (typeof firebase !== 'undefined' && firebase.apps.length) ? firebase.auth().currentUser : null;
       document.getElementById('currentAccountEmail').innerText = user ? user.email : '';
+      updateGoogleLinkUI();
       document.getElementById('changePinModal').classList.remove('hidden');
     }
     function closeChangePinModal() { document.getElementById('changePinModal').classList.add('hidden'); }
