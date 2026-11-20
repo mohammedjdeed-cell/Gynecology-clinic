@@ -409,12 +409,20 @@
             <p id="archivePatientSubtitle" class="text-xs text-slate-500 font-bold mt-0.5"></p>
           </div>
         </div>
-        <div class="flex items-center gap-2">
-          <button type="button" id="btnArchiveQuickNewVisit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl font-bold text-xs shadow-md transition flex items-center gap-1.5 active:scale-95">
-            <span>➕</span> <span>تسجيل فحص جديد لليوم</span>
-          </button>
-          <button type="button" onclick="closeDoctorModal()" class="text-gray-400 hover:text-rose-600 text-2xl font-bold p-1">&times;</button>
-        </div>
+        <button type="button" onclick="closeDoctorModal()" class="text-gray-400 hover:text-rose-600 text-2xl font-bold p-1">&times;</button>
+      </div>
+
+      <!-- Key facts, warnings and current pregnancy -->
+      <div id="archivePatientFacts" class="space-y-2"></div>
+
+      <!-- Main actions -->
+      <div class="grid grid-cols-2 gap-2">
+        <button type="button" id="btnArchiveQuickNewVisit" class="bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-2xl font-black text-sm shadow-md transition flex items-center justify-center gap-2 active:scale-95">
+          <span>➕</span> <span>زيارة جديدة</span>
+        </button>
+        <button type="button" id="btnArchiveNewSurgery" class="bg-amber-500 hover:bg-amber-600 text-white py-3 rounded-2xl font-black text-sm shadow-md transition flex items-center justify-center gap-2 active:scale-95">
+          <span>✂️</span> <span>عملية أو ولادة</span>
+        </button>
       </div>
 
       <!-- Static Profile Smooth Accordion -->
@@ -422,7 +430,7 @@
         <button type="button" onclick="toggleStaticProfileAccordion()" class="w-full p-3.5 flex justify-between items-center hover:bg-rose-50/50 transition text-right">
           <div class="flex items-center gap-2 font-bold text-slate-800 text-xs">
             <span>👤</span>
-            <span>البيانات الثابتة، السوابق التوليدية (GPA)، والملاحظات المرضية</span>
+            <span>البيانات الشخصية والسوابق</span>
           </div>
           <div class="flex items-center gap-2">
             <span class="text-[11px] text-rose-800 font-bold bg-rose-50 px-2 py-0.5 rounded-lg border border-rose-200">عرض / تعديل</span>
@@ -522,13 +530,13 @@
       <!-- Visits History Timeline Header -->
       <div class="flex justify-between items-center pt-2">
         <h3 class="font-black text-slate-800 text-xs flex items-center gap-2">
-          <span>📜</span> <span>سجل الفحوصات والزيارات المؤرشفة</span>
+          <span>📜</span> <span>السجل: الزيارات والعمليات</span>
           <span id="archiveVisitsCountBadge" class="bg-rose-100 text-rose-800 px-2 py-0.5 rounded-full text-[11px] font-bold">0</span>
         </h3>
       </div>
 
       <!-- Vertical Timeline of Visits -->
-      <div id="archiveVisitsTimeline" class="space-y-3 max-h-96 overflow-y-auto pr-1"></div>
+      <div id="archiveVisitsTimeline" class="space-y-3"></div>
 
       <div class="flex justify-end pt-2 border-t border-slate-100">
         <button type="button" onclick="closeDoctorModal()" class="px-5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs">
@@ -549,7 +557,7 @@
             🩺
           </div>
           <div>
-            <h2 class="text-base font-black text-rose-950">فحص وزيارة جديدة</h2>
+            <h2 id="nvModalTitle" class="text-base font-black text-rose-950">زيارة جديدة</h2>
             <p id="nvPatientTitle" class="text-xs text-rose-800 font-bold mt-0.5"></p>
           </div>
         </div>
@@ -558,6 +566,17 @@
 
       <form onsubmit="handleNewVisitSubmit(event)" class="space-y-3.5 pt-2 text-xs">
         <input type="hidden" id="nvPatientId">
+        <input type="hidden" id="nvEditVisitId">
+        <input type="hidden" id="nvKind">
+
+        <!-- Kind of visit -->
+        <div class="space-y-1.5">
+          <div class="flex justify-between items-center">
+            <span class="font-black text-slate-800 text-xs">نوع الزيارة</span>
+            <span id="nvOrderBadge" class="text-[11px] font-bold px-2 py-0.5 rounded-lg"></span>
+          </div>
+          <div id="nvKindButtons" class="grid grid-cols-2 sm:grid-cols-4 gap-1.5"></div>
+        </div>
 
         <!-- Date & Fee Bar (Strict Isolated Billing) -->
         <div class="bg-rose-50/70 p-3 rounded-2xl border border-rose-200 grid grid-cols-2 gap-2.5">
@@ -567,17 +586,18 @@
           </div>
           <div>
             <label class="block font-bold text-rose-950 mb-1">💰 الكشفية لهذه الزيارة (ل.س)</label>
-            <input type="number" id="nvFee" placeholder="مثال: 1000" class="w-full p-2 border border-slate-300 rounded-xl font-mono text-emerald-700 font-bold text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+            <input type="text" inputmode="numeric" autocomplete="off" id="nvFee" placeholder="مثال: 1000" class="w-full p-2 border border-slate-300 rounded-xl font-mono text-emerald-700 font-bold text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
           </div>
         </div>
 
-     <div>
-          <label class="block font-semibold mb-1 text-slate-700">سبب الزيارة أو الشكوى الحالية</label>
-          <input type="text" id="nvComplaint" placeholder="متابعة دورية، إيكو، استشارة، ألم، نزف..." class="w-full p-2.5 border border-slate-300 rounded-xl text-xs bg-slate-50 focus:bg-white font-semibold">
+        <div class="space-y-1.5">
+          <label class="block font-black text-slate-800">الشكوى الرئيسية</label>
+          <div id="nvComplaintChips" class="flex flex-wrap gap-1.5"></div>
+          <input type="text" id="nvComplaint" autocomplete="off" placeholder="اكتبي الشكوى أو اختاري من الأزرار..." class="w-full p-2.5 border border-slate-300 rounded-xl text-sm bg-slate-50 focus:bg-white font-semibold">
         </div>
 
-        <!-- LMP & Live Pregnancy Calculator inside New Visit Modal -->
-        <div class="bg-rose-50/70 p-2.5 rounded-2xl border border-rose-200 space-y-2">
+        <!-- Pregnancy follow-up: LMP, gestational age, fetus -->
+        <div id="nvAncBlock" class="bg-rose-50/70 p-2.5 rounded-2xl border border-rose-200 space-y-2">
           <div class="flex justify-between items-center flex-wrap gap-2">
             <label class="block font-bold text-rose-950 text-xs">🤰 أول يوم من آخر دورة شهرية (LMP):</label>
             <div class="flex items-center gap-1.5 flex-1 max-w-xs">
@@ -590,6 +610,69 @@
           </div>
           <!-- Live Preview Box -->
           <div id="nvPregnancyPreview" class="hidden"></div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block font-semibold mb-1 text-rose-950">نبض الجنين</label>
+              <input type="text" id="nvFetalHeart" autocomplete="off" placeholder="موجود / 140" class="w-full p-2 border border-rose-200 rounded-xl text-xs bg-white">
+            </div>
+            <div>
+              <label class="block font-semibold mb-1 text-rose-950">المجيء</label>
+              <select id="nvPresentation" class="w-full p-2 border border-rose-200 rounded-xl text-xs bg-white font-bold">
+                <option value="">—</option><option>رأسي</option><option>مقعدي</option><option>مستعرض</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Infertility -->
+        <div id="nvInfBlock" class="hidden bg-sky-50/70 p-2.5 rounded-2xl border border-sky-200 grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold mb-1 text-sky-950">مدة تأخر الحمل</label>
+            <input type="text" id="nvInfDuration" autocomplete="off" placeholder="مثال: سنتان" class="w-full p-2 border border-sky-200 rounded-xl text-xs bg-white">
+          </div>
+          <div>
+            <label class="block font-semibold mb-1 text-sky-950">يوم الدورة اليوم</label>
+            <input type="text" id="nvCycleDay" inputmode="numeric" autocomplete="off" placeholder="مثال: 12" class="w-full p-2 border border-sky-200 rounded-xl text-xs bg-white">
+          </div>
+          <div class="col-span-2">
+            <label class="block font-semibold mb-1 text-sky-950">تحاليل الزوج</label>
+            <input type="text" id="nvHusbandTests" autocomplete="off" placeholder="تحليل السائل المنوي..." class="w-full p-2 border border-sky-200 rounded-xl text-xs bg-white">
+          </div>
+        </div>
+
+        <!-- Postpartum -->
+        <div id="nvPpBlock" class="hidden bg-emerald-50/70 p-2.5 rounded-2xl border border-emerald-200 space-y-2">
+          <div class="flex items-end gap-2 flex-wrap">
+            <div class="flex-1 min-w-[140px]">
+              <label class="block font-semibold mb-1 text-emerald-950">تاريخ الولادة</label>
+              <input type="date" id="nvDeliveryDate" oninput="updatePpPreview()" onchange="updatePpPreview()" class="w-full p-2 border border-emerald-200 rounded-xl text-xs bg-white font-bold">
+            </div>
+            <span id="nvPpDays" class="text-xs font-black text-emerald-800 pb-2"></span>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <div>
+              <label class="block font-semibold mb-1 text-emerald-950">الجرح</label>
+              <select id="nvWound" class="w-full p-2 border border-emerald-200 rounded-xl text-xs bg-white font-bold">
+                <option value="">—</option><option>سليم</option><option>احمرار / التهاب</option><option>تفزر</option><option>لا يوجد جرح</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-semibold mb-1 text-emerald-950">النزف</label>
+              <select id="nvLochia" class="w-full p-2 border border-emerald-200 rounded-xl text-xs bg-white font-bold">
+                <option value="">—</option><option>طبيعي</option><option>غزير</option><option>متوقف</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-semibold mb-1 text-emerald-950">الإرضاع</label>
+              <select id="nvFeeding" class="w-full p-2 border border-emerald-200 rounded-xl text-xs bg-white font-bold">
+                <option value="">—</option><option>طبيعي</option><option>صناعي</option><option>مختلط</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="block font-semibold mb-1 text-emerald-950">وسيلة منع الحمل</label>
+            <input type="text" id="nvContraception" autocomplete="off" placeholder="لولب، حبوب، حقن..." class="w-full p-2 border border-emerald-200 rounded-xl text-xs bg-white">
+          </div>
         </div>
 
         <div class="grid grid-cols-2 gap-2.5">
@@ -605,8 +688,14 @@
         </div>
 
         <div>
-          <label class="block font-semibold mb-1 text-slate-700">تقرير الإيكو والفحص السريري لزيارة اليوم</label>
-          <textarea id="nvUltrasound" rows="2" placeholder="تقرير الفحص السريري والإيكو..." class="w-full p-2.5 border border-slate-300 rounded-xl text-sm bg-slate-50 focus:bg-white"></textarea>
+          <label class="block font-semibold mb-1 text-slate-700">الفحص السريري والإيكو</label>
+          <textarea id="nvUltrasound" rows="2" placeholder="نتيجة الفحص والإيكو..." class="w-full p-2.5 border border-slate-300 rounded-xl text-sm bg-slate-50 focus:bg-white"></textarea>
+        </div>
+
+        <div class="space-y-1.5 bg-indigo-50/60 p-2.5 rounded-2xl border border-indigo-200">
+          <label class="block font-black text-indigo-950">التشخيص</label>
+          <div id="nvDiagnosisChips" class="flex flex-wrap gap-1.5"></div>
+          <input type="text" id="nvDiagnosis" autocomplete="off" placeholder="اكتبي التشخيص أو اختاري من الأزرار..." class="w-full p-2.5 border border-indigo-200 rounded-xl text-sm bg-white font-bold text-indigo-950">
         </div>
 
         <!-- Lab Results (typed) -->
@@ -663,7 +752,7 @@
         <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
           <button type="button" onclick="closeNewVisitModal()" class="px-4 py-2.5 bg-slate-100 text-slate-700 rounded-xl font-bold text-xs">إلغاء</button>
           <button type="submit" id="btnSaveNewVisit" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-lg transition flex items-center gap-1.5 active:scale-95">
-            <span>💾</span> <span>توثيق وحفظ الزيارة في السجل</span>
+            <span>💾</span> <span id="btnSaveNewVisitText">حفظ الزيارة</span>
           </button>
         </div>
       </form>
@@ -817,7 +906,7 @@
             </div>
             <div>
               <label class="block font-semibold mb-0.5 text-slate-700">الكشفية (ل.س)</label>
-              <input type="number" id="dnpFee" placeholder="الكشفية" class="w-full p-2 border border-slate-300 rounded-xl bg-white font-mono text-emerald-700 font-bold text-xs">
+              <input type="text" inputmode="numeric" autocomplete="off" id="dnpFee" placeholder="الكشفية" class="w-full p-2 border border-slate-300 rounded-xl bg-white font-mono text-emerald-700 font-bold text-xs">
             </div>
           </div>
 
@@ -2163,13 +2252,14 @@
       normalizePatientObject(p);
       activeArchivePatient = p;
 
-      document.getElementById('archivePatientNameTitle').innerText = `${p.name} ${p.husband ? `(زوجها: ${p.husband})` : ''}`;
-      document.getElementById('archivePatientSubtitle').innerText = `الهاتف: ${p.phone || 'بدون'} | العنوان: ${p.address || 'غير محدد'}`;
-      
-      document.getElementById('btnArchiveQuickNewVisit').onclick = () => {
-        closeDoctorModal();
-        setTimeout(() => openNewVisitModal(p.id), 150);
-      };
+      document.getElementById('archivePatientNameTitle').innerText = p.name || 'ملف المريضة';
+      const age = patientAge(p);
+      document.getElementById('archivePatientSubtitle').innerText =
+        [age ? `${age} سنة` : '', p.husband ? `زوجها: ${p.husband}` : '', p.address || ''].filter(Boolean).join(' • ');
+      renderPatientFacts(p);
+
+      document.getElementById('btnArchiveQuickNewVisit').onclick = () => openNewVisitModal(p.id);
+      document.getElementById('btnArchiveNewSurgery').onclick = () => openSurgeryModal(p.id);
 
       document.getElementById('pName').value = p.name || '';
       document.getElementById('pHusband').value = p.husband || '';
@@ -2239,7 +2329,67 @@
       openDoctorModal(p.id);
     }
 
-   function renderArchiveVisitsTimeline(patient) {
+   function patientAge(p) {
+      const y = parseInt(convertArabicNumerals(p.birthYear || ''), 10);
+      const now = new Date().getFullYear();
+      return (y > 1900 && y <= now) ? now - y : null;
+    }
+
+    function renderPatientFacts(p) {
+      const box = document.getElementById('archivePatientFacts');
+      const chips = [];
+      const n = (x) => parseInt(convertArabicNumerals(x || '0'), 10) || 0;
+      const g = n(p.g), vd = n(p.vd), cs = n(p.cs), a = n(p.a);
+      chips.push(`<span class="px-2 py-1 rounded-lg bg-slate-100 text-slate-800 font-black font-mono" dir="ltr">G${g} P${vd + cs} A${a}</span>`);
+      if (cs) chips.push(`<span class="px-2 py-1 rounded-lg bg-slate-100 text-slate-700 font-bold">قيصرية: ${cs}</span>`);
+      if (p.blood && p.blood !== 'غير محدد') chips.push(`<span class="px-2 py-1 rounded-lg bg-slate-100 text-slate-800 font-black" dir="ltr">🩸 ${escapeHTML(p.blood)}</span>`);
+      if (p.phone) {
+        const tel = convertArabicNumerals(p.phone).replace(/[^\d+]/g, '');
+        chips.push(`<a href="tel:${escapeHTML(tel)}" class="px-2 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold" dir="ltr">📞 ${escapeHTML(p.phone)}</a>`);
+      }
+      let html = `<div class="flex flex-wrap gap-1.5 text-xs">${chips.join('')}</div>`;
+
+      const warnings = [];
+      if (p.allergies && p.allergies.trim()) warnings.push(`⚠️ تحسس: ${escapeHTML(p.allergies)}`);
+      if (p.isHighRisk) warnings.push(`🚨 حمل عالي الخطورة${p.highRiskReason ? ': ' + escapeHTML(p.highRiskReason) : ''}`);
+      if (p.medHistory && p.medHistory.trim()) warnings.push(`<span class="text-red-800 font-bold">سوابق: ${escapeHTML(p.medHistory)}</span>`);
+      if (warnings.length) {
+        html += `<div class="bg-red-50 border-2 border-red-300 rounded-2xl p-2.5 text-xs font-black text-red-800 space-y-1">${warnings.map((w) => `<div>${w}</div>`).join('')}</div>`;
+      }
+
+      const preg = p.lmp ? calculatePregnancy(p.lmp) : null;
+      const ga = p.lmp ? gestationalAgeAt(p.lmp, getTodayDateString()) : '';
+      if (preg && !preg.isFuture && ga) {
+        html += `<div class="bg-rose-50 border border-rose-200 rounded-2xl p-2.5 text-xs flex flex-wrap justify-between items-center gap-2">
+          <span class="font-black text-rose-950">🤰 الحمل الحالي: <span class="bg-rose-800 text-white px-2 py-0.5 rounded-lg font-mono" dir="ltr">${escapeHTML(ga)}</span> أسبوع</span>
+          <span class="font-bold text-rose-900">موعد الولادة: <strong class="font-mono">${escapeHTML(preg.edd)}</strong></span>
+        </div>`;
+      }
+      box.innerHTML = html;
+    }
+
+    function visitDetailsHTML(v) {
+      const d = v.details || {};
+      const rows = [];
+      if (d.ga) rows.push(['عمر الحمل', `<span dir="ltr">${escapeHTML(d.ga)}</span> أسبوع`]);
+      if (d.fetalHeart) rows.push(['نبض الجنين', escapeHTML(d.fetalHeart)]);
+      if (d.presentation) rows.push(['المجيء', escapeHTML(d.presentation)]);
+      if (d.infDuration) rows.push(['مدة تأخر الحمل', escapeHTML(d.infDuration)]);
+      if (d.cycleDay) rows.push(['يوم الدورة', escapeHTML(d.cycleDay)]);
+      if (d.husbandTests) rows.push(['تحاليل الزوج', escapeHTML(d.husbandTests)]);
+      if (d.daysSinceDelivery !== undefined && d.daysSinceDelivery !== '') rows.push(['بعد الولادة', `${escapeHTML(d.daysSinceDelivery)} يوم`]);
+      if (d.wound) rows.push(['الجرح', escapeHTML(d.wound)]);
+      if (d.lochia) rows.push(['النزف', escapeHTML(d.lochia)]);
+      if (d.feeding) rows.push(['الإرضاع', escapeHTML(d.feeding)]);
+      if (d.contraception) rows.push(['منع الحمل', escapeHTML(d.contraception)]);
+      if (v.bp) rows.push(['الضغط', `<span dir="ltr">${escapeHTML(v.bp)}</span>`]);
+      if (v.weight) rows.push(['الوزن', `${escapeHTML(v.weight)} كغ`]);
+      if (!rows.length) return '';
+      return `<div class="grid grid-cols-2 sm:grid-cols-3 gap-x-3 gap-y-1 text-[11px] text-slate-600">${rows.map(([k, val]) =>
+        `<div>${k}: <strong class="text-slate-900">${val}</strong></div>`).join('')}</div>`;
+    }
+
+    function renderArchiveVisitsTimeline(patient) {
       const container = document.getElementById('archiveVisitsTimeline');
       const badge = document.getElementById('archiveVisitsCountBadge');
       container.innerHTML = '';
@@ -2248,44 +2398,10 @@
       badge.innerText = visits.length + surgeries.length;
 
       if (visits.length === 0 && surgeries.length === 0) {
-        container.innerHTML = `<div class="p-8 text-center text-slate-400 bg-rose-50/20 rounded-2xl border border-rose-100 font-semibold">لا توجد زيارات أو عمليات سابقة موثقة بعد. يمكنكِ إضافة زيارة جديدة عبر الزر الأخضر أعلاه.</div>`;
+        container.innerHTML = `<div class="p-8 text-center text-slate-400 bg-rose-50/20 rounded-2xl border border-rose-100 font-semibold">لا توجد زيارات أو عمليات بعد. اضغطي «زيارة جديدة» للبدء.</div>`;
         return;
       }
 
-      // 1. عرض العمليات الجراحية إن وُجدت
-      if (surgeries.length > 0) {
-        const surgHeader = document.createElement('div');
-        surgHeader.className = 'font-bold text-xs text-amber-950 flex items-center gap-1.5 pt-1';
-        surgHeader.innerHTML = `<span>✂️ العمليات الجراحية والولادات الموثقة (${surgeries.length}):</span>`;
-        container.appendChild(surgHeader);
-
-        surgeries.forEach(s => {
-          const sItem = document.createElement('div');
-          sItem.className = 'bg-amber-50/70 p-3 rounded-2xl border border-amber-200 text-xs space-y-1.5';
-          sItem.innerHTML = `
-            <div class="flex justify-between items-center border-b border-amber-200 pb-1">
-              <span class="font-bold text-amber-950 flex items-center gap-1">
-                <span>✂️ ${escapeHTML(s.type)}</span>
-                <span class="text-amber-800 text-[11px]">(${escapeHTML(s.date)})</span>
-              </span>
-              <button type="button" onclick="deleteSurgeryRecord(${jsArg(patient.id)}, ${jsArg(s.id)})" class="text-rose-600 hover:text-rose-800 text-[11px] font-bold p-1">🗑️ حذف</button>
-            </div>
-            <div class="flex gap-3 text-[11px] text-slate-600 font-mono">
-              ${s.hospital ? `<span>المشفى: <strong>${escapeHTML(s.hospital)}</strong></span>` : ''}
-              ${s.anesthesia ? `<span>التخدير: <strong>${escapeHTML(s.anesthesia)}</strong></span>` : ''}
-            </div>
-            ${s.babyGender ? `<div class="text-emerald-900 font-bold bg-white p-1.5 rounded-lg border border-emerald-100">👶 المولود: ${escapeHTML(s.babyGender)} | الوزن: ${escapeHTML(s.babyWeight || '-')} كغ | الحالة: ${escapeHTML(s.babyStatus || 'سليم')}</div>` : ''}
-            ${s.report ? `<p class="text-slate-800 bg-white p-2 rounded-xl border border-amber-100">${escapeHTML(s.report)}</p>` : ''}
-          `;
-          container.appendChild(sItem);
-        });
-
-        const divider = document.createElement('div');
-        divider.className = 'border-t border-slate-200 my-2';
-        container.appendChild(divider);
-      }
-
-      // 2. تطور التحاليل الرقمية عبر الزيارات
       const trends = labTrendsHTML(visits);
       if (trends) {
         const trendBox = document.createElement('div');
@@ -2293,58 +2409,85 @@
         container.appendChild(trendBox);
       }
 
-      // 3. عرض الزيارات السريرية
-      visits.forEach((v, idx) => {
+      // Visits and operations together, newest first.
+      const oldestFirst = [...visits].sort((a, b) => (a.date || '').localeCompare(b.date || '') || ((a.timestamp || 0) - (b.timestamp || 0)));
+      const visitNumber = new Map(oldestFirst.map((v, i) => [v.id, i + 1]));
+      const items = [
+        ...visits.map((v) => ({ type: 'visit', date: v.date || '', t: v.timestamp || 0, v })),
+        ...surgeries.map((s) => ({ type: 'surgery', date: s.date || '', t: s.timestamp || 0, s }))
+      ].sort((a, b) => b.date.localeCompare(a.date) || (b.t - a.t));
+
+      items.forEach((it) => {
         const item = document.createElement('div');
-        item.className = 'bg-slate-50 hover:bg-rose-50/30 p-3.5 rounded-2xl border border-slate-200 transition space-y-2 text-xs';
+        if (it.type === 'surgery') {
+          const s = it.s;
+          item.className = 'bg-amber-50 p-3 rounded-2xl border-2 border-amber-200 text-xs space-y-1.5';
+          item.innerHTML = `
+            <div class="flex justify-between items-center gap-2 flex-wrap">
+              <span class="font-black text-amber-950">✂️ ${escapeHTML(s.type)}</span>
+              <span class="flex items-center gap-1">
+                <span class="text-amber-800 font-bold">📅 ${escapeHTML(s.date)}</span>
+                <button type="button" onclick="deleteSurgeryRecord(${jsArg(patient.id)}, ${jsArg(s.id)})" class="text-rose-600 hover:bg-rose-50 rounded-lg px-1.5 py-1 font-bold" title="حذف">🗑️</button>
+              </span>
+            </div>
+            <div class="flex flex-wrap gap-x-3 text-[11px] text-slate-600">
+              ${s.hospital ? `<span>المشفى: <strong class="text-slate-900">${escapeHTML(s.hospital)}</strong></span>` : ''}
+              ${s.anesthesia ? `<span>التخدير: <strong class="text-slate-900">${escapeHTML(s.anesthesia)}</strong></span>` : ''}
+            </div>
+            ${s.babyGender ? `<div class="text-emerald-900 font-bold bg-white p-1.5 rounded-lg border border-emerald-100">👶 ${escapeHTML(s.babyGender)} • ${escapeHTML(s.babyWeight || '-')} كغ • ${escapeHTML(s.babyStatus || 'سليم')}</div>` : ''}
+            ${s.report ? `<p class="text-slate-800 bg-white p-2 rounded-xl border border-amber-100 whitespace-pre-line">${escapeHTML(s.report)}</p>` : ''}
+          `;
+          container.appendChild(item);
+          return;
+        }
+
+        const v = it.v;
+        const k = visitKind(v.kind);
+        const first = visitNumber.get(v.id) === 1;
+        const complaint = v.complaint && v.complaint !== 'فحص ومتابعة' ? v.complaint : '';
+        item.className = 'bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs space-y-2 text-xs';
         item.innerHTML = `
-          <div class="flex justify-between items-center border-b border-slate-200 pb-2 flex-wrap gap-1">
-            <span class="font-bold text-slate-900 flex items-center gap-1.5">
-              <span class="bg-rose-900 text-white px-2 py-0.5 rounded-lg text-[10px]">زيارة #${visits.length - idx}</span>
-              <span>📅 ${escapeHTML(v.date)}</span>
-              ${v.complaint ? `<span class="text-rose-950 font-semibold bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">الشكوى: ${escapeHTML(v.complaint)}</span>` : ''}
-            </span>
-            <div class="flex items-center gap-2">
-              ${v.fee ? `<span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-lg border border-emerald-300 font-mono">${v.fee.toLocaleString()} ل.س</span>` : ''}
-              <button type="button" onclick="deleteVisitFromArchive(${jsArg(patient.id)}, ${jsArg(v.id)})" class="text-rose-600 hover:text-rose-800 text-[11px] font-bold p-1">🗑️ حذف</button>
+          <div class="flex justify-between items-start gap-2 flex-wrap">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              ${k ? `<span class="px-2 py-0.5 rounded-lg border font-black text-[11px] ${k.badge}">${k.icon} ${k.label}</span>` : `<span class="px-2 py-0.5 rounded-lg border font-black text-[11px] bg-slate-100 text-slate-700 border-slate-300">زيارة</span>`}
+              <span class="px-2 py-0.5 rounded-lg font-bold text-[10px] ${first ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-500'}">${first ? 'زيارة أولى' : 'مراجعة #' + visitNumber.get(v.id)}</span>
+              <span class="font-bold text-slate-700">📅 ${escapeHTML(v.date)}</span>
+            </div>
+            <div class="flex items-center gap-1">
+              ${v.fee ? `<span class="bg-emerald-50 text-emerald-800 font-bold px-2 py-0.5 rounded-lg border border-emerald-200 font-mono">${Number(v.fee).toLocaleString()} ل.س</span>` : ''}
+              <button type="button" onclick="openNewVisitModal(${jsArg(patient.id)}, ${jsArg(v.id)})" class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 font-bold text-slate-700">✏️ تعديل</button>
+              <button type="button" onclick="deleteVisitFromArchive(${jsArg(patient.id)}, ${jsArg(v.id)})" class="px-1.5 py-1 rounded-lg text-rose-600 hover:bg-rose-50 font-bold" title="حذف">🗑️</button>
             </div>
           </div>
 
-          <div class="grid grid-cols-2 md:grid-cols-3 gap-2 text-slate-600 font-mono text-[11px]">
-            ${v.bp ? `<div>الضغط: <strong class="text-slate-900">${escapeHTML(v.bp)}</strong></div>` : ''}
-            ${v.weight ? `<div>الوزن: <strong class="text-slate-900">${escapeHTML(v.weight)} كغ</strong></div>` : ''}
-            ${v.nextVisitDate ? `<div>المراجعة: <strong class="text-purple-800">${escapeHTML(v.nextVisitDate)}</strong></div>` : ''}
-          </div>
+          ${complaint ? `<div><span class="text-slate-500 font-bold">الشكوى:</span> <span class="font-bold text-slate-900">${escapeHTML(complaint)}</span></div>` : ''}
+          ${v.diagnosis ? `<div class="bg-indigo-50 border border-indigo-200 rounded-xl px-2.5 py-1.5"><span class="text-indigo-700 font-bold">التشخيص:</span> <span class="font-black text-indigo-950">${escapeHTML(v.diagnosis)}</span></div>` : ''}
+          ${visitDetailsHTML(v)}
 
-          ${v.ultrasound ? `
-            <div class="bg-white p-2.5 rounded-xl border border-slate-200 text-slate-800">
-              <strong class="text-rose-950">تقرير الإيكو:</strong> ${escapeHTML(v.ultrasound)}
-            </div>
-          ` : ''}
+          ${v.ultrasound ? `<div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-slate-800 whitespace-pre-line"><strong class="text-slate-600">الفحص والإيكو:</strong> ${escapeHTML(v.ultrasound)}</div>` : ''}
 
           ${hasLabs(v.labs) ? `
             <div class="bg-sky-50/60 p-2.5 rounded-xl border border-sky-200 space-y-1.5">
               <strong class="text-sky-950">🧪 التحاليل:</strong>
               <div class="flex flex-wrap gap-1.5">${labChipsHTML(v.labs)}</div>
               ${v.labs.other ? `<p class="whitespace-pre-line text-slate-800">${escapeHTML(v.labs.other)}</p>` : ''}
-            </div>
-          ` : ''}
+            </div>` : ''}
 
           ${v.rx ? `
             <div class="bg-amber-50/60 p-2.5 rounded-xl border border-amber-200 text-slate-800">
               <div class="flex justify-between items-center mb-0.5">
-                <strong class="text-rose-950">العلاج (Rx):</strong>
-                <button type="button" onclick="openWhatsAppModal(${jsArg(patient.id)}, ${jsArg(v.rx)})" class="text-emerald-700 text-[10px] font-bold">📲 إرسال واتساب</button>
+                <strong class="text-amber-950">💊 العلاج:</strong>
+                <button type="button" onclick="openWhatsAppModal(${jsArg(patient.id)}, ${jsArg(v.rx)})" class="text-emerald-700 text-[10px] font-bold">📲 واتساب</button>
               </div>
               <p class="whitespace-pre-line font-sans">${escapeHTML(v.rx)}</p>
-            </div>
-          ` : ''}
+            </div>` : ''}
+
+          ${v.nextVisitDate ? `<div class="text-[11px] font-bold text-purple-800">📅 المراجعة القادمة: ${escapeHTML(v.nextVisitDate)}</div>` : ''}
 
           ${v.photos && v.photos.length > 0 ? `
             <div class="flex gap-2 flex-wrap pt-1">
               ${v.photos.filter(isSafePhotoSrc).map(src => `<img src="${src}" class="w-12 h-12 rounded-xl object-cover border border-slate-300 cursor-pointer hover:opacity-80" onclick="openLightbox(this.src)">`).join('')}
-            </div>
-          ` : ''}
+            </div>` : ''}
         `;
         container.appendChild(item);
       });
@@ -2507,7 +2650,139 @@
       </div>`;
     }
 
-   // --- 13. DEDICATED NEW VISIT POPUP WINDOW (WITH LIVE LMP & PREGNANCY CALCULATOR) ---
+   // --- 13. VISIT FORM: four kinds of visit, new or edit ---
+    const VISIT_KINDS = [
+      { key: 'anc', label: 'متابعة حمل', icon: '🤰',
+        on: 'bg-rose-700 text-white border-rose-700', badge: 'bg-rose-100 text-rose-800 border-rose-300',
+        complaints: ['متابعة دورية', 'غثيان وإقياء', 'ألم بطن', 'نزف', 'تقلصات', 'نقص حركات الجنين', 'نزول ماء', 'صداع / ضغط'],
+        diagnoses: ['حمل طبيعي', 'سكري حملي', 'ارتفاع ضغط حملي', 'مقدمات ارتجاج', 'فقر دم', 'تهديد بالإجهاض', 'تهديد بولادة مبكرة', 'تأخر نمو جنين', 'مشيمة منزاحة'] },
+      { key: 'gyn', label: 'شكوى نسائية', icon: '🩺',
+        on: 'bg-violet-700 text-white border-violet-700', badge: 'bg-violet-100 text-violet-800 border-violet-300',
+        complaints: ['نزف غير منتظم', 'ألم حوض', 'مفرزات مهبلية', 'اضطراب دورة', 'عسر طمث', 'حكة', 'كتلة / كيسة', 'فحص دوري'],
+        diagnoses: ['التهاب مهبل', 'كيسة مبيض', 'ورم ليفي', 'تكيس مبايض', 'التهاب حوض', 'اضطراب هرموني', 'بطانة رحم مهاجرة', 'فحص طبيعي'] },
+      { key: 'infertility', label: 'عقم', icon: '🌱',
+        on: 'bg-sky-700 text-white border-sky-700', badge: 'bg-sky-100 text-sky-800 border-sky-300',
+        complaints: ['تأخر حمل', 'متابعة تحريض', 'متابعة جريبات', 'نتائج تحاليل'],
+        diagnoses: ['عقم أولي', 'عقم ثانوي', 'قصور إباضة', 'تكيس مبايض', 'عامل ذكري', 'انسداد أنابيب', 'غير مفسر'] },
+      { key: 'postpartum', label: 'مراجعة نفاس', icon: '🤱',
+        on: 'bg-emerald-700 text-white border-emerald-700', badge: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+        complaints: ['مراجعة بعد الولادة', 'ألم الجرح', 'نزف', 'حرارة', 'مشاكل إرضاع', 'منع حمل'],
+        diagnoses: ['نفاس طبيعي', 'التهاب جرح', 'التهاب ثدي', 'نزف نفاسي', 'اكتئاب نفاس'] }
+    ];
+
+    function visitKind(key) { return VISIT_KINDS.find((k) => k.key === key) || null; }
+
+    // "32+4": weeks+days of pregnancy on a given date.
+    function gestationalAgeAt(lmpStr, dateStr) {
+      if (!lmpStr || !dateStr) return '';
+      const a = new Date(lmpStr + 'T12:00:00'), b = new Date(dateStr + 'T12:00:00');
+      if (isNaN(a) || isNaN(b)) return '';
+      const days = Math.round((b - a) / 86400000);
+      if (days < 0 || days > 46 * 7) return '';
+      return `${Math.floor(days / 7)}+${days % 7}`;
+    }
+
+    function daysBetween(fromStr, toStr) {
+      if (!fromStr || !toStr) return null;
+      const a = new Date(fromStr + 'T12:00:00'), b = new Date(toStr + 'T12:00:00');
+      if (isNaN(a) || isNaN(b)) return null;
+      return Math.round((b - a) / 86400000);
+    }
+
+    // The latest delivery / C-section date for a patient, if any.
+    function lastDeliveryDate(p) {
+      const d = (p.surgeries || []).filter((s) => /قيصرية|ولادة|Cesarean|Delivery/i.test(s.type || '') && s.date)
+        .map((s) => s.date).sort().pop();
+      return d || '';
+    }
+
+    function guessVisitKind(p) {
+      const preg = p.lmp ? gestationalAgeAt(p.lmp, getTodayDateString()) : '';
+      if (preg) return 'anc';
+      const delivered = lastDeliveryDate(p);
+      const since = daysBetween(delivered, getTodayDateString());
+      if (since !== null && since >= 0 && since <= 60) return 'postpartum';
+      const lastKind = (p.visits || []).find((v) => v.kind);
+      return lastKind ? lastKind.kind : 'gyn';
+    }
+
+    function renderKindButtons() {
+      const box = document.getElementById('nvKindButtons');
+      const current = document.getElementById('nvKind').value;
+      box.innerHTML = '';
+      VISIT_KINDS.forEach((k) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        const on = k.key === current;
+        b.className = 'py-2.5 px-2 rounded-xl border-2 font-black text-xs transition active:scale-95 flex items-center justify-center gap-1 ' +
+          (on ? k.on + ' shadow-md' : 'bg-white text-slate-700 border-slate-200 hover:border-slate-400');
+        b.textContent = `${k.icon} ${k.label}`;
+        b.onclick = () => setVisitKind(k.key);
+        box.appendChild(b);
+      });
+    }
+
+    function renderToggleChips(containerId, inputId, options) {
+      const box = document.getElementById(containerId);
+      const input = document.getElementById(inputId);
+      box.innerHTML = '';
+      const parts = () => input.value.split(/[،,]/).map((x) => x.trim()).filter(Boolean);
+      options.forEach((opt) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        const paint = () => {
+          const on = parts().includes(opt);
+          b.className = 'px-2.5 py-1 rounded-full text-[11px] font-bold border transition ' +
+            (on ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-600 border-slate-300 hover:bg-slate-50');
+        };
+        b.textContent = opt;
+        b.onclick = () => {
+          const list = parts();
+          const i = list.indexOf(opt);
+          if (i >= 0) list.splice(i, 1); else list.push(opt);
+          input.value = list.join('، ');
+          box.querySelectorAll('button').forEach((x) => x._paint && x._paint());
+        };
+        b._paint = paint;
+        paint();
+        box.appendChild(b);
+      });
+      input.oninput = () => box.querySelectorAll('button').forEach((x) => x._paint && x._paint());
+    }
+
+    function setVisitKind(key) {
+      const k = visitKind(key) || VISIT_KINDS[1];
+      document.getElementById('nvKind').value = k.key;
+      renderKindButtons();
+      document.getElementById('nvAncBlock').classList.toggle('hidden', k.key !== 'anc');
+      document.getElementById('nvInfBlock').classList.toggle('hidden', k.key !== 'infertility');
+      document.getElementById('nvPpBlock').classList.toggle('hidden', k.key !== 'postpartum');
+      renderToggleChips('nvComplaintChips', 'nvComplaint', k.complaints);
+      renderToggleChips('nvDiagnosisChips', 'nvDiagnosis', k.diagnoses);
+      if (k.key === 'postpartum') updatePpPreview();
+    }
+
+    function updatePpPreview() {
+      const d = document.getElementById('nvDeliveryDate').value;
+      const days = daysBetween(d, document.getElementById('nvDate').value || getTodayDateString());
+      document.getElementById('nvPpDays').textContent = (days !== null && days >= 0) ? `اليوم ${days} بعد الولادة` : '';
+    }
+
+    function updateOrderBadge() {
+      const p = patients.find((x) => x.id === document.getElementById('nvPatientId').value);
+      const el = document.getElementById('nvOrderBadge');
+      if (!p) { el.textContent = ''; return; }
+      const editId = document.getElementById('nvEditVisitId').value || null;
+      const date = document.getElementById('nvDate').value || getTodayDateString();
+      const editing = editId ? (p.visits || []).find((v) => v.id === editId) : null;
+      // Earlier = an older date, or the same date but saved before the visit being edited.
+      const hasEarlier = (p.visits || []).some((v) => v.id !== editId && v.date && (
+        v.date < date || (v.date === date && editing && (v.timestamp || 0) < (editing.timestamp || 0))));
+      el.textContent = hasEarlier ? '🔁 مراجعة' : '🆕 زيارة أولى';
+      el.className = 'text-[11px] font-bold px-2 py-0.5 rounded-lg ' + (hasEarlier ? 'bg-slate-100 text-slate-600' : 'bg-amber-100 text-amber-800');
+    }
+
+
     function updateNvPregnancyPreview() {
       const lmpVal = document.getElementById('nvLMP').value;
       const previewEl = document.getElementById('nvPregnancyPreview');
@@ -2540,42 +2815,61 @@
       updateNvPregnancyPreview();
     }
 
-    function openNewVisitModal(patientId) {
+    function openNewVisitModal(patientId, visitId = null) {
       const p = patients.find(item => item.id === patientId);
       if (!p) return;
+      const v = visitId ? (p.visits || []).find((x) => x.id === visitId) : null;
+      const d = (v && v.details) || {};
 
       document.getElementById('nvPatientId').value = p.id;
+      document.getElementById('nvEditVisitId').value = v ? v.id : '';
+      document.getElementById('nvModalTitle').textContent = v ? '✏️ تعديل الزيارة' : 'زيارة جديدة';
+      document.getElementById('btnSaveNewVisitText').textContent = v ? 'حفظ التعديلات' : 'حفظ الزيارة';
       document.getElementById('nvPatientTitle').innerText = `المريضة: ${p.name} ${p.husband ? `(زوجها: ${p.husband})` : ''}`;
-      
-      document.getElementById('nvDate').value = getTodayDateString();
-      document.getElementById('nvComplaint').value = p.status === 'waiting' ? (p.complaint || '') : '';
-      
-      // Load and preview existing LMP if available
-      document.getElementById('nvLMP').value = p.lmp || '';
+
+      document.getElementById('nvDate').value = v ? (v.date || getTodayDateString()) : getTodayDateString();
+      document.getElementById('nvComplaint').value = v ? (v.complaint === 'فحص ومتابعة' ? '' : (v.complaint || '')) : (p.status === 'waiting' ? (p.complaint || '') : '');
+      document.getElementById('nvDiagnosis').value = v ? (v.diagnosis || '') : '';
+
+      document.getElementById('nvLMP').value = v ? (v.lmp || '') : (p.lmp || '');
       updateNvPregnancyPreview();
+      document.getElementById('nvFetalHeart').value = d.fetalHeart || '';
+      document.getElementById('nvPresentation').value = d.presentation || '';
+      document.getElementById('nvInfDuration').value = d.infDuration || '';
+      document.getElementById('nvCycleDay').value = d.cycleDay || '';
+      document.getElementById('nvHusbandTests').value = d.husbandTests || '';
+      document.getElementById('nvDeliveryDate').value = d.deliveryDate || (v ? '' : lastDeliveryDate(p));
+      document.getElementById('nvWound').value = d.wound || '';
+      document.getElementById('nvLochia').value = d.lochia || '';
+      document.getElementById('nvFeeding').value = d.feeding || '';
+      document.getElementById('nvContraception').value = d.contraception || '';
 
-      document.getElementById('nvBP').value = '';
-      document.getElementById('nvWeight').value = '';
-      document.getElementById('nvFee').value = '';
-      document.getElementById('nvUltrasound').value = '';
-      document.getElementById('nvRx').value = '';
-      document.getElementById('pNextVisitDate').value = '';
+      document.getElementById('nvBP').value = v ? (v.bp || '') : '';
+      document.getElementById('nvWeight').value = v ? (v.weight || '') : '';
+      document.getElementById('nvFee').value = v && v.fee ? v.fee : '';
+      document.getElementById('nvUltrasound').value = v ? (v.ultrasound || '') : '';
+      document.getElementById('nvRx').value = v ? (v.rx || '') : '';
+      document.getElementById('pNextVisitDate').value = v ? (v.nextVisitDate || '') : '';
       document.getElementById('bpWarningText').classList.add('hidden');
-      document.getElementById('nvLabsDetails').open = false;
-      renderLabInputs();
+      document.getElementById('nvLabsDetails').open = !!(v && hasLabs(v.labs));
+      renderLabInputs(v && v.labs ? v.labs : {});
 
-      currentAttachedPhotos = [];
+      currentAttachedPhotos = v && Array.isArray(v.photos) ? v.photos.filter(isSafePhotoSrc) : [];
       renderPhotosPreview();
       resetDrugPicker('quickDrugsContainer');
       renderDrugChips();
 
+      setVisitKind(v ? (v.kind || (v.lmp ? 'anc' : 'gyn')) : guessVisitKind(p));
+      updateOrderBadge();
+      document.getElementById('nvDate').onchange = () => { updateOrderBadge(); updatePpPreview(); };
+
       const modal = document.getElementById('newVisitModal');
       const card = document.getElementById('newVisitModalCard');
       modal.classList.remove('hidden');
+      card.scrollTop = 0;
       setTimeout(() => {
         card.classList.remove('scale-95', 'opacity-0');
         card.classList.add('scale-100', 'opacity-100');
-        document.getElementById('nvComplaint').focus();
       }, 20);
     }
 
@@ -2591,55 +2885,95 @@
       e.preventDefault();
       const labs = collectLabValues();
       if (labs === null) return;
-      const btnSave = document.getElementById('btnSaveNewVisit');
-      if (btnSave) { btnSave.disabled = true; btnSave.innerText = 'جاري الحفظ...'; }
 
       const patientId = document.getElementById('nvPatientId').value;
       const patient = patients.find(p => p.id === patientId);
       if (!patient) return;
+      const editId = document.getElementById('nvEditVisitId').value || null;
+      const old = editId ? (patient.visits || []).find((x) => x.id === editId) : null;
+      if (editId && !old) { alert('⚠️ لم يتم العثور على هذه الزيارة، ربما حُذفت من جهاز آخر.'); return; }
 
-      const rawFee = convertArabicNumerals(document.getElementById('nvFee').value.trim());
-      const parsedFee = rawFee !== '' ? (parseInt(rawFee, 10) || 0) : 0;
-      const visitDate = document.getElementById('nvDate').value || getTodayDateString();
-      const lmpVal = document.getElementById('nvLMP').value;
+      const btnSave = document.getElementById('btnSaveNewVisit');
+      if (btnSave) btnSave.disabled = true;
 
-      const newVisit = {
-        id: 'v_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+      const val = (id) => document.getElementById(id).value.trim();
+      const rawFee = convertArabicNumerals(val('nvFee'));
+      const visitDate = val('nvDate') || getTodayDateString();
+      const kind = document.getElementById('nvKind').value || 'gyn';
+      const lmpVal = kind === 'anc' ? val('nvLMP') : (old ? (old.lmp || '') : '');
+
+      const details = {};
+      if (kind === 'anc') {
+        details.ga = gestationalAgeAt(lmpVal, visitDate);
+        details.fetalHeart = convertArabicNumerals(val('nvFetalHeart'));
+        details.presentation = val('nvPresentation');
+      } else if (kind === 'infertility') {
+        details.infDuration = val('nvInfDuration');
+        details.cycleDay = convertArabicNumerals(val('nvCycleDay'));
+        details.husbandTests = val('nvHusbandTests');
+      } else if (kind === 'postpartum') {
+        details.deliveryDate = val('nvDeliveryDate');
+        const since = daysBetween(details.deliveryDate, visitDate);
+        details.daysSinceDelivery = (since !== null && since >= 0) ? since : '';
+        details.wound = val('nvWound');
+        details.lochia = val('nvLochia');
+        details.feeding = val('nvFeeding');
+        details.contraception = val('nvContraception');
+      }
+      Object.keys(details).forEach((k) => { if (details[k] === '' || details[k] === undefined) delete details[k]; });
+
+      const visit = {
+        ...(old || {}),
+        id: old ? old.id : 'v_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
         date: visitDate,
-        complaint: document.getElementById('nvComplaint').value.trim() || 'فحص ومتابعة',
-        bp: convertArabicNumerals(document.getElementById('nvBP').value.trim()),
-        weight: convertArabicNumerals(document.getElementById('nvWeight').value.trim()),
-        fee: parsedFee,
-        ultrasound: document.getElementById('nvUltrasound').value.trim(),
-        rx: document.getElementById('nvRx').value.trim(),
+        kind,
+        complaint: val('nvComplaint'),
+        diagnosis: val('nvDiagnosis'),
+        bp: convertArabicNumerals(val('nvBP')),
+        weight: convertArabicNumerals(val('nvWeight')),
+        fee: rawFee !== '' ? (parseInt(rawFee, 10) || 0) : 0,
+        ultrasound: val('nvUltrasound'),
+        rx: val('nvRx'),
         nextVisitDate: document.getElementById('pNextVisitDate').value,
         lmp: lmpVal,
+        details,
         labs,
         photos: [...currentAttachedPhotos],
-        timestamp: Date.now()
+        timestamp: old ? (old.timestamp || Date.now()) : Date.now(),
+        updatedAt: Date.now()
       };
+      // Photos not downloaded to this device yet: keep the count so they stay linked.
+      const photosWereHere = old && Array.isArray(old.photos) && old.photos.length > 0;
+      if (old && (photosWereHere || currentAttachedPhotos.length > 0)) delete visit.photoCount;
 
-      patient.visits = Array.isArray(patient.visits) ? patient.visits : [];
-      patient.visits.unshift(newVisit);
+      patient.visits = Array.isArray(patient.visits) ? patient.visits.filter((x) => x.id !== visit.id) : [];
+      patient.visits.unshift(visit);
       patient.visits.sort((a, b) => (b.date || '').localeCompare(a.date || '') || ((b.timestamp || 0) - (a.timestamp || 0)));
 
-      // Update LMP in master patient profile
-      patient.lmp = lmpVal;
-      patient.status = 'completed';
-      patient.visitDate = patient.visits[0].date;
-      patient.fee = patient.visits[0].fee;
-      patient.bp = patient.visits[0].bp;
-      patient.weight = patient.visits[0].weight;
-      patient.ultrasound = patient.visits[0].ultrasound;
-      patient.rx = patient.visits[0].rx;
-      patient.photos = patient.visits[0].photos;
+      // The patient's current LMP follows the newest pregnancy visit.
+      const newestAnc = patient.visits.find((x) => x.kind === 'anc' || (!x.kind && x.lmp));
+      if (newestAnc && newestAnc.id === visit.id && kind === 'anc') patient.lmp = lmpVal;
+      if (!old) patient.status = 'completed';
+      const latest = patient.visits[0];
+      patient.visitDate = latest.date;
+      patient.fee = latest.fee;
+      patient.bp = latest.bp;
+      patient.weight = latest.weight;
+      patient.ultrasound = latest.ultrasound;
+      patient.rx = latest.rx;
+      if (latest.nextVisitDate !== undefined) patient.nextVisitDate = latest.nextVisitDate;
+      delete patient.photos;
 
       notifyDataChanged();
       await syncPatientToCloud(patient);
 
-      if (btnSave) { btnSave.disabled = false; btnSave.innerText = 'توثيق وحفظ الزيارة في السجل'; }
+      if (btnSave) btnSave.disabled = false;
       closeNewVisitModal();
-      showRealtimeToast(`✅ تم توثيق الزيارة وتحديث موعد آخر دورة بنجاح`);
+      showRealtimeToast(old ? '✅ تم حفظ تعديلات الزيارة' : '✅ تم حفظ الزيارة');
+      if (!document.getElementById('doctorModal').classList.contains('hidden') &&
+          activeArchivePatient && activeArchivePatient.id === patient.id) {
+        openDoctorModal(patient.id);
+      }
     }
 
     // --- 14. SURGERIES & DELIVERIES ENGINE ---
@@ -2761,6 +3095,10 @@
       if (saveBtn) { saveBtn.disabled = false; saveBtn.innerText = 'توثيق وحفظ العمل الجراحي'; }
       closeSurgeryModal();
       showRealtimeToast(`✂️ تم توثيق (${type}) وتحديث السوابق تلقائياً`);
+      if (!document.getElementById('doctorModal').classList.contains('hidden') &&
+          activeArchivePatient && activeArchivePatient.id === p.id) {
+        openDoctorModal(p.id);
+      }
     }
   async function deleteSurgeryRecord(patientId, surgId) {
       if (!confirm('هل أنتِ متأكدة من حذف تقرير هذا العمل الجراحي نهائياً من ملف المريضة؟')) return;
