@@ -3904,6 +3904,10 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
       cloud.modeWaiters = [];
       cloud.migrationQueue = [];
       cloud.migrating = false;
+      cloud.migrationDone = 0;
+      cloud.migrationTries = new Map();
+      cloud.quietUntil = 0;
+      cloud.lastRemoteToast = 0;
       cloud.rebuildTimer = null;
       cloud.dirty = new Set();
       cloud.remoteChange = false;
@@ -4048,7 +4052,10 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
       isInitialSyncDone = true;
       saveDataPermanently();
       renderApp();
-      if (cloud.remoteChange) showRealtimeToast('⚡ تم استقبال تحديثات جديدة من العيادة');
+      if (cloud.remoteChange && Date.now() > cloud.quietUntil && Date.now() - cloud.lastRemoteToast > 20000) {
+        cloud.lastRemoteToast = Date.now();
+        showRealtimeToast('⚡ تم استقبال تحديثات جديدة من العيادة');
+      }
       cloud.remoteChange = false;
       if (activeArchivePatient) {
         const fresh = patients.find((x) => x.id === activeArchivePatient.id);
@@ -4081,6 +4088,7 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
             cloud.removedProfiles.add(pid);
           } else {
             const data = change.doc.data();
+            if (data.migratedAt && Date.now() - data.migratedAt < 120000) cloud.quietUntil = Date.now() + 15000;
             if (Array.isArray(data.visits) || Array.isArray(data.surgeries)) {
               cloud.docArrays.set(pid, { visits: data.visits || [], surgeries: data.surgeries || [] });
               queueMigration(pid);
@@ -4148,23 +4156,41 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
     // Moves visits/operations out of old patient documents, one patient at a time (doctor's device only).
     function queueMigration(pid) {
       if (!cloud.migrationQueue.includes(pid)) cloud.migrationQueue.push(pid);
-      startMigrationQueue();
+      setTimeout(startMigrationQueue, 0);
     }
 
     async function startMigrationQueue() {
       if (cloud.migrating || currentRole !== 'doctor' || recordStorageMode() !== 'records') return;
+      if (!cloud.migrationQueue.length) return;
       cloud.migrating = true;
+      cloud.migrationDone = 0;
+      const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
       try {
         while (cloud.migrationQueue.length && currentRole === 'doctor' && recordStorageMode() === 'records') {
           const pid = cloud.migrationQueue.shift();
+          cloud.migrationDone++;
           if (!cloud.docArrays.has(pid)) continue;
+          // Guard: never move the same patient over and over (e.g. an old copy of the app keeps re-adding arrays).
+          const tries = (cloud.migrationTries.get(pid) || 0) + 1;
+          cloud.migrationTries.set(pid, tries);
+          if (tries > 3) { console.warn('Migration skipped (repeats):', pid); continue; }
           if (cloud.rebuildTimer) flushRebuild();
-          const patient = patients.find((x) => x.id === pid);
-          if (patient) await syncPatientToCloud(patient, { silent: true });
-          await new Promise((r) => setTimeout(r, 250));
+          const patient = buildPatientFromCloud(pid);
+          if (patient) {
+            const idx = patients.findIndex((x) => x.id === pid);
+            if (idx >= 0) patients[idx] = patient; else patients.unshift(patient);
+          }
+          cloud.quietUntil = Date.now() + 15000;
+          updateSyncStatus();
+          // Queue the write without waiting for the server; Firestore sends them in order.
+          if (patient) syncPatientToCloud(patient, { silent: true });
+          while (pendingWrites > 20) await sleep(200);
+          await sleep(40);
         }
       } finally {
         cloud.migrating = false;
+        cloud.migrationDone = 0;
+        updateSyncStatus();
       }
     }
 
@@ -4179,7 +4205,9 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
       const statusEl = document.getElementById('syncStatus');
       if (!statusEl) return;
       const offline = (typeof navigator !== 'undefined' && navigator.onLine === false);
+      const migrationTotal = (cloud.migrationDone || 0) + ((cloud.migrationQueue && cloud.migrationQueue.length) || 0);
       if (failedSyncIds.size > 0) statusEl.innerText = `🔴 تعذر رفع ${failedSyncIds.size} ملف`;
+      else if (cloud.migrating && migrationTotal > 1) statusEl.innerText = `🔄 تحديث البيانات ${cloud.migrationDone}/${migrationTotal}`;
       else if (pendingWrites > 0) statusEl.innerText = offline ? '⏳ محفوظ على الجهاز، بانتظار الإنترنت' : '⏳ جاري الرفع...';
       else if (offline || !isListenerHealthy) statusEl.innerText = '🟡 بدون إنترنت (يعمل محلياً)';
       else if (Date.now() < savedFlashUntil) statusEl.innerText = '✅ تم الحفظ في السحابة';
@@ -4199,8 +4227,10 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
       updateSyncStatus();
       const tracked = promise.then(() => {
         failedSyncIds.delete(patientId);
-        savedFlashUntil = Date.now() + 2500;
-        setTimeout(updateSyncStatus, 2600);
+        if (!silent) {
+          savedFlashUntil = Date.now() + 2500;
+          setTimeout(updateSyncStatus, 2600);
+        }
         return true;
       }).catch((err) => {
         console.warn('Cloud sync write warning:', err);
@@ -4286,6 +4316,15 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
           cloudMap.set(id, data);
           markPendingLocal(id);
         });
+        // Items still in the old document list that this copy does not have yet: copy them too.
+        if (arrays) (arrays[kind] || []).forEach((rec) => {
+          const id = rec && safeRecordId(rec.id);
+          if (!id || localIds.has(id) || cloudMap.has(id)) return;
+          const data = recordForCloud(kind, { ...rec, id }, pid);
+          recordOps.push((b) => b.set(ref.collection(kind).doc(id), data));
+          cloudMap.set(id, data);
+          markPendingLocal(id);
+        });
         // Deletions: only records this copy knew about and removed here (doctor only).
         if (!isDoctor || !base) return;
         base[kind].forEach((_json, id) => {
@@ -4311,8 +4350,9 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
       // Move arrays out only when everything fits in one atomic batch; otherwise the next save finishes it.
       const canMoveArrays = !!arrays && recordOps.length < 400;
       if (canMoveArrays) {
-        if (!(remote && remote.legacyVisits) && arrays.visits.length) update.legacyVisits = cleanObjectForFirestore(arrays.visits.map(stripPhotos));
-        if (!(remote && remote.legacySurgeries) && arrays.surgeries.length) update.legacySurgeries = cleanObjectForFirestore(arrays.surgeries);
+        // Backup copy of the old lists; items arriving later (from an old copy of the app) are added to it.
+        if (arrays.visits.length) update.legacyVisits = cleanObjectForFirestore(mergeById((remote && remote.legacyVisits) || [], arrays.visits.map(stripPhotos)));
+        if (arrays.surgeries.length) update.legacySurgeries = cleanObjectForFirestore(mergeById((remote && remote.legacySurgeries) || [], arrays.surgeries));
         update.visits = del;
         update.surgeries = del;
         update.migratedAt = Date.now();
