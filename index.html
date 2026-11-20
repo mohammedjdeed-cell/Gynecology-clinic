@@ -1514,7 +1514,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
     (function () {
       let pending = false;
       const draw = () => { pending = false; if (window.lucide) window.lucide.createIcons(); };
-      new MutationObserver(() => { if (!pending) { pending = true; requestAnimationFrame(draw); } })
+      new MutationObserver(() => { if (!pending) { pending = true; setTimeout(draw, 0); } })
         .observe(document.documentElement, { childList: true, subtree: true });
       window.addEventListener('load', draw);
     })();
@@ -4094,8 +4094,8 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
                  normalizeArabic(p.motherName).includes(q);
         });
 
-        searchAlertText.innerText = `🔍 نتائج البحث الشامل في كامل أرشيف العيادة عن "${rawSearch}" (وجدت ${displayList.length} مريضة):`;
-        document.getElementById('queueStats').innerText = `🔎 تم العثور على ${displayList.length} ملف مطابق في قاعدة البيانات`;
+        searchAlertText.innerText = `نتائج البحث الشامل في كامل أرشيف العيادة عن "${rawSearch}" (وجدت ${displayList.length} مريضة):`;
+        document.getElementById('queueStats').innerText = `تم العثور على ${displayList.length} ملف مطابق في قاعدة البيانات`;
 
       } else {
         searchBanner.classList.add('hidden');
@@ -4133,13 +4133,13 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
         const completedCount = displayList.filter(p => p.status === 'completed').length;
         
         if (isSec) {
-          document.getElementById('queueStats').innerText = `📋 مريضات اليوم (${getTodayDateString()}): ${displayList.length} (بانتظار: ${waitingCount} | تم: ${completedCount})`;
+          document.getElementById('queueStats').innerText = `مريضات اليوم (${getTodayDateString()}): ${displayList.length} (بانتظار: ${waitingCount} | تم: ${completedCount})`;
         } else if (activeTab === 'daily') {
           document.getElementById('queueStats').innerText = `يوميات: ${selectedDate} | الإجمالي: ${displayList.length} (بانتظار: ${waitingCount} | تم: ${completedCount})`;
         } else if (activeTab === 'dueMonth') {
-          document.getElementById('queueStats').innerText = `🤰 قائمة الحوامل المقربات على الولادة (${displayList.length} مريضة)`;
+          document.getElementById('queueStats').innerText = `قائمة الحوامل المقربات على الولادة (${displayList.length} مريضة)`;
         } else {
-          document.getElementById('queueStats').innerText = `📋 إجمالي أرشيف العيادة: ${displayList.length} ملف مريضة`;
+          document.getElementById('queueStats').innerText = `إجمالي أرشيف العيادة: ${displayList.length} ملف مريضة`;
         }
       }
 
@@ -4174,30 +4174,35 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
         const waitingPatients = displayList.filter(p => p.status === 'waiting');
         const donePatients = displayList.filter(p => p.status !== 'waiting');
 
-        waitingPatients.forEach((p, index) => {
-          list.appendChild(createPatientCardElement(p, index));
-        });
+        const gridW = cardGrid(list);
+        waitingPatients.forEach((p, index) => gridW.appendChild(createPatientCardElement(p, index)));
 
         const divider = document.createElement('div');
         divider.className = 'flex items-center gap-3 my-4 py-1';
         divider.innerHTML = `
           <div class="flex-1 border-t border-slate-300"></div>
           <span class="text-xs font-bold text-slate-600 bg-slate-100 px-3.5 py-1 rounded-full flex items-center gap-1.5 shadow-2xs border border-slate-200">
-            <span>✅</span>
+            ${ic('circle-check')}
             <span>المريضات اللواتي تم فحصهن اليوم (${completedCount})</span>
           </span>
           <div class="flex-1 border-t border-slate-300"></div>
         `;
         list.appendChild(divider);
 
-        donePatients.forEach((p, index) => {
-          list.appendChild(createPatientCardElement(p, index));
-        });
+        const gridD = cardGrid(list);
+        donePatients.forEach((p, index) => gridD.appendChild(createPatientCardElement(p, index)));
       } else {
-        displayList.forEach((p, index) => {
-          list.appendChild(createPatientCardElement(p, index));
-        });
+        const grid = cardGrid(list);
+        displayList.forEach((p, index) => grid.appendChild(createPatientCardElement(p, index)));
       }
+    }
+
+    // Cards: one column on phones, two side by side on laptops.
+    function cardGrid(parent) {
+      const g = document.createElement('div');
+      g.className = 'grid grid-cols-1 lg:grid-cols-2 gap-3 items-start';
+      parent.appendChild(g);
+      return g;
     }
 
     // --- 18. SPOTLIGHT NEXT PATIENT CALL WIDGET ---
@@ -4292,7 +4297,8 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
       let big, small, tone;
       if (showQueueNumber) { big = p.dynamicQueueNumber || (index + 1); small = 'الدور'; tone = isWaiting ? 'bg-amber-500 text-white' : 'bg-slate-100 text-slate-700'; }
       else if (ga) { big = parseInt(ga, 10); small = 'أسبوع'; tone = 'bg-pink-50 text-pink-700 border border-pink-200'; }
-      else { big = visitsList.length; small = visitsList.length === 1 ? 'زيارة' : 'زيارات'; tone = 'bg-rose-50 text-rose-800 border border-rose-100'; }
+      else if (visitsList.length) { big = visitsList.length; small = visitsList.length === 1 ? 'زيارة' : 'زيارات'; tone = 'bg-rose-50 text-rose-800 border border-rose-100'; }
+      else { big = null; small = 'جديدة'; tone = 'bg-amber-50 text-amber-700 border border-amber-200'; }
 
       card.dataset.card = '1';
       card.className = `bg-white rounded-2xl p-3 shadow-2xs border ${p.isHighRisk ? 'border-red-300' : (isWaiting ? 'border-amber-300' : 'border-slate-200')} space-y-2.5`;
@@ -4316,7 +4322,7 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
       card.innerHTML = `
         <div class="flex items-start gap-2.5">
           <button type="button" ${isDoctor ? `onclick="openDoctorModal(${jsArg(p.id)})"` : ''} class="w-12 h-12 rounded-2xl shrink-0 flex flex-col items-center justify-center leading-none ${tone}">
-            <span class="text-lg font-black font-mono">${escapeHTML(String(big))}</span>
+            <span class="text-lg font-black font-mono">${big === null ? ic('sparkles') : escapeHTML(String(big))}</span>
             <span class="text-[9px] font-bold mt-0.5 opacity-80">${small}</span>
           </button>
           <div class="min-w-0 flex-1">
@@ -4419,7 +4425,7 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
       });
       
       document.getElementById('dailyTotalIncome').innerText = totalWeekIncome.toLocaleString('en-US');
-      document.getElementById('queueStats').innerText = `📊 سجل الأسبوع: ${weekPatients.length} مريضة موزعة على ${sortedDates.length} أيام عمل (مجموع التحصيل: ${totalWeekIncome.toLocaleString()} ل.س)`;
+      document.getElementById('queueStats').innerText = `سجل الأسبوع: ${weekPatients.length} مريضة موزعة على ${sortedDates.length} أيام عمل (مجموع التحصيل: ${totalWeekIncome.toLocaleString()} ل.س)`;
 
       if (sortedDates.length === 0) {
         container.innerHTML = `<div class="bg-white rounded-2xl p-12 text-center text-slate-400 font-semibold border border-rose-100">لا توجد سجلات خلال الأيام السبعة الماضية</div>`;
@@ -5900,7 +5906,7 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
       const totalVD = allSurgList.filter(s => s.type.includes('ولادة طبيعية')).length;
       const totalGyn = allSurgList.length - (totalCS + totalVD);
 
-      document.getElementById('queueStats').innerText = `✂️ قاعدة بيانات العمليات: إجمالي ${allSurgList.length} عمل جراحي (${totalCS} قيصرية | ${totalVD} ولادة طبيعية | ${totalGyn} جراحة نسائية)`;
+      document.getElementById('queueStats').innerText = `قاعدة بيانات العمليات: إجمالي ${allSurgList.length} عمل جراحي (${totalCS} قيصرية | ${totalVD} ولادة طبيعية | ${totalGyn} جراحة نسائية)`;
 
       // Filter Chips Bar
       const filterBar = document.createElement('div');
@@ -5908,12 +5914,12 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
       
       const filterChips = [
         { id: 'all', label: 'الكل' },
-        { id: 'قيصرية', label: '👶 القيصريات' },
-        { id: 'ولادة طبيعية', label: '🤱 ولادات طبيعية' },
-        { id: 'تجريف', label: '🩺 تجريف رحم D&C' },
-        { id: 'استئصال رحم', label: '🏥 استئصال رحم' },
-        { id: 'ورم ليفي', label: '🎗️ استئصال أورام ليفية' },
-        { id: 'تنظير', label: '🔬 تنظير حوض' }
+        { id: 'قيصرية', label: 'القيصريات' },
+        { id: 'ولادة طبيعية', label: 'ولادات طبيعية' },
+        { id: 'تجريف', label: 'تجريف رحم D&C' },
+        { id: 'استئصال رحم', label: 'استئصال رحم' },
+        { id: 'ورم ليفي', label: 'استئصال أورام ليفية' },
+        { id: 'تنظير', label: 'تنظير حوض' }
       ];
 
       filterBar.innerHTML = filterChips.map(c => `
