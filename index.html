@@ -3558,11 +3558,29 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
 
     async function deletePatientFromCloud(patientId) {
       const ref = db.collection('patients').doc(patientId);
-      const photoSnap = await ref.collection('photos').get();
-      const batch = db.batch();
-      photoSnap.docs.forEach((d) => batch.delete(d.ref));
-      batch.delete(ref);
-      await batch.commit();
+      const refs = new Map();
+      for (const sub of ['photos', 'visits', 'surgeries']) {
+        try {
+          const snap = await ref.collection(sub).get();
+          snap.docs.forEach((d) => refs.set(d.ref.path, d.ref));
+        } catch (err) {
+          console.warn(`Delete: could not list ${sub}:`, err && err.code);
+        }
+      }
+      // Records this device knows about, in case listing failed (e.g. offline).
+      if (typeof cloud !== 'undefined' && cloud.records) {
+        RECORD_KINDS.forEach((kind) => {
+          const map = cloud.records[kind].get(patientId);
+          if (map) map.forEach((_d, id) => { const r = ref.collection(kind).doc(id); refs.set(r.path, r); });
+        });
+      }
+      const all = [...refs.values()];
+      for (let i = 0; i < all.length; i += 400) {
+        const batch = db.batch();
+        all.slice(i, i + 400).forEach((r) => batch.delete(r));
+        await batch.commit();
+      }
+      await ref.delete();
     }
 
     async function confirmDeletePatientWithPin() {
@@ -3854,56 +3872,228 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
       settingsUnsubscribers.forEach((unsub) => unsub());
       settingsUnsubscribers = [];
       isInitialSyncDone = false;
+      resetCloudState();
+    }
+
+    // =====================================================================
+    // RECORD-LEVEL CLOUD STORAGE (schema 2)
+    //   patients/{pid}                   profile only (+ schemaVersion: 2)
+    //   patients/{pid}/visits/{visitId}  one visit (its photos stay in photos/{visitId})
+    //   patients/{pid}/surgeries/{id}    one operation
+    // A save sends only what changed, in one batch, so the laptop and the phone
+    // can no longer overwrite each other's visits, and slow networks send less.
+    // Patients saved by older versions keep their visits inside the patient
+    // document; the doctor's device moves them out once, keeping a backup copy
+    // in legacyVisits / legacySurgeries.
+    // =====================================================================
+    const SCHEMA_VERSION = 2;
+    const RECORD_KINDS = ['visits', 'surgeries'];
+    const PROFILE_SKIP_FIELDS = new Set(['id', 'visits', 'surgeries', 'photos', 'schemaVersion',
+      'legacyVisits', 'legacySurgeries', 'migratedAt']);
+    const PENDING_LOCAL_MS = 20000;
+
+    const cloud = {};
+    function resetCloudState() {
+      cloud.gen = (cloud.gen || 0) + 1;                             // lets stale timers know a new session started
+      cloud.profiles = new Map();                                  // pid -> profile fields from the cloud
+      cloud.docArrays = new Map();                                  // pid -> { visits, surgeries } still inside the patient document
+      cloud.records = { visits: new Map(), surgeries: new Map() };  // kind -> pid -> Map(recordId -> data)
+      cloud.ready = { visits: false, surgeries: false };
+      cloud.failed = { visits: false, surgeries: false };
+      cloud.pendingLocal = new Map();                               // recordId -> time this device wrote it
+      cloud.modeWaiters = [];
+      cloud.migrationQueue = [];
+      cloud.migrating = false;
+      cloud.rebuildTimer = null;
+      cloud.dirty = new Set();
+      cloud.remoteChange = false;
+    }
+    resetCloudState();
+
+    // 'records' = new layout usable, 'legacy' = rules not published yet (save the old way), 'unknown' = still loading
+    function recordStorageMode() {
+      if (cloud.failed.visits || cloud.failed.surgeries) return 'legacy';
+      if (cloud.ready.visits && cloud.ready.surgeries) return 'records';
+      return 'unknown';
+    }
+
+    function waitForRecordMode(ms) {
+      if (recordStorageMode() !== 'unknown') return Promise.resolve(recordStorageMode());
+      return new Promise((resolve) => {
+        const done = () => resolve(recordStorageMode());
+        cloud.modeWaiters.push(done);
+        setTimeout(done, ms);
+      });
+    }
+
+    function settleModeWaiters() {
+      if (recordStorageMode() === 'unknown') return;
+      const waiters = cloud.modeWaiters;
+      cloud.modeWaiters = [];
+      waiters.forEach((w) => w());
+    }
+
+    // JSON with sorted keys, so the same data always compares equal.
+    function stableJson(value) {
+      if (value === undefined) return 'null';
+      if (value === null || typeof value !== 'object') return JSON.stringify(value);
+      if (Array.isArray(value)) return '[' + value.map(stableJson).join(',') + ']';
+      return '{' + Object.keys(value).sort().filter((k) => value[k] !== undefined)
+        .map((k) => JSON.stringify(k) + ':' + stableJson(value[k])).join(',') + '}';
+    }
+
+    function safeRecordId(id) {
+      const clean = String(id || '').replace(/\//g, '_').trim();
+      return (clean && clean !== '.' && clean !== '..') ? clean : null;
+    }
+
+    function recordForCloud(kind, rec, pid) {
+      if (kind === 'visits') {
+        const photos = (Array.isArray(rec.photos) ? rec.photos : []).filter(isSafePhotoSrc);
+        const { photos: _omit, ...rest } = rec;
+        return cleanObjectForFirestore({ ...rest, photoCount: photos.length || rec.photoCount || 0, patientId: pid });
+      }
+      return cleanObjectForFirestore({ ...rec, patientId: pid });
+    }
+
+    function profileForCloud(patient) {
+      const out = {};
+      Object.keys(patient).forEach((k) => {
+        if (!PROFILE_SKIP_FIELDS.has(k) && patient[k] !== undefined) out[k] = patient[k];
+      });
+      return cleanObjectForFirestore(out);
+    }
+
+    function markPendingLocal(id) { cloud.pendingLocal.set(id, Date.now()); }
+    function isPendingLocal(id) {
+      const t = cloud.pendingLocal.get(id);
+      if (!t) return false;
+      if (Date.now() - t > PENDING_LOCAL_MS) { cloud.pendingLocal.delete(id); return false; }
+      return true;
+    }
+
+    function mergeById(...lists) {
+      const map = new Map();
+      lists.forEach((list) => (list || []).forEach((r) => { if (r && r.id) map.set(r.id, r); }));
+      return [...map.values()];
+    }
+
+    // Builds the in-memory patient (same shape the screens always used) from the cloud pieces.
+    function buildPatientFromCloud(pid) {
+      const profile = cloud.profiles.get(pid);
+      if (!profile) return null;
+      const existing = patients.find((x) => x.id === pid);
+      const built = { ...profile, id: pid };
+      const arrays = cloud.docArrays.get(pid) || {};
+
+      RECORD_KINDS.forEach((kind) => {
+        const fromDoc = (arrays[kind] || []).map((r) => ({ ...r }));
+        const local = existing ? (existing[kind] || []) : [];
+        let list;
+        if (cloud.failed[kind]) {
+          // Rules not published yet. Old documents hold the visits; for already-moved
+          // patients keep what this device has rather than showing an empty history.
+          list = profile.schemaVersion === SCHEMA_VERSION ? mergeById(local, fromDoc) : fromDoc;
+        } else if (!cloud.ready[kind]) {
+          list = mergeById(local, fromDoc);                 // still loading: don't flash an empty history
+        } else {
+          const sub = cloud.records[kind].get(pid) || new Map();
+          const ids = new Set();
+          list = mergeById(fromDoc, [...sub.entries()].map(([id, d]) => ({ ...d, id })));
+          list.forEach((r) => ids.add(r.id));
+          // Saved on this device a moment ago; the listener has not echoed it yet.
+          local.forEach((r) => { if (r && r.id && !ids.has(r.id) && isPendingLocal(r.id)) list.push(r); });
+        }
+        list.forEach((r) => { delete r.patientId; });
+        if (kind === 'visits') {
+          // Photos are not part of the visit record; keep the ones already on this device.
+          list.forEach((v) => {
+            if (v.photos && v.photos.length) return;
+            const lv = local.find((x) => x.id === v.id);
+            if (lv && lv.photos && lv.photos.length) v.photos = lv.photos;
+          });
+        }
+        built[kind] = list;
+      });
+
+      if ((!built.photos || built.photos.length === 0) && existing && existing.photos) built.photos = existing.photos;
+      const normalized = normalizePatientObject(built);
+      // Only a copy built from fully loaded records may delete records when saved.
+      if (cloud.ready.visits && cloud.ready.surgeries) captureBase(normalized);
+      return normalized;
+    }
+
+    function scheduleRebuild(pid) {
+      if (pid) cloud.dirty.add(pid);
+      if (cloud.rebuildTimer) return;
+      cloud.rebuildTimer = setTimeout(flushRebuild, 30);
+    }
+
+    function flushRebuild() {
+      cloud.rebuildTimer = null;
+      const deletedIds = getDeletedIds();
+      const dirty = [...cloud.dirty];
+      cloud.dirty.clear();
+      dirty.forEach((pid) => {
+        if (deletedIds.has(pid)) return;
+        const idx = patients.findIndex((x) => x.id === pid);
+        const built = buildPatientFromCloud(pid);
+        if (built) {
+          if (idx >= 0) patients[idx] = built; else patients.unshift(built);
+        } else if (idx >= 0 && cloud.removedProfiles && cloud.removedProfiles.has(pid)) {
+          patients.splice(idx, 1);
+        }
+      });
+      if (cloud.removedProfiles) cloud.removedProfiles.clear();
+      isInitialSyncDone = true;
+      saveDataPermanently();
+      renderApp();
+      if (cloud.remoteChange) showRealtimeToast('⚡ تم استقبال تحديثات جديدة من العيادة');
+      cloud.remoteChange = false;
+      if (activeArchivePatient) {
+        const fresh = patients.find((x) => x.id === activeArchivePatient.id);
+        if (fresh && dirty.includes(fresh.id) && typeof renderArchiveVisitsTimeline === 'function') {
+          activeArchivePatient = fresh;
+          renderArchiveVisitsTimeline(fresh);
+        }
+      }
+    }
+
+    function rebuildAllPatients() {
+      cloud.profiles.forEach((_v, pid) => cloud.dirty.add(pid));
+      scheduleRebuild();
     }
 
     function setupFirestoreRealtimeListeners() {
       if (!db || !currentRole || unsubscribePatientsListener) return;
+      resetCloudState();
+      cloud.removedProfiles = new Set();
 
       unsubscribePatientsListener = db.collection('patients').onSnapshot({ includeMetadataChanges: false }, (snapshot) => {
         const deletedIds = getDeletedIds();
-        let hasNewChanges = false;
-
         snapshot.docChanges().forEach((change) => {
-          const docData = change.doc.data();
-          const docId = change.doc.id;
-
-          if (deletedIds.has(docId)) return;
-
-          if (change.type === "added" || change.type === "modified") {
-            const incomingPatient = normalizePatientObject({ ...docData, id: docId });
-            const existingIdx = patients.findIndex(p => p.id === docId);
-
-            if (existingIdx >= 0) {
-              const existing = patients[existingIdx];
-              if ((!incomingPatient.photos || incomingPatient.photos.length === 0) && existing.photos) {
-                incomingPatient.photos = existing.photos;
-              }
-              // Photos live in patients/{id}/photos now, so cloud copies of visits arrive without them.
-              incomingPatient.visits.forEach((v) => {
-                if (v.photos && v.photos.length > 0) return;
-                const local = (existing.visits || []).find((lv) => lv.id === v.id);
-                if (local && local.photos && local.photos.length > 0) v.photos = local.photos;
-              });
-              patients[existingIdx] = incomingPatient;
+          const pid = change.doc.id;
+          if (deletedIds.has(pid)) return;
+          if (!change.doc.metadata.hasPendingWrites && isInitialSyncDone) cloud.remoteChange = true;
+          if (change.type === 'removed') {
+            cloud.profiles.delete(pid);
+            cloud.docArrays.delete(pid);
+            cloud.removedProfiles.add(pid);
+          } else {
+            const data = change.doc.data();
+            if (Array.isArray(data.visits) || Array.isArray(data.surgeries)) {
+              cloud.docArrays.set(pid, { visits: data.visits || [], surgeries: data.surgeries || [] });
+              queueMigration(pid);
             } else {
-              patients.unshift(incomingPatient);
+              cloud.docArrays.delete(pid);
             }
-            hasNewChanges = true;
-          } else if (change.type === "removed") {
-            patients = patients.filter(p => p.id !== docId);
-            hasNewChanges = true;
+            const profile = { ...data };
+            delete profile.visits; delete profile.surgeries;
+            cloud.profiles.set(pid, profile);
           }
+          scheduleRebuild(pid);
         });
-
-        if (hasNewChanges || !isInitialSyncDone) {
-          isInitialSyncDone = true;
-          saveDataPermanently();
-          renderApp();
-          if (hasNewChanges) {
-            showRealtimeToast('⚡ تم استقبال تحديثات جديدة من العيادة');
-          }
-        }
-
+        if (snapshot.empty) scheduleRebuild();
         isListenerHealthy = true;
         updateSyncStatus();
       }, (err) => {
@@ -3912,7 +4102,70 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
         updateSyncStatus();
       });
 
+      RECORD_KINDS.forEach(subscribeRecordKind);
       listenToDrugsChanges();
+    }
+
+    function subscribeRecordKind(kind) {
+        if (!db || !currentRole || !unsubscribePatientsListener) return;
+        let unsub = null;
+        unsub = db.collectionGroup(kind).onSnapshot((snapshot) => {
+          const firstLoad = !cloud.ready[kind];
+          snapshot.docChanges().forEach((change) => {
+            const parent = change.doc.ref.parent.parent;
+            if (!parent || parent.parent.id !== 'patients') return;
+            const pid = parent.id;
+            const id = change.doc.id;
+            if (!change.doc.metadata.hasPendingWrites && !firstLoad) cloud.remoteChange = true;
+            const map = cloud.records[kind].get(pid) || new Map();
+            if (change.type === 'removed') map.delete(id);
+            else { map.set(id, change.doc.data()); cloud.pendingLocal.delete(id); }
+            cloud.records[kind].set(pid, map);
+            scheduleRebuild(pid);
+          });
+          cloud.ready[kind] = true;
+          cloud.failed[kind] = false;
+          if (firstLoad) {
+            rebuildAllPatients();
+            settleModeWaiters();
+            startMigrationQueue();
+          }
+        }, (err) => {
+          // Usually: firestore.rules not yet published with the visits/surgeries rules.
+          console.warn(`Record listener (${kind}) unavailable, using the patient document instead:`, err && err.code);
+          cloud.failed[kind] = true;
+          settleModeWaiters();
+          rebuildAllPatients();
+          // Try again later: the rules may be published while the app is open.
+          const generation = cloud.gen;
+          setTimeout(() => {
+            if (cloud.gen === generation && cloud.failed[kind] && unsubscribePatientsListener) subscribeRecordKind(kind);
+          }, 60000);
+        });
+        settingsUnsubscribers.push(() => unsub && unsub());
+    }
+
+    // Moves visits/operations out of old patient documents, one patient at a time (doctor's device only).
+    function queueMigration(pid) {
+      if (!cloud.migrationQueue.includes(pid)) cloud.migrationQueue.push(pid);
+      startMigrationQueue();
+    }
+
+    async function startMigrationQueue() {
+      if (cloud.migrating || currentRole !== 'doctor' || recordStorageMode() !== 'records') return;
+      cloud.migrating = true;
+      try {
+        while (cloud.migrationQueue.length && currentRole === 'doctor' && recordStorageMode() === 'records') {
+          const pid = cloud.migrationQueue.shift();
+          if (!cloud.docArrays.has(pid)) continue;
+          if (cloud.rebuildTimer) flushRebuild();
+          const patient = patients.find((x) => x.id === pid);
+          if (patient) await syncPatientToCloud(patient, { silent: true });
+          await new Promise((r) => setTimeout(r, 250));
+        }
+      } finally {
+        cloud.migrating = false;
+      }
     }
 
     // --- SYNC STATUS: failed writes stay visible until a later write of that patient succeeds ---
@@ -3920,14 +4173,20 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
     let pendingWrites = 0;
     let isListenerHealthy = true;
 
+    let savedFlashUntil = 0;
+
     function updateSyncStatus() {
       const statusEl = document.getElementById('syncStatus');
       if (!statusEl) return;
+      const offline = (typeof navigator !== 'undefined' && navigator.onLine === false);
       if (failedSyncIds.size > 0) statusEl.innerText = `🔴 تعذر رفع ${failedSyncIds.size} ملف`;
-      else if (!isListenerHealthy) statusEl.innerText = '🟡 محلي (غير متصل)';
-      else if (pendingWrites > 0) statusEl.innerText = '⏳ بانتظار الاتصال';
+      else if (pendingWrites > 0) statusEl.innerText = offline ? '⏳ محفوظ على الجهاز، بانتظار الإنترنت' : '⏳ جاري الرفع...';
+      else if (offline || !isListenerHealthy) statusEl.innerText = '🟡 بدون إنترنت (يعمل محلياً)';
+      else if (Date.now() < savedFlashUntil) statusEl.innerText = '✅ تم الحفظ في السحابة';
       else statusEl.innerText = '🟢 متصل ومزامن';
     }
+    window.addEventListener('online', updateSyncStatus);
+    window.addEventListener('offline', updateSyncStatus);
 
     function cleanObjectForFirestore(obj) {
       return JSON.parse(JSON.stringify(obj, (k, v) => (v === undefined ? null : v)));
@@ -3940,6 +4199,8 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
       updateSyncStatus();
       const tracked = promise.then(() => {
         failedSyncIds.delete(patientId);
+        savedFlashUntil = Date.now() + 2500;
+        setTimeout(updateSyncStatus, 2600);
         return true;
       }).catch((err) => {
         console.warn('Cloud sync write warning:', err);
@@ -3975,6 +4236,117 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
       if (!patient || !patient.id || deletedIds.has(patient.id)) return false;
       if (!db || !currentRole) return false;
 
+      const mode = await waitForRecordMode(4000);
+      const writes = mode === 'records' ? writePatientRecords(patient, silent) : writePatientLegacy(patient, silent);
+      writes.push(...writeVisitPhotos(patient, silent));
+      const results = await Promise.all(writes);
+      return results.every(Boolean);
+    }
+
+    // New layout: profile fields that changed + each changed visit/operation, in one batch.
+    // What a patient object looked like when it was built from the cloud. A save sends only
+    // what changed on this device since then, so an out-of-date copy can never undo or
+    // delete something the other device saved meanwhile.
+    function captureBase(patient) {
+      const pid = patient.id;
+      const base = { profile: new Map(), visits: new Map(), surgeries: new Map() };
+      const prof = profileForCloud(patient);
+      Object.keys(prof).forEach((k) => base.profile.set(k, stableJson(prof[k])));
+      RECORD_KINDS.forEach((kind) => (patient[kind] || []).forEach((r) => {
+        if (r && r.id) base[kind].set(r.id, stableJson(recordForCloud(kind, r, pid)));
+      }));
+      Object.defineProperty(patient, '_cloudBase', { value: base, writable: true, configurable: true, enumerable: false });
+    }
+
+    function writePatientRecords(patient, silent) {
+      const pid = patient.id;
+      const ref = db.collection('patients').doc(pid);
+      const del = firebase.firestore.FieldValue.delete();
+      const isDoctor = currentRole === 'doctor';
+      const base = patient._cloudBase || null;   // null: never built from the cloud (new, or loaded before sync)
+      const arrays = cloud.docArrays.get(pid);
+      const recordOps = [];
+
+      RECORD_KINDS.forEach((kind) => {
+        const cloudMap = cloud.records[kind].get(pid) || new Map();
+        cloud.records[kind].set(pid, cloudMap);
+        const localIds = new Set();
+        (patient[kind] || []).forEach((rec) => {
+          if (!rec) return;
+          const id = safeRecordId(rec.id);
+          if (!id) return;
+          rec.id = id;
+          localIds.add(id);
+          const data = recordForCloud(kind, rec, pid);
+          const json = stableJson(data);
+          const changedHere = base ? json !== base[kind].get(id) : json !== stableJson(cloudMap.get(id));
+          const notMovedYet = !!arrays && !cloudMap.has(id);
+          if (!changedHere && !notMovedYet) return;
+          recordOps.push((b) => b.set(ref.collection(kind).doc(id), data));
+          cloudMap.set(id, data);
+          markPendingLocal(id);
+        });
+        // Deletions: only records this copy knew about and removed here (doctor only).
+        if (!isDoctor || !base) return;
+        base[kind].forEach((_json, id) => {
+          if (localIds.has(id) || !cloudMap.has(id)) return;
+          recordOps.push((b) => b.delete(ref.collection(kind).doc(id)));
+          if (kind === 'visits') recordOps.push((b) => b.delete(ref.collection('photos').doc(id)));
+          cloudMap.delete(id);
+          cloud.pendingLocal.delete(id);
+        });
+      });
+
+      // Profile: only fields changed here; old documents also get their visit arrays moved out.
+      const local = profileForCloud(patient);
+      const remote = cloud.profiles.get(pid);
+      const update = {};
+      Object.keys(local).forEach((k) => {
+        const json = stableJson(local[k]);
+        const changedHere = base ? json !== base.profile.get(k) : (!remote || json !== stableJson(remote[k]));
+        if (changedHere) update[k] = local[k];
+      });
+      if (base) base.profile.forEach((_json, k) => { if (!(k in local) && remote && k in remote) update[k] = del; });
+      if (!remote || remote.schemaVersion !== SCHEMA_VERSION) update.schemaVersion = SCHEMA_VERSION;
+      // Move arrays out only when everything fits in one atomic batch; otherwise the next save finishes it.
+      const canMoveArrays = !!arrays && recordOps.length < 400;
+      if (canMoveArrays) {
+        if (!(remote && remote.legacyVisits) && arrays.visits.length) update.legacyVisits = cleanObjectForFirestore(arrays.visits.map(stripPhotos));
+        if (!(remote && remote.legacySurgeries) && arrays.surgeries.length) update.legacySurgeries = cleanObjectForFirestore(arrays.surgeries);
+        update.visits = del;
+        update.surgeries = del;
+        update.migratedAt = Date.now();
+      }
+
+      const ops = recordOps.slice();
+      if (Object.keys(update).length) {
+        ops.push((b) => b.set(ref, update, { merge: true }));
+        const next = { ...(remote || {}) };
+        Object.keys(update).forEach((k) => { if (update[k] === del) delete next[k]; else next[k] = update[k]; });
+        delete next.visits; delete next.surgeries;
+        cloud.profiles.set(pid, next);
+      }
+      if (canMoveArrays) cloud.docArrays.delete(pid);
+      captureBase(patient);   // the next save compares against what was just sent
+
+      if (!ops.length) return [];
+      const writes = [];
+      for (let i = 0; i < ops.length; i += 400) {
+        const batch = db.batch();
+        ops.slice(i, i + 400).forEach((op) => op(batch));
+        writes.push(trackCloudWrite(batch.commit(), pid, silent));
+      }
+      return writes;
+    }
+
+    function stripPhotos(v) {
+      if (!v || typeof v !== 'object') return v;
+      const { photos: _omit, ...rest } = v;
+      return rest;
+    }
+
+    // Old layout (used only until firestore.rules allows the new one): the whole patient in one document.
+    function writePatientLegacy(patient, silent) {
       const lightPatient = { ...patient };
       delete lightPatient.photos;
       lightPatient.visits = (patient.visits || []).map((v) => {
@@ -3982,10 +4354,13 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
         const { photos: _omit, ...rest } = v;
         return { ...rest, photoCount: photos.length || v.photoCount || 0 };
       });
-
       const patientRef = db.collection('patients').doc(patient.id);
-      const writes = [trackCloudWrite(patientRef.set(cleanObjectForFirestore(lightPatient), { merge: true }), patient.id, silent)];
+      return [trackCloudWrite(patientRef.set(cleanObjectForFirestore(lightPatient), { merge: true }), patient.id, silent)];
+    }
 
+    function writeVisitPhotos(patient, silent) {
+      const patientRef = db.collection('patients').doc(patient.id);
+      const writes = [];
       const synced = readSyncedPhotoSets();
       (patient.visits || []).forEach((v) => {
         const photos = (Array.isArray(v.photos) ? v.photos : []).filter(isSafePhotoSrc);
@@ -4000,9 +4375,7 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
         write.then(() => markPhotoSetSynced(key)).catch(() => {});
         writes.push(trackCloudWrite(write, patient.id, silent));
       });
-
-      const results = await Promise.all(writes);
-      return results.every(Boolean);
+      return writes;
     }
 
     // Fetch visit photos that exist in the cloud but not on this device yet.

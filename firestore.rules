@@ -36,6 +36,26 @@ service cloud.firestore {
         allow read, create, update: if isStaff();
         allow delete: if isDoctor();
       }
+
+      // One document per visit / per operation (app schema 2).
+      match /visits/{visitId} {
+        allow read, create, update: if isStaff();
+        allow delete: if isDoctor();
+      }
+
+      match /surgeries/{surgeryId} {
+        allow read, create, update: if isStaff();
+        allow delete: if isDoctor();
+      }
+    }
+
+    // The app listens to all visits / operations at once (collection-group queries).
+    match /{path=**}/visits/{visitId} {
+      allow read: if isStaff();
+    }
+
+    match /{path=**}/surgeries/{surgeryId} {
+      allow read: if isStaff();
     }
 
     match /settings/drugs {

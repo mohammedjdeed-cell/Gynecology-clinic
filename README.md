@@ -46,9 +46,19 @@ Until step 4 is published, the database is still protected only by whatever rule
 
 ## Data layout
 
-- `patients/{id}`: patient profile, visits and surgeries. Visits keep only `photoCount`.
+Each visit and each operation is its own document, so a save only sends what changed and two
+devices editing the same patient cannot overwrite each other.
+
+- `patients/{id}`: patient profile only, with `schemaVersion: 2`.
+- `patients/{id}/visits/{visitId}`: one visit (`photoCount` only; the photos are separate).
+- `patients/{id}/surgeries/{surgeryId}`: one operation / delivery.
 - `patients/{id}/photos/{visitId}`: the photos of one visit (`list` of JPEG data URLs).
-  This keeps patient documents under Firestore's 1 MB limit. Photos load when the archive is opened.
+
+Older versions kept `visits` / `surgeries` as arrays inside the patient document. The doctor's
+device moves them into the documents above automatically, one patient at a time, and keeps a
+copy in `legacyVisits` / `legacySurgeries` as a backup. Until `firestore.rules` with the
+visits/surgeries rules is published, the app keeps saving the old way and retries every minute.
+
 - Each visit may hold `labs`: typed lab results (Hb, PLT, FBS, OGTT, TSH, urine, HBsAg,
   Toxo IgM, Rubella IgG, plus free text). Values outside the pregnancy reference points are
   shown in red; the reference points are in `LAB_TESTS` in `index.html` and can be adjusted.
