@@ -53,6 +53,13 @@
     /* Smooth horizontal tab scroll without scrollbar */
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .bn-btn { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 0 6px; font-size: 11px; font-weight: 800; color: #64748b; }
+    .bn-btn.is-active { color: #9f1239; }
+    .bn-btn.is-active span:first-child { transform: translateY(-1px); }
+    .tab-btn { height: 40px; padding: 0 14px; border-radius: 12px; font-size: 12px; font-weight: 800; white-space: nowrap; flex-shrink: 0;
+               background: #fff; color: #334155; border: 1px solid #e2e8f0; display: inline-flex; align-items: center; gap: 6px; }
+    .tab-btn:hover { background: #fff1f2; }
+    .tab-btn.is-active { background: #881337; color: #fff; border-color: #881337; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
     ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-track { background: #f1f5f9; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; }
@@ -98,35 +105,36 @@
 
  <!-- ==================== 2. SMART MOBILE/DESKTOP HEADER ==================== -->
 <!-- ==================== 2. SMART MOBILE/DESKTOP HEADER ==================== -->
-  <header class="bg-rose-900 text-white shadow-md sticky top-0 z-30 border-b border-rose-950/40">
+  <header class="bg-white/95 backdrop-blur text-slate-800 shadow-xs sticky top-0 z-30 border-b border-slate-200">
     <div class="max-w-5xl mx-auto px-2.5 sm:px-4 py-2 flex justify-between items-center gap-1.5 sm:gap-2">
       
       <!-- Brand & Title (Never cut off on 6-inch screens) -->
       <div class="flex items-center gap-2 min-w-0 flex-1">
-        <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-base sm:text-xl shrink-0 shadow-inner">
+        <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-center text-base sm:text-xl shrink-0">
           🩺
         </div>
         <div class="min-w-0">
-          <h1 class="text-xs sm:text-sm md:text-base font-black truncate text-white leading-tight">عيادة د. هيام خضر</h1>
+          <h1 class="text-xs sm:text-sm md:text-base font-black truncate text-rose-950 leading-tight">عيادة د. هيام خضر</h1>
+          <span id="syncStatus" onclick="syncAllToCloud()" title="المزامنة" class="cursor-pointer text-[10px] sm:text-[11px] font-bold text-slate-600 bg-slate-100 border border-slate-200 rounded-md px-1.5 py-0.5 mt-0.5 inline-block truncate max-w-[180px] sm:max-w-none">🟢 متصل</span>
           <span id="roleBadge" class="text-[9px] sm:text-[10px] bg-rose-950/90 text-rose-200 border border-rose-800/80 px-1.5 py-0.2 rounded font-bold inline-block mt-0.5 truncate max-w-[140px] sm:max-w-none"></span>
         </div>
       </div>
       
       <!-- Doctor Actions Bar (Compact & Touch-Friendly) -->
       <div id="doctorNav" class="flex items-center gap-1 sm:gap-1.5 shrink-0">
-        <button onclick="openDoctorNewPatientModal()" class="btn-touch h-9 sm:h-10 px-2 sm:px-3 bg-white text-rose-900 hover:bg-rose-50 rounded-xl font-black text-xs shadow-xs border border-white/40 flex items-center gap-1">
+        <button onclick="openDoctorNewPatientModal()" class="btn-touch h-9 sm:h-10 px-2 sm:px-3 bg-rose-800 text-white hover:bg-rose-900 rounded-xl font-black text-xs shadow-xs flex items-center gap-1">
           <span class="text-sm leading-none">➕</span>
           <span class="hidden sm:inline">مريضة جديدة</span>
           <span class="sm:hidden text-[11px]">جديدة</span>
         </button>
 
-        <button onclick="syncAllToCloud()" title="مزامنة" class="btn-touch h-9 w-9 sm:h-10 sm:w-10 bg-rose-800 hover:bg-rose-700 text-rose-100 rounded-xl border border-rose-700/60 flex items-center justify-center text-sm">
+        <button onclick="syncAllToCloud()" title="مزامنة" class="btn-touch h-9 w-9 sm:h-10 sm:w-10 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl border border-slate-200 flex items-center justify-center text-sm">
           ☁️
         </button>
 
         <!-- Tools Dropdown -->
         <div class="relative" id="adminMenuContainer">
-          <button onclick="toggleAdminMenu()" id="btnAdminMenu" title="الأدوات" class="btn-touch h-9 sm:h-10 px-2 sm:px-2.5 bg-rose-800 hover:bg-rose-700 text-rose-100 rounded-xl font-bold text-xs border border-rose-700/60 flex items-center gap-1">
+          <button onclick="toggleAdminMenu()" id="btnAdminMenu" title="الأدوات" class="btn-touch h-9 sm:h-10 px-2 sm:px-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs border border-slate-200 flex items-center gap-1">
             <span class="text-sm">⚙️</span>
             <span class="text-[8px] opacity-70">▼</span>
           </button>
@@ -160,27 +168,27 @@
           </div>
         </div>
 
-        <button onclick="lockApp()" title="قفل" class="btn-touch h-9 w-9 sm:h-10 sm:w-10 bg-rose-950/80 hover:bg-black/30 rounded-xl text-sm border border-rose-800 flex items-center justify-center">
+        <button onclick="lockApp()" title="قفل" class="btn-touch h-9 w-9 sm:h-10 sm:w-10 bg-slate-100 hover:bg-slate-200 rounded-xl text-sm border border-slate-200 flex items-center justify-center">
           🔒
         </button>
       </div>
 
       <!-- Secretary Actions Bar -->
       <div id="secretaryNav" class="hidden items-center gap-1 sm:gap-1.5 shrink-0">
-        <button onclick="openSecretaryModal()" class="btn-touch h-9 sm:h-10 px-2.5 sm:px-3 bg-white text-rose-900 hover:bg-rose-50 rounded-xl font-black text-xs shadow-xs border border-white/40 flex items-center gap-1">
+        <button onclick="openSecretaryModal()" class="btn-touch h-9 sm:h-10 px-2.5 sm:px-3 bg-rose-800 text-white hover:bg-rose-900 rounded-xl font-black text-xs shadow-xs flex items-center gap-1">
           <span class="text-sm">➕</span>
           <span>دور جديد</span>
         </button>
-        <button onclick="syncAllToCloud()" title="مزامنة" class="btn-touch h-9 w-9 sm:h-10 sm:w-10 bg-rose-800 hover:bg-rose-700 text-rose-100 rounded-xl border border-rose-700/60 flex items-center justify-center text-sm">
+        <button onclick="syncAllToCloud()" title="مزامنة" class="btn-touch h-9 w-9 sm:h-10 sm:w-10 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl border border-slate-200 flex items-center justify-center text-sm">
           ☁️
         </button>
-        <button onclick="openBackdateModal()" title="أرشفة سابقة" class="btn-touch h-9 sm:h-10 px-2.5 bg-rose-800 hover:bg-rose-700 text-rose-100 rounded-xl font-bold text-xs border border-rose-700/60 flex items-center gap-1">
+        <button onclick="openBackdateModal()" title="أرشفة سابقة" class="btn-touch h-9 sm:h-10 px-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs border border-slate-200 flex items-center gap-1">
           📁 <span class="hidden sm:inline">أرشفة</span>
         </button>
-        <button onclick="manualInstantRefresh()" title="تحديث" class="btn-touch h-9 w-9 sm:h-10 sm:w-10 bg-rose-800 hover:bg-rose-700 text-rose-100 rounded-xl border border-rose-700/60 flex items-center justify-center text-sm">
+        <button onclick="manualInstantRefresh()" title="تحديث" class="btn-touch h-9 w-9 sm:h-10 sm:w-10 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl border border-slate-200 flex items-center justify-center text-sm">
           🔄
         </button>
-        <button onclick="lockApp()" title="قفل" class="btn-touch h-9 w-9 sm:h-10 sm:w-10 bg-rose-950/80 hover:bg-black/30 rounded-xl text-sm border border-rose-800 flex items-center justify-center">
+        <button onclick="lockApp()" title="قفل" class="btn-touch h-9 w-9 sm:h-10 sm:w-10 bg-slate-100 hover:bg-slate-200 rounded-xl text-sm border border-slate-200 flex items-center justify-center">
           🔒
         </button>
       </div>
@@ -188,36 +196,26 @@
     </div>
   </header>
   <!-- Notification Toast -->
-  <div id="realtimeToast" class="fixed bottom-4 left-4 bg-slate-900/95 backdrop-blur text-white px-4 py-3 rounded-2xl text-xs font-bold shadow-2xl flex items-center gap-2.5 transform translate-y-28 transition-transform duration-300 z-50 pointer-events-none border border-slate-700">
+  <div id="realtimeToast" class="fixed bottom-24 md:bottom-4 left-4 bg-slate-900/95 backdrop-blur text-white px-4 py-3 rounded-2xl text-xs font-bold shadow-2xl flex items-center gap-2.5 transform translate-y-28 transition-transform duration-300 z-50 pointer-events-none border border-slate-700">
     <span class="text-rose-400 text-base">⚡</span>
     <span id="realtimeToastMsg">تم التحديث</span>
   </div>
 
   <!-- ==================== 3. MAIN DASHBOARD ==================== -->
 <!-- ==================== 3. MAIN DASHBOARD ==================== -->
-  <main class="max-w-5xl mx-auto p-3 md:p-4 space-y-3 flex-1 w-full">
+  <main id="mainArea" class="max-w-5xl mx-auto p-3 md:p-4 space-y-3 flex-1 w-full pb-24 md:pb-6">
     
     <!-- Doctor Tabs Navigation (Touch Padded) -->
     <!-- Doctor Tabs Navigation (With Operations Database Tab) -->
-    <div id="tabsContainer" class="flex gap-1.5 pb-1 overflow-x-auto no-scrollbar">
-      <button onclick="setActiveTab('daily')" id="tabDaily" class="btn-touch h-10 px-3.5 rounded-xl text-xs font-bold bg-rose-900 text-white shadow-xs shrink-0 whitespace-nowrap">
-        📅 سجل اليوميات
-      </button>
-      <button onclick="setActiveTab('weekly')" id="tabWeekly" class="btn-touch h-10 px-3.5 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-rose-50/50 border border-slate-200 shrink-0 whitespace-nowrap">
-        📊 سجل الأسبوع المالي
-      </button>
-      <button onclick="setActiveTab('dueMonth')" id="tabDueMonth" class="btn-touch h-10 px-3.5 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-rose-50/50 border border-slate-200 shrink-0 whitespace-nowrap flex items-center gap-1.5">
-        <span>🤰 ولادات هذا الشهر</span>
-        <span id="dueThisMonthCount" class="bg-rose-600 text-white px-1.5 py-0.2 rounded-full text-[10px] font-mono hidden">0</span>
-      </button>
-      <button onclick="setActiveTab('surgeries')" id="tabSurgeries" class="btn-touch h-10 px-3.5 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-rose-50/50 border border-slate-200 shrink-0 whitespace-nowrap flex items-center gap-1.5">
-        <span>✂️ سجل العمليات والولادات</span>
-        <span id="allSurgeriesCountBadge" class="bg-slate-800 text-white px-1.5 py-0.2 rounded-full text-[10px] font-mono">0</span>
-      </button>
-      <button onclick="setActiveTab('all')" id="tabAll" class="btn-touch h-10 px-3.5 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-rose-50/50 border border-slate-200 shrink-0 whitespace-nowrap">
-        📋 أرشيف المريضات
-      </button>
+    <div id="tabsContainer" class="hidden md:flex gap-1.5 pb-1 overflow-x-auto no-scrollbar">
+      <button onclick="setActiveTab('today')" id="tabToday" data-tab="today">🏠 اليوم</button>
+      <button onclick="setActiveTab('all')" id="tabAll" data-tab="all">📋 المريضات</button>
+      <button onclick="setActiveTab('dueMonth')" id="tabDueMonth" data-tab="dueMonth"><span>🤰 الولادات</span> <span id="dueThisMonthCount" class="bg-rose-600 text-white px-1.5 rounded-full text-[10px] font-mono hidden">0</span></button>
+      <button onclick="setActiveTab('surgeries')" id="tabSurgeries" data-tab="surgeries"><span>✂️ العمليات</span> <span id="allSurgeriesCountBadge" class="bg-slate-700 text-white px-1.5 rounded-full text-[10px] font-mono">0</span></button>
+      <button onclick="setActiveTab('weekly')" id="tabWeekly" data-tab="weekly">📊 المالية</button>
+      <button onclick="setActiveTab('daily')" id="tabDaily" data-tab="daily">📅 سجل يوم</button>
     </div>
+
     <!-- Date Filter & Search Bar (Uniform 42px Touch Heights) -->
     <div class="bg-white p-2.5 rounded-2xl shadow-xs border border-slate-200 flex flex-col md:flex-row gap-2 justify-between items-center">
       <div id="dateControlGroup" class="flex items-center gap-1.5 w-full md:w-auto">
@@ -242,17 +240,15 @@
     </div>
 
     <!-- Uniform Stats & Income Bar -->
-    <div class="bg-slate-900 text-white p-2.5 px-3.5 rounded-2xl shadow-xs flex justify-between items-center flex-wrap gap-2 text-xs font-bold border border-slate-800">
-      <div id="queueStats" class="text-slate-200 text-xs"></div>
+    <div id="statsBar" class="bg-white p-2.5 px-3.5 rounded-2xl shadow-2xs flex justify-between items-center flex-wrap gap-2 text-xs font-bold border border-slate-200">
+      <div id="queueStats" class="text-slate-700 text-xs"></div>
       <div class="flex items-center gap-2">
-        <div id="financialTally" class="bg-slate-800 text-rose-200 px-3 py-1.5 rounded-xl border border-slate-700 flex items-center gap-1.5 font-mono">
-          <span class="text-slate-300 font-sans text-xs">💰 الصندوق:</span>
-          <span id="dailyTotalIncome" class="font-black text-emerald-400 text-sm">0</span>
+        <div id="financialTally" class="bg-emerald-50 text-emerald-900 px-3 py-1.5 rounded-xl border border-emerald-200 flex items-center gap-1.5 font-mono">
+          <span class="text-emerald-800 font-sans text-xs">💰 الدخل:</span>
+          <span id="dailyTotalIncome" class="font-black text-emerald-700 text-sm">0</span>
           <span class="text-[11px] font-sans">ل.س</span>
         </div>
-        <button onclick="syncAllToCloud()" title="فحص المزامنة" class="btn-touch h-8 px-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-[11px] border border-slate-700">
-          <span id="syncStatus">🟢 متصل</span>
-        </button>
+
       </div>
     </div>
 
@@ -261,6 +257,17 @@
     <!-- Patient Cards List -->
     <div id="patientList" class="space-y-3"></div>
   </main>
+
+  <!-- Phone navigation (doctor) -->
+  <nav id="bottomNav" class="md:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur border-t border-slate-200 shadow-[0_-4px_16px_rgba(0,0,0,0.06)]" style="padding-bottom: env(safe-area-inset-bottom);">
+    <div class="grid grid-cols-5">
+      <button onclick="setActiveTab('today')" data-tab="today" class="bn-btn"><span class="text-xl leading-none">🏠</span><span>اليوم</span></button>
+      <button onclick="setActiveTab('all')" data-tab="all" class="bn-btn"><span class="text-xl leading-none">📋</span><span>المريضات</span></button>
+      <button onclick="setActiveTab('dueMonth')" data-tab="dueMonth" class="bn-btn"><span class="text-xl leading-none">🤰</span><span>الولادات</span></button>
+      <button onclick="setActiveTab('surgeries')" data-tab="surgeries" class="bn-btn"><span class="text-xl leading-none">✂️</span><span>العمليات</span></button>
+      <button onclick="setActiveTab('weekly')" data-tab="weekly" class="bn-btn"><span class="text-xl leading-none">📊</span><span>المالية</span></button>
+    </div>
+  </nav>
 
   <!-- ==================== 4. SECRETARY INTAKE MODAL ==================== -->
   <div id="secretaryModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 z-40">
@@ -409,7 +416,10 @@
             <p id="archivePatientSubtitle" class="text-xs text-slate-500 font-bold mt-0.5"></p>
           </div>
         </div>
-        <button type="button" onclick="closeDoctorModal()" class="text-gray-400 hover:text-rose-600 text-2xl font-bold p-1">&times;</button>
+        <div class="flex items-center gap-1">
+          <button type="button" id="btnArchiveDeletePatient" title="حذف ملف المريضة" class="text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg px-2 py-1 text-sm">🗑️</button>
+          <button type="button" onclick="closeDoctorModal()" class="text-gray-400 hover:text-rose-600 text-2xl font-bold p-1">&times;</button>
+        </div>
       </div>
 
       <!-- Key facts, warnings and current pregnancy -->
@@ -1486,7 +1496,11 @@
                            (v.photos && v.photos.length > 0) ||
                            (v.photoCount > 0) ||
                            hasLabs(v.labs) ||
-                           hasFee;
+                           hasFee ||
+                           (v.diagnosis && String(v.diagnosis).trim()) ||
+                           (v.nextVisitDate && String(v.nextVisitDate).trim()) ||
+                           (v.details && Object.keys(v.details).length > 0) ||
+                           !!v.kind;
         return hasContent || (v.date && v.complaint);
       });
 
@@ -1540,7 +1554,7 @@
       catch (e) { return normalizeDrugList(DEFAULT_DRUGS); }
     })();
     let currentRole = null;
-    let activeTab = 'daily';
+    let activeTab = 'today';
     let currentAttachedPhotos = [];
     let patientToDeleteId = null;
     let whatsAppTargetPatient = null;
@@ -2299,6 +2313,7 @@
 
       document.getElementById('btnArchiveQuickNewVisit').onclick = () => openNewVisitModal(p.id);
       document.getElementById('btnArchiveNewSurgery').onclick = () => openSurgeryModal(p.id);
+      document.getElementById('btnArchiveDeletePatient').onclick = () => { closeDoctorModal(); requestDeletePatient(p.id, p.name); };
 
       document.getElementById('pName').value = p.name || '';
       document.getElementById('pHusband').value = p.husband || '';
@@ -3629,6 +3644,92 @@
     }
 
     // --- 17. MAIN RENDER ENGINE & COMPACT LAYOUTS ---
+    // --- TODAY SCREEN ---
+    function latestNextVisit(p) {
+      const v = (p.visits || []).find((x) => x.nextVisitDate);
+      return v ? v.nextVisitDate : (p.nextVisitDate || '');
+    }
+
+    function arabicDayTitle(dateStr) {
+      try {
+        return new Date(dateStr + 'T12:00:00').toLocaleDateString('ar-SY', { weekday: 'long', day: 'numeric', month: 'long' });
+      } catch (e) { return dateStr; }
+    }
+
+    function renderTodayView(list) {
+      const today = getTodayDateString();
+      const deletedIds = getDeletedIds();
+      const all = patients.filter((p) => p && p.id && !deletedIds.has(p.id));
+      const visitedToday = (p) => (p.visits || []).some((v) => v.date === today);
+
+      const seen = all.filter(visitedToday);
+      const appointments = all.filter((p) => !visitedToday(p) && latestNextVisit(p) === today);
+      const waiting = all.filter((p) => p.status === 'waiting' && p.visitDate === today && !visitedToday(p) && !appointments.includes(p));
+      const missedFrom = addDaysIso(today, -14);
+      const missed = all.filter((p) => {
+        const nv = latestNextVisit(p);
+        if (!nv || nv >= today || nv < missedFrom) return false;
+        return !(p.visits || []).some((v) => v.date >= nv);
+      }).sort((a, b) => latestNextVisit(b).localeCompare(latestNextVisit(a)));
+      const dueSoon = all.map((p) => {
+        const preg = activePregnancy(p);
+        if (!preg || !preg.lmp) return null;
+        const edd = addDaysIso(preg.lmp, 280);
+        const days = daysBetween(today, edd);
+        return (days !== null && days <= 14 && days >= -21) ? { p, days, edd } : null;
+      }).filter(Boolean).sort((a, b) => a.days - b.days);
+      let income = 0;
+      seen.forEach((p) => (p.visits || []).forEach((v) => { if (v.date === today) income += (parseInt(v.fee, 10) || 0); }));
+
+      const head = document.createElement('div');
+      head.className = 'space-y-2.5';
+      head.innerHTML = `
+        <div class="flex justify-between items-center gap-2 flex-wrap">
+          <h2 class="text-lg font-black text-slate-900">${escapeHTML(arabicDayTitle(today))}</h2>
+          <div class="flex gap-1.5">
+            <button onclick="setActiveTab('daily')" class="h-9 px-3 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50">📅 يوم آخر</button>
+            <button onclick="openDoctorNewPatientModal()" class="h-9 px-3 rounded-xl bg-rose-800 hover:bg-rose-900 text-white text-xs font-black shadow-xs">➕ مريضة جديدة</button>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          ${[
+            ['📅', 'مواعيد اليوم', appointments.length, 'text-purple-800', 'bg-purple-50 border-purple-200'],
+            ['✅', 'تمت رؤيتهن', seen.length, 'text-emerald-800', 'bg-emerald-50 border-emerald-200'],
+            ['💰', 'دخل اليوم', income.toLocaleString('en-US'), 'text-slate-900', 'bg-white border-slate-200'],
+            ['🤰', 'ولادات قريبة', dueSoon.length, 'text-rose-800', 'bg-rose-50 border-rose-200']
+          ].map(([icon, label, value, tc, bc]) => `
+            <div class="rounded-2xl border p-3 ${bc}">
+              <div class="text-[11px] font-bold text-slate-500">${icon} ${label}</div>
+              <div class="text-2xl font-black ${tc} font-mono mt-0.5">${value}</div>
+            </div>`).join('')}
+        </div>`;
+      list.appendChild(head);
+
+      const section = (title, items, note, empty) => {
+        if (!items.length && !empty) return;
+        const box = document.createElement('section');
+        box.className = 'space-y-2 pt-2';
+        box.innerHTML = `<h3 class="text-sm font-black text-slate-800 flex items-center gap-2">${title} <span class="bg-slate-200 text-slate-700 rounded-full px-2 text-[11px] font-mono">${items.length}</span></h3>`;
+        if (!items.length) {
+          const e = document.createElement('div');
+          e.className = 'bg-white border border-dashed border-slate-300 rounded-2xl p-4 text-center text-xs text-slate-400 font-bold';
+          e.textContent = empty;
+          box.appendChild(e);
+        }
+        const grid = document.createElement('div');
+        grid.className = 'grid grid-cols-1 lg:grid-cols-2 gap-2';
+        items.forEach((it, i) => grid.appendChild(createPatientCardElement(it.p || it, i, { note: note ? note(it) : '' })));
+        box.appendChild(grid);
+        list.appendChild(box);
+      };
+
+      section('📅 مواعيد اليوم', appointments, () => '📅 موعدها اليوم', 'لا توجد مواعيد مسجلة لليوم.');
+      section('⏳ في الانتظار', waiting, () => '⏳ بانتظار الفحص', '');
+      section('✅ تمت رؤيتهن اليوم', seen, null, 'لم تُسجل أي زيارة اليوم بعد.');
+      section('🤰 ولادات خلال أسبوعين', dueSoon, (it) => it.days < 0 ? `⚠️ تجاوزت الموعد بـ ${-it.days} يوم` : (it.days === 0 ? '🤰 موعد الولادة اليوم' : `🤰 الولادة بعد ${it.days} يوم (${it.edd})`), '');
+      section('⚠️ مواعيد فائتة (آخر أسبوعين)', missed, (p) => `⚠️ كان موعدها ${latestNextVisit(p)}`, '');
+    }
+
     function renderApp() {
       const selectedDate = document.getElementById('dateFilterInput').value || getTodayDateString();
       const rawSearch = document.getElementById('searchInput').value.trim();
@@ -3662,7 +3763,16 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
       if (surgBadge) surgBadge.innerText = totalSurgCount;
       const isSec = (currentRole === 'secretary');
 
-      renderNextPatientSpotlight();
+      const isTodayView = !isSec && activeTab === 'today' && !q;
+      document.getElementById('statsBar').classList.toggle('hidden', isTodayView);
+      if (isTodayView) {
+        document.getElementById('nextPatientSpotlightContainer').innerHTML = '';
+        searchBanner.classList.add('hidden');
+        renderTodayView(list);
+        return;
+      }
+      if (activeTab === 'daily' || isSec) renderNextPatientSpotlight();
+      else document.getElementById('nextPatientSpotlightContainer').innerHTML = '';
 
       let displayList = [];
 
@@ -3849,176 +3959,70 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
     }
 
     // --- 19. UNIFIED MODERN PATIENT CARD (TOUCH-FRIENDLY & NO OVERLAPS) ---
-    function createPatientCardElement(p, index) {
+    function createPatientCardElement(p, index, opts = {}) {
       normalizePatientObject(p);
-
       const card = document.createElement('div');
-      const preg = calculatePregnancy(p.lmp);
       const isDoctor = (currentRole === 'doctor');
       const isWaiting = (p.status === 'waiting');
-      const calculatedAge = calculateAgeFromBirthYear(p.birthYear) || p.age;
-      const queueNumToDisplay = p.dynamicQueueNumber || (index + 1);
+      const age = calculateAgeFromBirthYear(p.birthYear) || p.age;
       const visitsList = p.visits || [];
-      const surgeriesList = p.surgeries || [];
+      const latest = visitsList[0] || null;
       const q = document.getElementById('searchInput').value.trim();
-      const showQueueNumber = (activeTab === 'daily' || currentRole === 'secretary' || activeTab === 'weekly') && (q.length === 0);
+      const showQueueNumber = (activeTab === 'daily' || currentRole === 'secretary') && !q && !opts.note;
+      const queueNum = p.dynamicQueueNumber || (index + 1);
+      const preg = isDoctor ? activePregnancy(p) : null;
+      const ga = preg && preg.lmp ? gestationalAgeAt(preg.lmp, getTodayDateString()) : '';
+      const highBP = latest ? checkHighBloodPressure(latest.bp) : false;
+      const abnormalLabs = isDoctor && latest ? labChipsHTML(latest.labs, { abnormalOnly: true }) : '';
+      const k = latest ? visitKind(latest.kind) : null;
+      const lastLine = latest ? [latest.diagnosis, latest.complaint && latest.complaint !== 'فحص ومتابعة' ? latest.complaint : ''].filter(Boolean)[0] : '';
+      const initial = (p.name || '؟').trim().charAt(0);
 
-      card.className = `bg-white rounded-2xl p-3.5 shadow-xs border ${p.isHighRisk ? 'border-rose-400 ring-1 ring-rose-200' : (isWaiting ? 'border-amber-300 bg-amber-50/15' : 'border-slate-200')} space-y-3`;
-
-      const latestVisit = visitsList.length > 0 ? visitsList[0] : null;
-      const isLatestHighBP = latestVisit ? checkHighBloodPressure(latestVisit.bp) : false;
-
+      card.className = `bg-white rounded-2xl p-3 shadow-2xs border ${p.isHighRisk ? 'border-red-300' : (isWaiting ? 'border-amber-300' : 'border-slate-200')} space-y-2`;
       card.innerHTML = `
-        ${p.isHighRisk ? `
-          <div class="bg-rose-800 text-white text-xs px-3 py-1.5 rounded-xl font-bold flex justify-between items-center">
-            <span>🚨 حمل عالي الخطورة (High Risk)</span>
-            <span class="text-[11px] bg-rose-950 px-2 py-0.5 rounded font-normal">${escapeHTML(p.highRiskReason) || 'متابعة خاصة'}</span>
-          </div>
-        ` : ''}
-
-        <!-- 1. Header Row -->
-        <div class="flex justify-between items-start gap-2 border-b border-slate-100 pb-2.5">
-          <div class="flex items-center gap-2.5 min-w-0">
-            ${showQueueNumber ? `
-              <div class="w-10 h-10 rounded-xl flex items-center justify-center font-black text-base shrink-0 shadow-2xs ${isWaiting ? 'bg-amber-500 text-white' : 'bg-slate-100 text-slate-600 border border-slate-200'}">
-                ${queueNumToDisplay}
-              </div>
-            ` : `
-              <div class="w-10 h-10 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 flex items-center justify-center text-lg font-bold shrink-0">
-                👤
-              </div>
-            `}
-
-            <div class="min-w-0">
-              <div class="flex items-center gap-1.5 flex-wrap">
-                <h3 class="text-sm font-black text-slate-900 truncate">${escapeHTML(p.name)}</h3>
-                ${p.husband ? `<span class="text-slate-500 text-xs font-normal truncate">(زوجها: ${escapeHTML(p.husband)})</span>` : ''}
-                ${isDoctor && visitsList.length > 0 ? `<span class="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.2 rounded-md font-bold">📜 ${visitsList.length} مراجعات</span>` : ''}
-              </div>
-              <div class="flex items-center gap-2 flex-wrap text-xs text-slate-500 mt-0.5">
-                ${p.phone ? `
-                  <button type="button" onclick="openWhatsAppModal(${jsArg(p.id)})" class="btn-touch h-6 px-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-[10px] rounded-md font-bold flex items-center gap-1">
-                    💬 واتساب
-                  </button>
-                  <span class="font-mono text-slate-600" dir="ltr">${escapeHTML(p.phone)}</span>
-                ` : '<span class="text-slate-400">بدون هاتف</span>'}
-                <span>| ${p.birthYear ? `🎂 ${calculatedAge} سنة` : ''}</span>
-                ${p.address ? `<span class="truncate">| 📍 ${escapeHTML(p.address)}</span>` : ''}
-              </div>
+        <div class="flex items-start gap-2.5">
+          <button type="button" onclick="${isDoctor ? `openDoctorModal(${jsArg(p.id)})` : ''}" class="w-11 h-11 rounded-2xl shrink-0 flex items-center justify-center font-black text-base ${showQueueNumber ? (isWaiting ? 'bg-amber-500 text-white' : 'bg-slate-100 text-slate-600') : 'bg-rose-50 text-rose-800 border border-rose-100'}">
+            ${showQueueNumber ? queueNum : escapeHTML(initial)}
+          </button>
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <h3 class="text-sm font-black text-slate-900 truncate ${isDoctor ? 'cursor-pointer hover:text-rose-800' : ''}" ${isDoctor ? `onclick="openDoctorModal(${jsArg(p.id)})"` : ''}>${escapeHTML(p.name)}</h3>
+              ${p.isHighRisk ? `<span class="bg-red-600 text-white text-[10px] px-1.5 py-0.5 rounded-md font-black">🚨 خطورة عالية</span>` : ''}
+              ${ga ? `<span class="bg-rose-100 text-rose-800 text-[10px] px-1.5 py-0.5 rounded-md font-black">🤰 <span dir="ltr">${escapeHTML(ga)}</span></span>` : ''}
+              ${p.allergies && p.allergies.trim() ? `<span class="bg-red-50 text-red-700 border border-red-200 text-[10px] px-1.5 py-0.5 rounded-md font-bold">⚠️ تحسس</span>` : ''}
+            </div>
+            <div class="text-[11px] text-slate-500 flex flex-wrap gap-x-2 mt-0.5">
+              ${p.husband ? `<span>زوجها: ${escapeHTML(p.husband)}</span>` : ''}
+              ${age ? `<span>${escapeHTML(String(age))} سنة</span>` : ''}
+              ${p.phone ? `<span class="font-mono" dir="ltr">${escapeHTML(p.phone)}</span>` : ''}
+              ${isDoctor && visitsList.length ? `<span>${visitsList.length} زيارة</span>` : ''}
             </div>
           </div>
-
-          <div class="text-left flex flex-col items-end gap-1 shrink-0">
-            <span class="text-[10px] px-2.5 py-0.5 rounded-md font-bold ${isWaiting ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-slate-100 text-slate-700 border border-slate-200'}">
-              ${isWaiting ? '⏳ بانتظار الفحص' : '✅ تم الفحص'}
-            </span>
-            ${isDoctor && p.blood && p.blood !== 'غير محدد' ? `<span class="text-xs font-bold text-rose-800 font-mono">${escapeHTML(p.blood)}</span>` : ''}
-          </div>
+          ${opts.note ? `<span class="text-[10px] font-black px-2 py-1 rounded-lg bg-slate-100 text-slate-700 shrink-0 max-w-[45%] text-center">${escapeHTML(opts.note)}</span>`
+            : (isWaiting ? `<span class="text-[10px] font-black px-2 py-1 rounded-lg bg-amber-100 text-amber-800 shrink-0">⏳ بالانتظار</span>` : '')}
         </div>
 
+        ${isWaiting && p.complaint ? `<div class="bg-amber-50 border border-amber-200 rounded-xl px-2.5 py-1.5 text-xs text-amber-950"><strong>شكوى اليوم:</strong> ${escapeHTML(p.complaint)}</div>` : ''}
+
+        ${isDoctor && latest ? `
+          <div class="bg-slate-50 rounded-xl px-2.5 py-1.5 text-[11px] text-slate-600 flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span class="font-bold text-slate-700">آخر زيارة ${escapeHTML(latest.date)}</span>
+            ${k ? `<span class="px-1.5 rounded border ${k.badge} font-bold">${k.icon} ${k.label}</span>` : ''}
+            ${lastLine ? `<span class="text-slate-800 font-bold truncate max-w-full">${escapeHTML(lastLine)}</span>` : ''}
+            ${latest.bp ? `<span class="font-mono ${highBP ? 'text-red-600 font-black' : ''}" dir="ltr">BP ${escapeHTML(latest.bp)}</span>` : ''}
+          </div>
+          ${abnormalLabs ? `<div class="flex flex-wrap gap-1.5 items-center"><span class="text-[11px] font-bold text-red-800">🧪 خارج المجال:</span>${abnormalLabs}</div>` : ''}
+        ` : ''}
+
         ${isDoctor ? `
-          <!-- 2. Structured GPA Tiles (No overlapping text) -->
-          <div class="grid grid-cols-4 sm:grid-cols-6 gap-1.5 text-center text-xs">
-            <div class="bg-rose-50/60 border border-rose-100 p-1.5 rounded-xl">
-              <span class="block text-[10px] text-slate-500 font-bold">حمول G</span>
-              <span class="font-black text-rose-900">${escapeHTML(p.g) || 0}</span>
-            </div>
-            <div class="bg-rose-50/60 border border-rose-100 p-1.5 rounded-xl">
-              <span class="block text-[10px] text-slate-500 font-bold">طبيعي VD</span>
-              <span class="font-black text-rose-900">${escapeHTML(p.vd) || 0}</span>
-            </div>
-            <div class="bg-rose-50/60 border border-rose-100 p-1.5 rounded-xl">
-              <span class="block text-[10px] text-slate-500 font-bold">قيصري CS</span>
-              <span class="font-black text-rose-900">${escapeHTML(p.cs) || 0}</span>
-            </div>
-            <div class="bg-rose-50/60 border border-rose-100 p-1.5 rounded-xl">
-              <span class="block text-[10px] text-slate-500 font-bold">إجهاض A</span>
-              <span class="font-black text-rose-900">${escapeHTML(p.a) || 0}</span>
-            </div>
-            ${p.allergies ? `
-              <div class="col-span-4 sm:col-span-2 bg-red-50 border border-red-200 p-1.5 rounded-xl text-right px-2.5">
-                <span class="block text-[10px] text-red-600 font-bold">⚠️ تحسس دوائي:</span>
-                <span class="font-bold text-red-950 truncate block">${escapeHTML(p.allergies)}</span>
-              </div>
-            ` : ''}
+          <div class="grid grid-cols-4 gap-1.5">
+            <button onclick="openNewVisitModal(${jsArg(p.id)})" class="col-span-2 h-10 bg-rose-800 hover:bg-rose-900 text-white rounded-xl font-black text-xs flex items-center justify-center gap-1 active:scale-95 transition">➕ زيارة</button>
+            <button onclick="openDoctorModal(${jsArg(p.id)})" class="h-10 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-bold text-xs border border-slate-200">📂 الملف</button>
+            ${p.phone ? `<button onclick="openWhatsAppModal(${jsArg(p.id)})" class="h-10 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl font-bold text-xs border border-emerald-200">💬 واتساب</button>`
+              : `<button onclick="openSurgeryModal(${jsArg(p.id)})" class="h-10 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-bold text-xs border border-slate-200">✂️ عملية</button>`}
           </div>
-
-          <!-- Pregnancy Stage Alert -->
-          ${preg && !preg.isFuture ? `
-            <div class="bg-rose-50/80 border border-rose-200 p-2.5 rounded-xl text-xs flex justify-between items-center text-rose-950 font-bold">
-              <span>🤰 ${escapeHTML(preg.monthName)} (${escapeHTML(preg.weeks)})</span>
-              <span class="text-[11px] font-mono text-rose-800">EDD: ${escapeHTML(preg.edd)}</span>
-            </div>
-          ` : ''}
-
-          <!-- Documented Surgeries Pill Strip -->
-          ${surgeriesList.length > 0 ? `
-            <div class="bg-slate-50 border border-slate-200 p-2 rounded-xl text-xs flex items-center gap-1.5 flex-wrap">
-              <span class="font-bold text-slate-700 text-[11px]">✂️ الجراحات:</span>
-              ${surgeriesList.map(s => `
-                <span class="bg-white border border-slate-300 text-slate-800 px-2 py-0.5 rounded-md text-[10px] font-bold">
-                  ${escapeHTML(s.type)} <span class="font-normal text-slate-500">(${escapeHTML(s.date)})</span>
-                </span>
-              `).join('')}
-            </div>
-          ` : ''}
-
-          <!-- Today's Intake Complaint Alert -->
-          ${isWaiting && p.complaint ? `
-            <div class="bg-amber-50 border border-amber-200 p-2.5 rounded-xl text-xs text-amber-950 font-bold flex justify-between items-center">
-              <span>📋 شكوى اليوم: <span class="font-semibold">${escapeHTML(p.complaint)}</span></span>
-              <span class="bg-amber-100 text-amber-900 text-[10px] px-2 py-0.5 rounded">بانتظار الطبيبة</span>
-            </div>
-          ` : ''}
-
-          <!-- Latest Visit Preview Tile -->
-          ${latestVisit ? `
-            <div class="bg-slate-50 rounded-xl p-2.5 border border-slate-200 space-y-1.5 text-xs">
-              <div class="flex justify-between items-center text-slate-700 font-bold">
-                <span>آخر فحص: <span class="text-slate-900">${escapeHTML(latestVisit.date)}</span> ${latestVisit.complaint ? `<span class="font-normal text-slate-500">(${escapeHTML(latestVisit.complaint)})</span>` : ''}</span>
-                <div class="flex gap-1.5 items-center">
-                  ${latestVisit.fee ? `<span class="bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.2 rounded font-mono font-bold">${latestVisit.fee.toLocaleString()} ل.س</span>` : ''}
-                  ${latestVisit.bp ? `<span class="font-mono text-[11px] ${isLatestHighBP ? 'text-red-600 font-bold' : 'text-slate-500'}">BP: ${escapeHTML(latestVisit.bp)}</span>` : ''}
-                </div>
-              </div>
-              ${latestVisit.ultrasound ? `<p class="bg-white p-2 rounded-lg border border-slate-200 text-slate-700 leading-relaxed">${escapeHTML(latestVisit.ultrasound)}</p>` : ''}
-              ${isDoctor && labChipsHTML(latestVisit.labs, { abnormalOnly: true }) ? `
-                <div class="flex flex-wrap gap-1.5 items-center"><span class="text-[11px] font-bold text-red-800">🧪 تحاليل خارج المجال:</span>${labChipsHTML(latestVisit.labs, { abnormalOnly: true })}</div>
-              ` : ''}
-              ${latestVisit.rx ? `
-                <div class="bg-rose-50/40 p-2 rounded-lg border border-rose-100 flex justify-between items-center">
-                  <span class="truncate text-slate-800">💊 <strong>Rx:</strong> ${escapeHTML(latestVisit.rx)}</span>
-                  <button type="button" onclick="openWhatsAppModal(${jsArg(p.id)}, ${jsArg(latestVisit.rx)})" class="text-emerald-700 text-[11px] font-bold shrink-0 mr-2">📲 إرسال</button>
-                </div>
-              ` : ''}
-            </div>
-          ` : ''}
-
-          <!-- 3. Bottom Uniform Touch Action Bar (Consistent Heights & Icons) -->
-          <div class="grid grid-cols-4 gap-1.5 pt-1 border-t border-slate-100">
-            <button onclick="requestDeletePatient(${jsArg(p.id)}, ${jsArg(p.name)})" class="btn-touch h-10 bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-700 rounded-xl font-bold text-xs border border-slate-200 flex items-center justify-center gap-1">
-              <span>🗑️</span>
-              <span class="hidden sm:inline">حذف</span>
-            </button>
-            <button onclick="openSurgeryModal(${jsArg(p.id)})" class="btn-touch h-10 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-bold text-xs border border-slate-200 flex items-center justify-center gap-1">
-              <span>✂️</span>
-              <span class="hidden sm:inline">جراحة</span>
-            </button>
-            <button onclick="openDoctorModal(${jsArg(p.id)})" class="btn-touch h-10 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-bold text-xs border border-slate-200 flex items-center justify-center gap-1">
-              <span>📂</span>
-              <span>السجل</span>
-            </button>
-            <button onclick="openNewVisitModal(${jsArg(p.id)})" class="btn-touch h-10 bg-rose-900 hover:bg-rose-950 text-white rounded-xl font-bold text-xs shadow-xs flex items-center justify-center gap-1">
-              <span>➕</span>
-              <span>فحص</span>
-            </button>
-          </div>
-        ` : `
-          <!-- Secretary View -->
-          ${p.complaint ? `<div class="text-xs text-slate-600 bg-slate-50 p-2 rounded-lg"><strong>شكوى اليوم:</strong> ${escapeHTML(p.complaint)}</div>` : ''}
-        `}
+        ` : ''}
       `;
-
       return card;
     }
 
@@ -5648,18 +5652,22 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
 
       if (currentRole === 'doctor') {
         roleBadge.innerText = '👑 الطبيبة';
-        roleBadge.className = 'text-[9px] sm:text-[10px] bg-rose-950 text-rose-200 border border-rose-800 px-1.5 py-0.5 rounded font-bold inline-block';
+        roleBadge.className = 'text-[9px] sm:text-[10px] bg-rose-50 text-rose-800 border border-rose-200 px-1.5 py-0.5 rounded font-bold inline-block mr-1';
+        document.getElementById('bottomNav').classList.remove('hidden');
+        paintNav();
         docNav.classList.remove('hidden');
         secNav.classList.add('hidden');
-        tabsContainer.classList.remove('hidden');
-        dateControlGroup.classList.remove('hidden');
+        tabsContainer.classList.add('hidden', 'md:flex');
+        dateControlGroup.classList.toggle('hidden', activeTab !== 'daily');
         financialTally.classList.remove('hidden');
       } else {
         roleBadge.innerText = '📋 الاستقبال';
-        roleBadge.className = 'text-[9px] sm:text-[10px] bg-slate-800 text-slate-200 border border-slate-700 px-1.5 py-0.5 rounded font-bold inline-block';
+        roleBadge.className = 'text-[9px] sm:text-[10px] bg-slate-100 text-slate-700 border border-slate-200 px-1.5 py-0.5 rounded font-bold inline-block mr-1';
+        document.getElementById('bottomNav').classList.add('hidden');
         docNav.classList.add('hidden');
         secNav.classList.remove('hidden');
         tabsContainer.classList.add('hidden');
+        tabsContainer.classList.remove('md:flex');
         dateControlGroup.classList.add('hidden');
         financialTally.classList.add('hidden');
         activeTab = 'daily';
@@ -5672,34 +5680,21 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
     function setActiveTab(tab) {
       if (currentRole !== 'doctor') return;
       activeTab = tab;
-      const tabDaily = document.getElementById('tabDaily');
-      const tabWeekly = document.getElementById('tabWeekly');
-      const tabDueMonth = document.getElementById('tabDueMonth');
-      const tabSurgeries = document.getElementById('tabSurgeries');
-      const tabAll = document.getElementById('tabAll');
-      const dateControlGroup = document.getElementById('dateControlGroup');
-
-      [tabDaily, tabWeekly, tabDueMonth, tabSurgeries, tabAll].forEach(t => {
-        if (t) t.className = 'btn-touch h-10 px-3.5 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-rose-50/50 border border-slate-200 shrink-0 whitespace-nowrap transition';
-      });
-
-      if (tab === 'daily') {
-        tabDaily.className = 'btn-touch h-10 px-3.5 rounded-xl text-xs font-bold bg-rose-900 text-white shadow-xs shrink-0 whitespace-nowrap';
-        dateControlGroup.classList.remove('hidden');
-      } else if (tab === 'weekly') {
-        tabWeekly.className = 'btn-touch h-10 px-3.5 rounded-xl text-xs font-bold bg-slate-900 text-white shadow-xs shrink-0 whitespace-nowrap';
-        dateControlGroup.classList.add('hidden');
-      } else if (tab === 'dueMonth') {
-        tabDueMonth.className = 'btn-touch h-10 px-3.5 rounded-xl text-xs font-bold bg-rose-700 text-white shadow-xs shrink-0 whitespace-nowrap';
-        dateControlGroup.classList.add('hidden');
-      } else if (tab === 'surgeries') {
-        tabSurgeries.className = 'btn-touch h-10 px-3.5 rounded-xl text-xs font-bold bg-amber-800 text-white shadow-xs shrink-0 whitespace-nowrap';
-        dateControlGroup.classList.add('hidden');
-      } else if (tab === 'all') {
-        tabAll.className = 'btn-touch h-10 px-3.5 rounded-xl text-xs font-bold bg-slate-900 text-white shadow-xs shrink-0 whitespace-nowrap';
-        dateControlGroup.classList.add('hidden');
-      }
+      paintNav();
+      document.getElementById('searchInput').value = '';
+      window.scrollTo({ top: 0 });
       renderApp();
+    }
+
+    function paintNav() {
+      document.querySelectorAll('#tabsContainer [data-tab]').forEach((b) => {
+        b.className = 'tab-btn' + (b.dataset.tab === activeTab ? ' is-active' : '');
+      });
+      document.querySelectorAll('#bottomNav [data-tab]').forEach((b) => {
+        b.classList.toggle('is-active', b.dataset.tab === activeTab);
+      });
+      const dc = document.getElementById('dateControlGroup');
+      if (dc) dc.classList.toggle('hidden', activeTab !== 'daily');
     }
     // --- 25. PIN SETTINGS MANAGEMENT ---
     function openChangePinModal() {
