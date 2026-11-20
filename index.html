@@ -229,7 +229,7 @@
 
       <div class="w-full md:w-80">
         <div class="relative">
-          <input type="text" id="searchInput" oninput="renderApp()" placeholder="🔍 بحث شامل بالاسم، الهاتف، الزوج..." 
+          <input type="search" id="searchInput" name="patient-search" autocomplete="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore oninput="renderApp()" placeholder="🔍 بحث شامل بالاسم، الهاتف، الزوج..." 
                  class="h-10 w-full pl-3 pr-3 border border-slate-300 rounded-xl text-xs bg-slate-50 focus:bg-white focus:outline-none focus:border-rose-700 font-medium placeholder:text-slate-400">
         </div>
       </div>
@@ -3677,6 +3677,7 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
       showLoginError('');
       document.getElementById('loginPassword').value = '';
       document.getElementById('lockScreen').classList.add('hidden');
+      clearAutofilledSearch(user.email);
       applyRoleUI();
       setupFirestoreRealtimeListeners();
       if (currentRole === 'doctor') checkWeeklyAutoBackup();
@@ -3784,6 +3785,21 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
         console.warn('Google link note:', err);
         if (!isPopupCancel(err)) alert(googleErrorMessage(err));
       }
+    }
+
+    // Password managers sometimes drop the saved email into the search box after sign-in.
+    function clearAutofilledSearch(email) {
+      const clear = () => {
+        const box = document.getElementById('searchInput');
+        const v = box.value.trim().toLowerCase();
+        if (v && (v === String(email || '').toLowerCase() || v.includes('@'))) {
+          box.value = '';
+          renderApp();
+        }
+      };
+      clear();
+      setTimeout(clear, 400);
+      setTimeout(clear, 1500);
     }
 
     function stopFirestoreListeners() {
