@@ -43,7 +43,8 @@
         var meta = document.querySelector('meta[name="theme-color"]');
         if (meta) meta.setAttribute('content', dark ? '#0b1215' : '#0a5869');
         document.querySelectorAll('.theme-toggle').forEach(function (b) {
-          b.textContent = mode === 'dark' ? '🌙' : (mode === 'light' ? '☀️' : '🖥️');
+          b.innerHTML = '<i data-lucide="' + (mode === 'dark' ? 'moon' : (mode === 'light' ? 'sun' : 'monitor')) + '"></i>';
+          if (window.lucide) window.lucide.createIcons();
           b.title = mode === 'dark' ? 'الوضع: داكن' : (mode === 'light' ? 'الوضع: فاتح' : 'الوضع: حسب الجهاز');
         });
       }
@@ -199,6 +200,7 @@ html.dark [class~='border-teal-100'], html.dark [class~='border-teal-200'], html
 html.dark [class~='text-teal-700'], html.dark [class~='text-teal-800'], html.dark [class~='text-teal-900'], html.dark [class~='text-teal-950'] { color: #5eead4 !important; }
 html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
   </style>
+  <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Cairo:wght@600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
@@ -246,6 +248,14 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
     .shadow-xs  { box-shadow: 0 1px 3px rgba(16, 40, 38, .07); }
     .shadow-2xl { box-shadow: 0 24px 48px -12px rgba(16, 40, 38, .25); }
     :focus-visible { outline: 2px solid rgb(var(--brand-500)); outline-offset: 2px; }
+    /* Line icons (Lucide) */
+    svg.lucide { width: 1.15em; height: 1.15em; stroke-width: 2; display: inline-block; vertical-align: -0.18em; flex-shrink: 0; }
+    .bn-btn svg.lucide { width: 22px; height: 22px; }
+    .icon-tile svg.lucide { width: 20px; height: 20px; }
+    /* Tabs inside patient cards */
+    .ctab { flex: 1; height: 32px; border-radius: 9px; font-size: 12px; font-weight: 700; color: rgb(var(--gray-500)); display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
+    .ctab.is-on { background: var(--surface); color: rgb(var(--brand-800)); box-shadow: 0 1px 2px rgba(16,40,38,.12); }
+    html.dark .ctab.is-on { color: #9fe3ee; background: rgb(var(--gray-200)); }
     /* Modern thin scrollbars */
     * { scrollbar-width: thin; scrollbar-color: rgb(var(--gray-300)) transparent; }
     ::-webkit-scrollbar { width: 10px; height: 10px; }
@@ -263,7 +273,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
 
   <!-- ==================== 1. SECURITY LOCK SCREEN ==================== -->
   <div id="lockScreen" class="fixed inset-0 bg-gradient-to-br from-rose-900 via-rose-950 to-slate-950 backdrop-blur-md flex items-center justify-center p-4 z-50">
-    <button type="button" onclick="clinicTheme.cycle()" class="theme-toggle absolute top-4 left-4 h-10 w-10 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-lg" title="الوضع">🖥️</button>
+    <button type="button" onclick="clinicTheme.cycle()" class="theme-toggle absolute top-4 left-4 h-10 w-10 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-lg" title="الوضع"><i data-lucide="monitor"></i></button>
     <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl space-y-5 border border-rose-100">
       <div class="w-16 h-16 mx-auto drop-shadow-sm"><svg viewBox="0 0 48 48" class="w-full h-full" aria-hidden="true"><rect width="48" height="48" rx="13" fill="rgb(var(--brand-700))"/><circle cx="24" cy="24" r="15" fill="rgb(var(--brand-500))" opacity=".55"/><rect x="20.5" y="13" width="7" height="22" rx="2.4" fill="#fff"/><rect x="13" y="20.5" width="22" height="7" rx="2.4" fill="#fff"/></svg></div>
       <div>
@@ -306,7 +316,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
         <div class="w-9 h-9 sm:w-10 sm:h-10 shrink-0"><svg viewBox="0 0 48 48" class="w-full h-full" aria-hidden="true"><rect width="48" height="48" rx="13" fill="rgb(var(--brand-700))"/><circle cx="24" cy="24" r="15" fill="rgb(var(--brand-500))" opacity=".55"/><rect x="20.5" y="13" width="7" height="22" rx="2.4" fill="#fff"/><rect x="13" y="20.5" width="22" height="7" rx="2.4" fill="#fff"/></svg></div>
         <div class="min-w-0">
           <h1 class="text-sm md:text-base font-black truncate text-rose-950 leading-tight">عيادة د. هيام خضر</h1>
-          <span id="syncStatus" onclick="syncAllToCloud()" title="المزامنة" class="cursor-pointer text-[10px] sm:text-[11px] font-bold text-slate-600 bg-slate-100 border border-slate-200 rounded-md px-1.5 py-0.5 mt-0.5 inline-block truncate max-w-[180px] sm:max-w-none">🟢 متصل</span>
+          <span id="syncStatus" onclick="syncAllToCloud()" title="المزامنة" class="cursor-pointer text-[10px] sm:text-[11px] font-bold text-slate-600 bg-slate-100 border border-slate-200 rounded-md px-1.5 py-0.5 mt-0.5 inline-block truncate max-w-[180px] sm:max-w-none"> متصل</span>
           <span id="roleBadge" class="text-[9px] sm:text-[10px] bg-rose-950/90 text-rose-200 border border-rose-800/80 px-1.5 py-0.2 rounded font-bold inline-block mt-0.5 truncate max-w-[140px] sm:max-w-none"></span>
         </div>
       </div>
@@ -314,7 +324,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
       <!-- Doctor Actions Bar (Compact & Touch-Friendly) -->
       <div id="doctorNav" class="flex items-center gap-1 sm:gap-1.5 shrink-0">
         <button onclick="openDoctorNewPatientModal()" class="hidden md:flex btn-touch h-9 sm:h-10 px-2 sm:px-3 bg-rose-800 text-white hover:bg-rose-900 rounded-xl font-black text-xs shadow-xs flex items-center gap-1">
-          <span class="text-sm leading-none">➕</span>
+          <span class="text-sm leading-none"><i data-lucide="plus"></i></span>
           <span class="hidden sm:inline">مريضة جديدة</span>
           <span class="sm:hidden text-[11px]">جديدة</span>
         </button>
@@ -322,71 +332,64 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
         <!-- Tools Dropdown -->
         <div class="relative" id="adminMenuContainer">
           <button onclick="toggleAdminMenu()" id="btnAdminMenu" title="الأدوات" class="btn-touch h-9 sm:h-10 px-2 sm:px-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs border border-slate-200 flex items-center gap-1">
-            <span class="text-sm">⚙️</span>
-            <span class="text-[8px] opacity-70">▼</span>
+            <span class="text-sm"><i data-lucide="settings"></i></span>
+            
           </button>
 
           <div id="adminDropdownMenu" class="hidden absolute left-0 mt-2 w-60 bg-white rounded-2xl shadow-2xl border border-slate-200 py-1.5 z-40 text-slate-800 text-xs divide-y divide-slate-100">
             <div class="py-1">
               <button onclick="syncAllToCloud(); closeAdminMenu();" class="w-full text-right px-3.5 py-2.5 hover:bg-rose-50 flex items-center gap-2.5 font-bold text-slate-700">
-                <span class="w-6 text-center">☁️</span> <span>مزامنة الآن مع السحابة</span>
+                <span class="w-6 text-center"><i data-lucide="cloud"></i></span> <span>مزامنة الآن مع السحابة</span>
               </button>
               <button onclick="manualInstantRefresh(); closeAdminMenu();" class="w-full text-right px-3.5 py-2.5 hover:bg-rose-50 flex items-center gap-2.5 font-bold text-slate-700">
-                <span class="w-6 text-center">🔄</span> <span>تحديث السجلات فورياً</span>
+                <span class="w-6 text-center"><i data-lucide="refresh-cw"></i></span> <span>تحديث السجلات فورياً</span>
               </button>
               <button onclick="openDrugsModal(); closeAdminMenu();" class="w-full text-right px-3.5 py-2.5 hover:bg-rose-50 flex items-center gap-2.5 font-bold text-slate-700">
-                <span class="w-6 text-center">💊</span> <span>إدارة صيدلية الأدوية</span>
+                <span class="w-6 text-center"><i data-lucide="pill"></i></span> <span>إدارة صيدلية الأدوية</span>
               </button>
               <button onclick="cleanDuplicatePatients(true); closeAdminMenu();" class="w-full text-right px-3.5 py-2.5 hover:bg-rose-50 flex items-center gap-2.5 font-bold text-slate-700">
-                <span class="w-6 text-center">🧹</span> <span>فحص ودمج البطاقات المكررة</span>
+                <span class="w-6 text-center"><i data-lucide="sparkles"></i></span> <span>فحص ودمج البطاقات المكررة</span>
               </button>
               <button onclick="openBackdateModal(); closeAdminMenu();" class="w-full text-right px-3.5 py-2.5 hover:bg-rose-50 flex items-center gap-2.5 font-bold text-slate-700">
-                <span class="w-6 text-center">📁</span> <span>أرشفة فحص بأثر رجعي</span>
+                <span class="w-6 text-center"><i data-lucide="folder"></i></span> <span>أرشفة فحص بأثر رجعي</span>
               </button>
             </div>
             <div class="py-1">
               <button onclick="exportData(false); closeAdminMenu();" class="w-full text-right px-3.5 py-2.5 hover:bg-rose-50 flex items-center gap-2.5 font-bold text-slate-700">
-                <span class="w-6 text-center">💾</span> <span>تصدير نسخة احتياطية (JSON)</span>
+                <span class="w-6 text-center"><i data-lucide="save"></i></span> <span>تصدير نسخة احتياطية (JSON)</span>
               </button>
               <button onclick="triggerImport(); closeAdminMenu();" class="w-full text-right px-3.5 py-2.5 hover:bg-rose-50 flex items-center gap-2.5 font-bold text-slate-700">
-                <span class="w-6 text-center">📥</span> <span>استيراد نسخة احتياطية</span>
+                <span class="w-6 text-center"><i data-lucide="download"></i></span> <span>استيراد نسخة احتياطية</span>
               </button>
               <button onclick="openChangePinModal(); closeAdminMenu();" class="w-full text-right px-3.5 py-2.5 hover:bg-rose-50 flex items-center gap-2.5 font-bold text-slate-700">
-                <span class="w-6 text-center">🔑</span> <span>الحساب وكلمة المرور والتصفير</span>
+                <span class="w-6 text-center"><i data-lucide="key-round"></i></span> <span>الحساب وكلمة المرور والتصفير</span>
               </button>
             </div>
           </div>
         </div>
 
-        <button type="button" onclick="clinicTheme.cycle()" class="theme-toggle btn-touch h-9 w-9 sm:h-10 sm:w-10 bg-slate-100 hover:bg-slate-200 rounded-xl text-sm border border-slate-200 flex items-center justify-center" title="الوضع">🖥️</button>
-        <button onclick="lockApp()" title="قفل" class="btn-touch h-9 w-9 sm:h-10 sm:w-10 bg-slate-100 hover:bg-slate-200 rounded-xl text-sm border border-slate-200 flex items-center justify-center">
-          🔒
-        </button>
+        <button type="button" onclick="clinicTheme.cycle()" class="theme-toggle btn-touch h-9 w-9 sm:h-10 sm:w-10 bg-slate-100 hover:bg-slate-200 rounded-xl text-sm border border-slate-200 flex items-center justify-center" title="الوضع"><i data-lucide="monitor"></i></button>
+        <button onclick="lockApp()" title="قفل" class="btn-touch h-9 w-9 sm:h-10 sm:w-10 bg-slate-100 hover:bg-slate-200 rounded-xl text-sm border border-slate-200 flex items-center justify-center"><i data-lucide="lock"></i></button>
       </div>
 
       <!-- Secretary Actions Bar -->
       <div id="secretaryNav" class="hidden items-center gap-1 sm:gap-1.5 shrink-0">
         <button onclick="openSecretaryModal()" class="btn-touch h-9 sm:h-10 px-2.5 sm:px-3 bg-rose-800 text-white hover:bg-rose-900 rounded-xl font-black text-xs shadow-xs flex items-center gap-1">
-          <span class="text-sm">➕</span>
+          <span class="text-sm"><i data-lucide="plus"></i></span>
           <span>دور جديد</span>
         </button>
-        <button onclick="openBackdateModal()" title="أرشفة سابقة" class="btn-touch h-9 sm:h-10 px-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs border border-slate-200 flex items-center gap-1">
-          📁 <span class="hidden sm:inline">أرشفة</span>
+        <button onclick="openBackdateModal()" title="أرشفة سابقة" class="btn-touch h-9 sm:h-10 px-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs border border-slate-200 flex items-center gap-1"><i data-lucide="folder"></i><span class="hidden sm:inline">أرشفة</span>
         </button>
-        <button onclick="manualInstantRefresh()" title="تحديث" class="hidden sm:flex btn-touch h-9 w-9 sm:h-10 sm:w-10 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl border border-slate-200 flex items-center justify-center text-sm">
-          🔄
-        </button>
-        <button type="button" onclick="clinicTheme.cycle()" class="theme-toggle btn-touch h-9 w-9 sm:h-10 sm:w-10 bg-slate-100 hover:bg-slate-200 rounded-xl text-sm border border-slate-200 flex items-center justify-center" title="الوضع">🖥️</button>
-        <button onclick="lockApp()" title="قفل" class="btn-touch h-9 w-9 sm:h-10 sm:w-10 bg-slate-100 hover:bg-slate-200 rounded-xl text-sm border border-slate-200 flex items-center justify-center">
-          🔒
-        </button>
+        <button onclick="manualInstantRefresh()" title="تحديث" class="hidden sm:flex btn-touch h-9 w-9 sm:h-10 sm:w-10 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl border border-slate-200 flex items-center justify-center text-sm"><i data-lucide="refresh-cw"></i></button>
+        <button type="button" onclick="clinicTheme.cycle()" class="theme-toggle btn-touch h-9 w-9 sm:h-10 sm:w-10 bg-slate-100 hover:bg-slate-200 rounded-xl text-sm border border-slate-200 flex items-center justify-center" title="الوضع"><i data-lucide="monitor"></i></button>
+        <button onclick="lockApp()" title="قفل" class="btn-touch h-9 w-9 sm:h-10 sm:w-10 bg-slate-100 hover:bg-slate-200 rounded-xl text-sm border border-slate-200 flex items-center justify-center"><i data-lucide="lock"></i></button>
       </div>
 
     </div>
   </header>
   <!-- Notification Toast -->
   <div id="realtimeToast" class="fixed bottom-24 md:bottom-4 left-4 bg-slate-900/95 backdrop-blur text-white px-4 py-3 rounded-2xl text-xs font-bold shadow-2xl flex items-center gap-2.5 transform translate-y-48 transition-transform duration-300 z-50 pointer-events-none border border-slate-700">
-    <span class="text-rose-400 text-base">⚡</span>
+    <span class="text-rose-400 text-base"><i data-lucide="zap"></i></span>
     <span id="realtimeToastMsg">تم التحديث</span>
   </div>
 
@@ -397,12 +400,12 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
     <!-- Doctor Tabs Navigation (Touch Padded) -->
     <!-- Doctor Tabs Navigation (With Operations Database Tab) -->
     <div id="tabsContainer" class="hidden md:flex gap-1.5 pb-1 overflow-x-auto no-scrollbar">
-      <button onclick="setActiveTab('today')" id="tabToday" data-tab="today">🏠 اليوم</button>
-      <button onclick="setActiveTab('all')" id="tabAll" data-tab="all">📋 المريضات</button>
-      <button onclick="setActiveTab('dueMonth')" id="tabDueMonth" data-tab="dueMonth"><span>🤰 الولادات</span> <span id="dueThisMonthCount" class="bg-pink-600 text-white px-1.5 rounded-full text-[10px] font-mono hidden">0</span></button>
-      <button onclick="setActiveTab('surgeries')" id="tabSurgeries" data-tab="surgeries"><span>✂️ العمليات</span> <span id="allSurgeriesCountBadge" class="bg-slate-700 text-white px-1.5 rounded-full text-[10px] font-mono">0</span></button>
-      <button onclick="setActiveTab('weekly')" id="tabWeekly" data-tab="weekly">📊 المالية</button>
-      <button onclick="setActiveTab('daily')" id="tabDaily" data-tab="daily">📅 سجل يوم</button>
+      <button onclick="setActiveTab('today')" id="tabToday" data-tab="today"><i data-lucide="house"></i> اليوم</button>
+      <button onclick="setActiveTab('all')" id="tabAll" data-tab="all"><i data-lucide="clipboard-list"></i> المريضات</button>
+      <button onclick="setActiveTab('dueMonth')" id="tabDueMonth" data-tab="dueMonth"><span><i data-lucide="baby"></i> الولادات</span> <span id="dueThisMonthCount" class="bg-pink-600 text-white px-1.5 rounded-full text-[10px] font-mono hidden">0</span></button>
+      <button onclick="setActiveTab('surgeries')" id="tabSurgeries" data-tab="surgeries"><span><i data-lucide="scissors"></i> العمليات</span> <span id="allSurgeriesCountBadge" class="bg-slate-700 text-white px-1.5 rounded-full text-[10px] font-mono">0</span></button>
+      <button onclick="setActiveTab('weekly')" id="tabWeekly" data-tab="weekly"><i data-lucide="wallet"></i> المالية</button>
+      <button onclick="setActiveTab('daily')" id="tabDaily" data-tab="daily"><i data-lucide="calendar-days"></i> سجل يوم</button>
     </div>
 
     <!-- Date Filter & Search Bar (Uniform 42px Touch Heights) -->
@@ -416,7 +419,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
 
       <div class="w-full md:w-80">
         <div class="relative">
-          <input type="search" id="searchInput" name="patient-search" autocomplete="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore data-form-type="other" readonly onpointerdown="this.readOnly=false" onfocus="this.readOnly=false" onblur="this.readOnly=true" oninput="onSearchInput(this)" placeholder="🔍 بحث شامل بالاسم، الهاتف، الزوج..." 
+          <input type="search" id="searchInput" name="patient-search" autocomplete="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore data-form-type="other" readonly onpointerdown="this.readOnly=false" onfocus="this.readOnly=false" onblur="this.readOnly=true" oninput="onSearchInput(this)" placeholder="بحث بالاسم أو الهاتف أو الزوج أو الأم..." 
                  class="h-10 w-full pl-3 pr-3 border border-slate-300 rounded-xl text-xs bg-slate-50 focus:bg-white focus:outline-none focus:border-rose-700 font-medium placeholder:text-slate-400">
         </div>
       </div>
@@ -424,8 +427,8 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
 
     <!-- Global Search Banner Indicator -->
     <div id="globalSearchAlertBanner" class="hidden bg-rose-50 border border-rose-200 p-2.5 rounded-xl text-xs text-rose-950 flex justify-between items-center font-bold">
-      <span id="globalSearchAlertText">🔍 نتائج البحث الشامل في الأرشيف:</span>
-      <button onclick="clearSearchInput()" class="h-8 px-3 rounded-lg bg-white border border-rose-200 text-xs text-rose-800 font-bold hover:bg-rose-50 shrink-0">✕ إلغاء البحث</button>
+      <span id="globalSearchAlertText"><i data-lucide="search"></i> نتائج البحث الشامل في الأرشيف:</span>
+      <button onclick="clearSearchInput()" class="h-8 px-3 rounded-lg bg-white border border-rose-200 text-xs text-rose-800 font-bold hover:bg-rose-50 shrink-0"> إلغاء البحث</button>
     </div>
 
     <!-- Uniform Stats & Income Bar -->
@@ -433,7 +436,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
       <div id="queueStats" class="text-slate-700 text-xs"></div>
       <div class="flex items-center gap-2">
         <div id="financialTally" class="bg-emerald-50 text-emerald-900 px-3 py-1.5 rounded-xl border border-emerald-200 flex items-center gap-1.5 font-mono">
-          <span class="text-emerald-800 font-sans text-xs">💰 الدخل:</span>
+          <span class="text-emerald-800 font-sans text-xs"><i data-lucide="wallet"></i> الدخل:</span>
           <span id="dailyTotalIncome" class="font-black text-emerald-700 text-sm">0</span>
           <span class="text-[11px] font-sans">ل.س</span>
         </div>
@@ -450,11 +453,11 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
   <!-- Phone navigation (doctor) -->
   <nav id="bottomNav" class="md:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur border-t border-slate-200 shadow-[0_-4px_16px_rgba(0,0,0,0.06)]" style="padding-bottom: env(safe-area-inset-bottom);">
     <div class="grid grid-cols-5">
-      <button onclick="setActiveTab('today')" data-tab="today" class="bn-btn"><span class="text-xl leading-none">🏠</span><span>اليوم</span></button>
-      <button onclick="setActiveTab('all')" data-tab="all" class="bn-btn"><span class="text-xl leading-none">📋</span><span>المريضات</span></button>
-      <button onclick="setActiveTab('dueMonth')" data-tab="dueMonth" class="bn-btn"><span class="text-xl leading-none">🤰</span><span>الولادات</span></button>
-      <button onclick="setActiveTab('surgeries')" data-tab="surgeries" class="bn-btn"><span class="text-xl leading-none">✂️</span><span>العمليات</span></button>
-      <button onclick="setActiveTab('weekly')" data-tab="weekly" class="bn-btn"><span class="text-xl leading-none">📊</span><span>المالية</span></button>
+      <button onclick="setActiveTab('today')" data-tab="today" class="bn-btn"><span class="text-xl leading-none"><i data-lucide="house"></i></span><span>اليوم</span></button>
+      <button onclick="setActiveTab('all')" data-tab="all" class="bn-btn"><span class="text-xl leading-none"><i data-lucide="clipboard-list"></i></span><span>المريضات</span></button>
+      <button onclick="setActiveTab('dueMonth')" data-tab="dueMonth" class="bn-btn"><span class="text-xl leading-none"><i data-lucide="baby"></i></span><span>الولادات</span></button>
+      <button onclick="setActiveTab('surgeries')" data-tab="surgeries" class="bn-btn"><span class="text-xl leading-none"><i data-lucide="scissors"></i></span><span>العمليات</span></button>
+      <button onclick="setActiveTab('weekly')" data-tab="weekly" class="bn-btn"><span class="text-xl leading-none"><i data-lucide="wallet"></i></span><span>المالية</span></button>
     </div>
   </nav>
 
@@ -463,7 +466,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
     <div class="bg-white rounded-3xl max-w-md w-full p-5 shadow-2xl space-y-3 max-h-[92vh] overflow-y-auto border border-rose-100">
       <div class="flex justify-between items-center border-b border-slate-100 pb-2.5">
         <div class="flex items-center gap-2">
-          <span class="text-xl">📋</span>
+          <span class="text-xl"><i data-lucide="clipboard-list"></i></span>
           <h2 class="text-base font-black text-rose-950">تسجيل مريضة في دور اليوم</h2>
         </div>
         <button type="button" onclick="closeSecretaryModal()" class="text-gray-400 hover:text-rose-600 text-2xl font-bold p-1">&times;</button>
@@ -471,7 +474,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
 
       <div id="secExistingMatchBanner" class="hidden bg-emerald-50 border border-emerald-300 p-2.5 rounded-2xl text-xs text-emerald-950 flex justify-between items-center font-bold">
         <div>
-          <span>💡 تم ربط المريضة بملفها السابق بنجاح!</span>
+          <span> تم ربط المريضة بملفها السابق بنجاح!</span>
           <p class="text-[10px] text-emerald-800 font-normal">سيتم إدراجها بالدور وتصفير كشفية اليوم تلقائياً بانتظار فحص الطبيبة.</p>
         </div>
         <button type="button" onclick="resetSecSelection()" class="h-8 px-3 rounded-lg bg-white border border-slate-200 text-xs text-slate-700 font-bold hover:bg-slate-50">إلغاء الربط</button>
@@ -541,7 +544,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
     <div class="bg-white rounded-3xl max-w-md w-full p-5 shadow-2xl space-y-3.5 text-xs border border-amber-200">
       <div class="flex justify-between items-center border-b border-slate-100 pb-2">
         <div class="flex items-center gap-2">
-          <span class="text-xl">📁</span>
+          <span class="text-xl"><i data-lucide="folder"></i></span>
           <h2 class="text-base font-black text-amber-900">أرشفة زيارة أو ملف قديم (بأثر رجعي)</h2>
         </div>
         <button type="button" onclick="closeBackdateModal()" class="text-gray-400 hover:text-rose-600 text-2xl font-bold p-1">&times;</button>
@@ -583,9 +586,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
 
         <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
           <button type="button" onclick="closeBackdateModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold">إلغاء</button>
-          <button type="submit" class="px-5 py-2 bg-amber-700 hover:bg-amber-800 text-white rounded-xl font-bold shadow transition active:scale-95">
-            💾 حفظ في الأرشيف
-          </button>
+          <button type="submit" class="px-5 py-2 bg-amber-700 hover:bg-amber-800 text-white rounded-xl font-bold shadow transition active:scale-95"><i data-lucide="save"></i> حفظ في الأرشيف</button>
         </div>
       </form>
     </div>
@@ -597,16 +598,14 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
       <!-- Modal Header -->
       <div class="flex justify-between items-center border-b border-rose-100 pb-3">
         <div class="flex items-center gap-2.5">
-          <div class="w-10 h-10 rounded-2xl bg-rose-50 text-rose-800 flex items-center justify-center text-xl font-bold border border-rose-200/60 shadow-xs">
-            🗂️
-          </div>
+          <div class="w-10 h-10 rounded-2xl bg-rose-50 text-rose-800 flex items-center justify-center text-xl font-bold border border-rose-200/60 shadow-xs"><i data-lucide="folder-open"></i></div>
           <div>
             <h2 class="text-base font-black text-rose-950" id="archivePatientNameTitle">ملف المريضة</h2>
             <p id="archivePatientSubtitle" class="text-xs text-slate-500 font-bold mt-0.5"></p>
           </div>
         </div>
         <div class="flex items-center gap-1">
-          <button type="button" id="btnArchiveDeletePatient" title="حذف ملف المريضة" class="text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg px-2 py-1 text-sm">🗑️</button>
+          <button type="button" id="btnArchiveDeletePatient" title="حذف ملف المريضة" class="text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg px-2 py-1 text-sm"><i data-lucide="trash-2"></i></button>
           <button type="button" onclick="closeDoctorModal()" class="text-gray-400 hover:text-rose-600 text-2xl font-bold p-1">&times;</button>
         </div>
       </div>
@@ -617,10 +616,10 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
       <!-- Main actions -->
       <div class="grid grid-cols-2 gap-2">
         <button type="button" id="btnArchiveQuickNewVisit" class="bg-rose-800 hover:bg-rose-900 text-white py-3 rounded-2xl font-black text-sm shadow-md transition flex items-center justify-center gap-2 active:scale-95">
-          <span>➕</span> <span>زيارة جديدة</span>
+          <span><i data-lucide="plus"></i></span> <span>زيارة جديدة</span>
         </button>
         <button type="button" id="btnArchiveNewSurgery" class="bg-amber-500 hover:bg-amber-600 text-white py-3 rounded-2xl font-black text-sm shadow-md transition flex items-center justify-center gap-2 active:scale-95">
-          <span>✂️</span> <span>عملية أو ولادة</span>
+          <span><i data-lucide="scissors"></i></span> <span>عملية أو ولادة</span>
         </button>
       </div>
 
@@ -628,7 +627,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
       <div class="bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden shadow-2xs">
         <button type="button" onclick="toggleStaticProfileAccordion()" class="w-full p-3.5 flex justify-between items-center hover:bg-rose-50/50 transition text-right">
           <div class="flex items-center gap-2 font-bold text-slate-800 text-xs">
-            <span>👤</span>
+            <span><i data-lucide="user"></i></span>
             <span>البيانات الشخصية والسوابق</span>
           </div>
           <div class="flex items-center gap-2">
@@ -678,6 +677,20 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
             <label class="block font-semibold mb-1 text-slate-700">عنوان السكن</label>
             <input type="text" id="pAddress" class="w-full p-2 border border-slate-300 rounded-xl bg-slate-50 text-xs">
           </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+            <div>
+              <label class="block font-semibold mb-1 text-slate-700">اسم الأم</label>
+              <input type="text" id="pMotherName" autocomplete="off" class="w-full p-2 border border-slate-300 rounded-xl text-xs bg-slate-50">
+            </div>
+            <div>
+              <label class="block font-semibold mb-1 text-slate-700">هاتف إضافي</label>
+              <input type="tel" id="pPhone2" maxlength="17" dir="ltr" oninput="formatSmartPhone(this)" class="w-full p-2 border border-slate-300 rounded-xl font-mono text-xs bg-slate-50">
+            </div>
+            <div>
+              <label class="block font-semibold mb-1 text-slate-700">هاتف الزوج</label>
+              <input type="tel" id="pHusbandPhone" maxlength="17" dir="ltr" oninput="formatSmartPhone(this)" class="w-full p-2 border border-slate-300 rounded-xl font-mono text-xs bg-slate-50">
+            </div>
+          </div>
 
           <!-- Obstetric GPA -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 pt-1">
@@ -703,7 +716,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
             <div class="bg-red-50 p-2.5 rounded-xl border border-red-200">
               <div class="flex items-center gap-1.5 mb-1.5">
                 <input type="checkbox" id="pIsHighRisk" onchange="toggleHighRiskReason()" class="w-4 h-4 text-red-600 rounded">
-                <label for="pIsHighRisk" class="font-bold text-red-800 cursor-pointer">🚨 حمل عالي الخطورة</label>
+                <label for="pIsHighRisk" class="font-bold text-red-800 cursor-pointer"><i data-lucide="siren"></i> حمل عالي الخطورة</label>
               </div>
               <div id="highRiskReasonGroup" class="hidden">
                 <input type="text" id="pHighRiskReason" placeholder="سبب تصنيف الخطورة..." class="w-full p-1.5 border border-red-300 rounded-lg text-xs bg-white text-red-900 font-semibold">
@@ -719,9 +732,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
           <div id="modalPregnancyPreview" class="hidden"></div>
 
           <div class="flex justify-end pt-2">
-            <button type="submit" class="px-5 py-2 bg-rose-900 hover:bg-rose-950 text-white rounded-xl font-bold text-xs shadow transition active:scale-95">
-              💾 حفظ تعديلات البيانات الثابتة
-            </button>
+            <button type="submit" class="px-5 py-2 bg-rose-900 hover:bg-rose-950 text-white rounded-xl font-bold text-xs shadow transition active:scale-95"><i data-lucide="save"></i> حفظ تعديلات البيانات الثابتة</button>
           </div>
         </form>
       </div>
@@ -729,7 +740,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
       <!-- Visits History Timeline Header -->
       <div class="flex justify-between items-center pt-2">
         <h3 class="font-black text-slate-800 text-xs flex items-center gap-2">
-          <span>📜</span> <span>السجل: الزيارات والعمليات</span>
+          <span><i data-lucide="history"></i></span> <span>السجل: الزيارات والعمليات</span>
           <span id="archiveVisitsCountBadge" class="bg-rose-100 text-rose-800 px-2 py-0.5 rounded-full text-[11px] font-bold">0</span>
         </h3>
       </div>
@@ -752,9 +763,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
       <!-- Header -->
       <div class="flex justify-between items-center pb-3 border-b border-rose-100">
         <div class="flex items-center gap-2.5">
-          <div class="w-10 h-10 rounded-2xl bg-rose-50 text-rose-800 flex items-center justify-center text-xl font-bold border border-rose-200 shadow-xs">
-            🩺
-          </div>
+          <div class="w-10 h-10 rounded-2xl bg-rose-50 text-rose-800 flex items-center justify-center text-xl font-bold border border-rose-200 shadow-xs"><i data-lucide="stethoscope"></i></div>
           <div>
             <h2 id="nvModalTitle" class="text-base font-black text-rose-950">زيارة جديدة</h2>
             <p id="nvPatientTitle" class="text-xs text-rose-800 font-bold mt-0.5"></p>
@@ -780,11 +789,11 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
         <!-- Date & Fee Bar (Strict Isolated Billing) -->
         <div class="bg-rose-50/70 p-3 rounded-2xl border border-rose-200 grid grid-cols-2 gap-2.5">
           <div>
-            <label class="block font-bold text-rose-950 mb-1">📅 تاريخ الزيارة</label>
+            <label class="block font-bold text-rose-950 mb-1"><i data-lucide="calendar-days"></i> تاريخ الزيارة</label>
             <input type="date" id="nvDate" required class="w-full p-2 border border-slate-300 rounded-xl font-bold text-xs bg-white focus:outline-none focus:ring-2 focus:ring-rose-500">
           </div>
           <div>
-            <label class="block font-bold text-rose-950 mb-1">💰 الكشفية لهذه الزيارة (ل.س)</label>
+            <label class="block font-bold text-rose-950 mb-1"><i data-lucide="wallet"></i> الكشفية لهذه الزيارة (ل.س)</label>
             <input type="text" inputmode="numeric" autocomplete="off" id="nvFee" placeholder="مثال: 1000" class="w-full p-2 border border-slate-300 rounded-xl font-mono text-emerald-700 font-bold text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
           </div>
         </div>
@@ -798,7 +807,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
         <!-- Pregnancy follow-up: LMP, gestational age, fetus -->
         <div id="nvAncBlock" class="bg-pink-50/70 p-2.5 rounded-2xl border border-pink-200 space-y-2">
           <div class="flex justify-between items-center flex-wrap gap-2">
-            <label class="block font-bold text-pink-950 text-xs">🤰 أول يوم من آخر دورة شهرية (LMP):</label>
+            <label class="block font-bold text-pink-950 text-xs"><i data-lucide="baby"></i> أول يوم من آخر دورة شهرية (LMP):</label>
             <div class="flex items-center gap-1.5 flex-1 max-w-xs">
               <input type="date" id="nvLMP" oninput="updateNvPregnancyPreview()" onchange="updateNvPregnancyPreview()"
                      class="w-full p-2 border border-pink-200 rounded-xl font-bold bg-white text-xs text-pink-950 focus:outline-none focus:ring-2 focus:ring-pink-500">
@@ -878,7 +887,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
           <div>
             <label class="block font-semibold mb-1 text-slate-700">الضغط الشرياني</label>
             <input type="text" id="nvBP" placeholder="120/80" oninput="checkBPWarning(this)" class="w-full p-2.5 border border-slate-300 rounded-xl text-xs bg-slate-50 focus:bg-white font-mono">
-            <span id="bpWarningText" class="text-[10px] text-red-600 font-bold mt-0.5 hidden block">⚠️ ضغط مرتفع</span>
+            <span id="bpWarningText" class="text-[10px] text-red-600 font-bold mt-0.5 hidden block"><i data-lucide="triangle-alert"></i> ضغط مرتفع</span>
           </div>
           <div>
             <label class="block font-semibold mb-1 text-slate-700">الوزن (كغ)</label>
@@ -900,7 +909,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
         <!-- Lab Results (typed) -->
         <details id="nvLabsDetails" class="bg-sky-50/60 rounded-xl border border-sky-200 group">
           <summary class="cursor-pointer select-none p-2.5 font-bold text-sky-950 text-xs flex justify-between items-center">
-            <span>🧪 نتائج التحاليل <span id="nvLabsFilledCount" class="text-[10px] text-sky-700 font-normal"></span></span>
+            <span><i data-lucide="flask-conical"></i> نتائج التحاليل<span id="nvLabsFilledCount" class="text-[10px] text-sky-700 font-normal"></span></span>
             <span class="text-[10px] text-sky-700 group-open:rotate-180 transition">▼</span>
           </summary>
           <div class="p-2.5 pt-0 space-y-2">
@@ -913,10 +922,8 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
         <!-- Photos -->
         <div class="space-y-1.5">
           <div class="flex justify-between items-center">
-            <span class="font-bold text-slate-800 text-xs">📸 صور إيكو وتحاليل هذه الزيارة:</span>
-            <label class="bg-rose-800 hover:bg-rose-900 text-white px-3 py-1 rounded-xl cursor-pointer text-xs font-bold shadow-xs active:scale-95 transition">
-              📷 إضافة صورة
-              <input type="file" accept="image/*" class="hidden" onchange="handlePhotoUpload(event)">
+            <span class="font-bold text-slate-800 text-xs"><i data-lucide="camera"></i> صور إيكو وتحاليل هذه الزيارة:</span>
+            <label class="bg-rose-800 hover:bg-rose-900 text-white px-3 py-1 rounded-xl cursor-pointer text-xs font-bold shadow-xs active:scale-95 transition"><i data-lucide="camera"></i> إضافة صورة<input type="file" accept="image/*" class="hidden" onchange="handlePhotoUpload(event)">
             </label>
           </div>
           <div id="photosPreviewContainer" class="flex gap-2 flex-wrap min-h-[40px] p-2 bg-slate-50 rounded-xl border border-dashed border-slate-300">
@@ -927,10 +934,8 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
         <!-- Prescription -->
         <div class="space-y-1.5">
           <div class="flex justify-between items-center flex-wrap gap-1">
-            <span class="font-bold text-slate-800 text-xs">💊 الوصفة الطبية والعلاج (Rx):</span>
-            <button type="button" onclick="openDrugsModal()" class="inline-flex items-center gap-1 h-8 px-3 rounded-lg bg-rose-50 hover:bg-rose-100 border border-rose-200 text-[11px] text-rose-800 font-bold">
-              ⚙️ صيدلية الأدوية
-            </button>
+            <span class="font-bold text-slate-800 text-xs"><i data-lucide="pill"></i> الوصفة الطبية والعلاج (Rx):</span>
+            <button type="button" onclick="openDrugsModal()" class="inline-flex items-center gap-1 h-8 px-3 rounded-lg bg-rose-50 hover:bg-rose-100 border border-rose-200 text-[11px] text-rose-800 font-bold"><i data-lucide="settings"></i> صيدلية الأدوية</button>
           </div>
           <div id="quickDrugsContainer" class="py-1"></div>
           <textarea id="nvRx" rows="3" placeholder="العلاج والتعليمات الخاصة بهذه الزيارة..." class="w-full p-2.5 border border-amber-200 rounded-xl text-sm bg-amber-50/50 font-sans"></textarea>
@@ -938,7 +943,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
 
         <!-- Next Appointment -->
         <div class="bg-purple-50/80 p-2.5 rounded-xl border border-purple-200 flex justify-between items-center flex-wrap gap-2">
-          <label class="font-bold text-purple-950 text-xs">📅 موعد المراجعة القادمة:</label>
+          <label class="font-bold text-purple-950 text-xs"><i data-lucide="calendar-days"></i> موعد المراجعة القادمة:</label>
           <div class="flex gap-1 items-center">
             <button type="button" onclick="setNextVisitRelative(7)" class="bg-purple-100 hover:bg-purple-200 text-purple-900 text-[10px] px-2.5 py-1 rounded-lg font-bold">أسبوع</button>
             <button type="button" onclick="setNextVisitRelative(14)" class="bg-purple-100 hover:bg-purple-200 text-purple-900 text-[10px] px-2.5 py-1 rounded-lg font-bold">أسبوعين</button>
@@ -951,7 +956,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
         <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
           <button type="button" onclick="closeNewVisitModal()" class="px-4 py-2.5 bg-slate-100 text-slate-700 rounded-xl font-bold text-xs">إلغاء</button>
           <button type="submit" id="btnSaveNewVisit" class="px-6 py-2.5 bg-rose-800 hover:bg-rose-900 text-white rounded-xl font-bold text-xs shadow-lg transition flex items-center gap-1.5 active:scale-95">
-            <span>💾</span> <span id="btnSaveNewVisitText">حفظ الزيارة</span>
+            <span><i data-lucide="save"></i></span> <span id="btnSaveNewVisitText">حفظ الزيارة</span>
           </button>
         </div>
       </form>
@@ -965,9 +970,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
       <!-- Header -->
       <div class="flex justify-between items-center pb-3 border-b border-rose-100">
         <div class="flex items-center gap-2.5">
-          <div class="w-11 h-11 rounded-2xl bg-rose-800 text-white flex items-center justify-center text-2xl font-bold shadow-md">
-            🩺
-          </div>
+          <div class="w-11 h-11 rounded-2xl bg-rose-800 text-white flex items-center justify-center text-2xl font-bold shadow-md"><i data-lucide="stethoscope"></i></div>
           <div>
             <h2 class="text-base font-black text-rose-950">فتح ملف طبي شامل ومريضة جديدة</h2>
             <p class="text-xs text-slate-500 font-semibold">استمارة الطبيبة الملكية (البيانات الثابتة + GPA + فحص الزيارة الأولى)</p>
@@ -981,7 +984,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
         <!-- SECTION 1: MASTER DEMOGRAPHICS -->
         <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-2.5">
           <h3 class="font-bold text-rose-950 text-xs flex items-center gap-1.5">
-            <span>👤</span> <span>1. البيانات الشخصية والعامة</span>
+            <span><i data-lucide="user"></i></span> <span>1. البيانات الشخصية والعامة</span>
           </h3>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
@@ -1024,12 +1027,26 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
             <label class="block font-semibold mb-1 text-slate-700">عنوان السكن / المنطقة</label>
             <input type="text" id="dnpAddress" placeholder="المدينة، المنطقة، الحي..." class="w-full p-2 border border-slate-300 rounded-xl text-xs bg-white">
           </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+            <div>
+              <label class="block font-semibold mb-1 text-slate-700">اسم الأم</label>
+              <input type="text" id="dnpMotherName" autocomplete="off" class="w-full p-2 border border-slate-300 rounded-xl text-xs bg-white">
+            </div>
+            <div>
+              <label class="block font-semibold mb-1 text-slate-700">هاتف إضافي</label>
+              <input type="tel" id="dnpPhone2" maxlength="17" dir="ltr" oninput="formatSmartPhone(this)" class="w-full p-2 border border-slate-300 rounded-xl font-mono text-xs bg-white">
+            </div>
+            <div>
+              <label class="block font-semibold mb-1 text-slate-700">هاتف الزوج</label>
+              <input type="tel" id="dnpHusbandPhone" maxlength="17" dir="ltr" oninput="formatSmartPhone(this)" class="w-full p-2 border border-slate-300 rounded-xl font-mono text-xs bg-white">
+            </div>
+          </div>
         </div>
 
         <!-- SECTION 2: OBSTETRIC & MEDICAL HISTORY -->
         <div class="bg-rose-50/60 p-3.5 rounded-2xl border border-rose-200 space-y-2.5">
           <h3 class="font-bold text-rose-950 text-xs flex items-center gap-1.5">
-            <span>🤰</span> <span>2. السوابق التوليدية (GPA) والحالة الصحية العامة</span>
+            <span><i data-lucide="baby"></i></span> <span>2. السوابق التوليدية (GPA) والحالة الصحية العامة</span>
           </h3>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -1050,7 +1067,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
                 <input type="text" id="dnpMedHistory" placeholder="ضغط، سكري، عمليات سابقة..." class="w-full p-2 border border-slate-300 rounded-xl bg-white text-xs">
               </div>
               <div>
-                <label class="block font-semibold mb-0.5 text-red-600 font-bold">⚠️ التحسس الدوائي</label>
+                <label class="block font-semibold mb-0.5 text-red-600 font-bold"><i data-lucide="triangle-alert"></i> التحسس الدوائي</label>
                 <input type="text" id="dnpAllergies" placeholder="بنسلين، سلفا، أدوية محددة..." class="w-full p-2 border border-red-300 rounded-xl bg-white text-red-600 font-bold text-xs">
               </div>
             </div>
@@ -1061,7 +1078,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
             <div class="bg-red-50 p-2.5 rounded-xl border border-red-200">
               <div class="flex items-center gap-1.5 mb-1">
                 <input type="checkbox" id="dnpIsHighRisk" onchange="toggleDnpHighRiskReason()" class="w-4 h-4 text-red-600 rounded">
-                <label for="dnpIsHighRisk" class="font-bold text-red-800 cursor-pointer">🚨 تصنيف كـ حمل عالي الخطورة</label>
+                <label for="dnpIsHighRisk" class="font-bold text-red-800 cursor-pointer"><i data-lucide="siren"></i> تصنيف كـ حمل عالي الخطورة</label>
               </div>
               <div id="dnpHighRiskGroup" class="hidden mt-1.5">
                 <input type="text" id="dnpHighRiskReason" placeholder="سبب تصنيف الخطورة..." class="w-full p-1.5 border border-red-300 rounded-lg text-xs bg-white text-red-900 font-semibold">
@@ -1081,7 +1098,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
         <div class="bg-amber-50/50 p-3.5 rounded-2xl border-2 border-amber-300 space-y-3">
           <div class="flex justify-between items-center border-b border-amber-200 pb-2">
             <h3 class="font-bold text-amber-950 text-xs flex items-center gap-1.5">
-              <span>🩺</span> <span>3. فحص الزيارة الأولى لهذه المريضة</span>
+              <span><i data-lucide="stethoscope"></i></span> <span>3. فحص الزيارة الأولى لهذه المريضة</span>
             </h3>
             <div class="flex items-center gap-2">
               <label class="font-bold text-slate-700 text-xs">تاريخ الزيارة:</label>
@@ -1117,8 +1134,8 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
           <!-- Prescription -->
           <div class="space-y-1.5">
             <div class="flex justify-between items-center">
-              <span class="font-bold text-slate-800 text-xs">💊 الوصفة الطبية الأولى (Rx):</span>
-              <button type="button" onclick="openDrugsModal()" class="inline-flex items-center gap-1 h-8 px-3 rounded-lg bg-rose-50 hover:bg-rose-100 border border-rose-200 text-[11px] text-rose-800 font-bold">⚙️ صيدلية الأدوية</button>
+              <span class="font-bold text-slate-800 text-xs"><i data-lucide="pill"></i> الوصفة الطبية الأولى (Rx):</span>
+              <button type="button" onclick="openDrugsModal()" class="inline-flex items-center gap-1 h-8 px-3 rounded-lg bg-rose-50 hover:bg-rose-100 border border-rose-200 text-[11px] text-rose-800 font-bold"><i data-lucide="settings"></i> صيدلية الأدوية</button>
             </div>
             <div id="dnpQuickDrugsContainer" class="py-1"></div>
             <textarea id="dnpRx" rows="2" placeholder="العلاج والتعليمات الطبية للمريضة..." class="w-full p-2.5 border border-amber-200 rounded-xl text-sm bg-amber-50/50 font-sans"></textarea>
@@ -1126,7 +1143,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
 
           <!-- Next Appointment -->
           <div class="bg-purple-50/70 p-2 rounded-xl border border-purple-200 flex justify-between items-center flex-wrap gap-2">
-            <label class="font-bold text-purple-950 text-xs">📅 موعد المراجعة القادمة:</label>
+            <label class="font-bold text-purple-950 text-xs"><i data-lucide="calendar-days"></i> موعد المراجعة القادمة:</label>
             <input type="date" id="dnpNextVisitDate" class="p-1 border border-purple-200 rounded-lg text-xs bg-white font-bold text-purple-950">
           </div>
         </div>
@@ -1135,7 +1152,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
         <div class="flex justify-between items-center pt-2 border-t border-slate-100">
           <button type="button" onclick="closeDoctorNewPatientModal()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs">إلغاء</button>
           <button type="submit" id="btnSubmitDnp" class="px-6 py-2.5 bg-rose-800 hover:bg-rose-900 text-white rounded-xl font-bold text-xs shadow-lg transition flex items-center gap-1.5 active:scale-95">
-            <span>💾</span> <span>حفظ الملف الطبي والزيارة الأولى في السجل</span>
+            <span><i data-lucide="save"></i></span> <span>حفظ الملف الطبي والزيارة الأولى في السجل</span>
           </button>
         </div>
       </form>
@@ -1149,9 +1166,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
       <!-- Header -->
       <div class="flex justify-between items-center pb-2.5 border-b border-rose-100">
         <div class="flex items-center gap-2.5">
-          <div class="w-10 h-10 rounded-2xl bg-rose-50 text-rose-800 flex items-center justify-center text-xl font-bold border border-rose-200 shadow-xs">
-            ✂️
-          </div>
+          <div class="w-10 h-10 rounded-2xl bg-rose-50 text-rose-800 flex items-center justify-center text-xl font-bold border border-rose-200 shadow-xs"><i data-lucide="scissors"></i></div>
           <div>
             <h2 id="surgModalTitle" class="text-base font-black text-rose-950">عملية أو ولادة</h2>
             <p id="surgPatientTitle" class="text-xs text-rose-800 font-bold mt-0.5"></p>
@@ -1169,17 +1184,17 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
           <label class="block font-bold text-slate-800 mb-1">نوع العمل الجراحي أو الإجراء *</label>
           <select id="surgTypeSelect" onchange="handleSurgeryTypeChange(this.value)" required class="w-full p-2.5 border border-rose-200 rounded-xl font-bold text-xs bg-rose-50/40 text-rose-950 focus:outline-none focus:ring-2 focus:ring-rose-500">
             <option value="">-- اختاري نوع العمل الجراحي --</option>
-            <option value="عملية قيصرية (Cesarean Section)">👶 عملية قيصرية (Cesarean Section)</option>
-            <option value="ولادة طبيعية بمستشفى (Normal Delivery)">🤱 ولادة طبيعية بمستشفى (Normal Delivery)</option>
-            <option value="تجريف رحم / كورتاج (D&C)">🩺 تجريف رحم / كورتاج (D&C / Curettage)</option>
-            <option value="استئصال رحم تام (Total Hysterectomy)">🏥 استئصال رحم تام (Total Hysterectomy)</option>
-            <option value="استئصال رحم تحت تام (Subtotal Hysterectomy)">🏥 استئصال رحم تحت تام (Subtotal Hysterectomy)</option>
-            <option value="استئصال أورام ليفية (Myomectomy)">🎗️ استئصال ورم ليفي (Myomectomy)</option>
-            <option value="تطويق عنق الرحم (Cervical Cerclage)">🧵 تطويق عنق رحم (Cervical Cerclage)</option>
-            <option value="تنظير حوض / بطن جراحي (Laparoscopy)">🔬 تنظير حوض / بطن جراحي (Laparoscopy)</option>
-            <option value="استئصال كيسة مبيض (Ovarian Cystectomy)">🩹 استئصال كيسة مبيض (Ovarian Cystectomy)</option>
-            <option value="علاج حمل هاجر جراحياً (Ectopic Pregnancy)">⚠️ علاج حمل هاجر (Ectopic Pregnancy)</option>
-            <option value="أخرى">📝 إجراء جراحي آخر (يدوي)...</option>
+            <option value="عملية قيصرية (Cesarean Section)">عملية قيصرية (Cesarean Section)</option>
+            <option value="ولادة طبيعية بمستشفى (Normal Delivery)">ولادة طبيعية بمستشفى (Normal Delivery)</option>
+            <option value="تجريف رحم / كورتاج (D&C)">تجريف رحم / كورتاج (D&C / Curettage)</option>
+            <option value="استئصال رحم تام (Total Hysterectomy)">استئصال رحم تام (Total Hysterectomy)</option>
+            <option value="استئصال رحم تحت تام (Subtotal Hysterectomy)">استئصال رحم تحت تام (Subtotal Hysterectomy)</option>
+            <option value="استئصال أورام ليفية (Myomectomy)">استئصال ورم ليفي (Myomectomy)</option>
+            <option value="تطويق عنق الرحم (Cervical Cerclage)">تطويق عنق رحم (Cervical Cerclage)</option>
+            <option value="تنظير حوض / بطن جراحي (Laparoscopy)">تنظير حوض / بطن جراحي (Laparoscopy)</option>
+            <option value="استئصال كيسة مبيض (Ovarian Cystectomy)">استئصال كيسة مبيض (Ovarian Cystectomy)</option>
+            <option value="علاج حمل هاجر جراحياً (Ectopic Pregnancy)">علاج حمل هاجر (Ectopic Pregnancy)</option>
+            <option value="أخرى">إجراء جراحي آخر (يدوي)...</option>
           </select>
         </div>
 
@@ -1190,12 +1205,16 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
 
         <div class="grid grid-cols-2 gap-2.5">
           <div>
-            <label class="block font-bold text-slate-700 mb-1">📅 تاريخ إجراء العملية *</label>
+            <label class="block font-bold text-slate-700 mb-1"><i data-lucide="calendar-days"></i> تاريخ إجراء العملية *</label>
             <input type="date" id="surgDate" required class="w-full p-2 border border-slate-300 rounded-xl font-bold bg-white text-xs">
           </div>
           <div>
             <label class="block font-semibold text-slate-700 mb-1">المشفى / المركز الجراحي</label>
-            <input type="text" id="surgHospital" placeholder="مثال: مشفى الرازي، المشفى الوطني..." class="w-full p-2 border border-slate-300 rounded-xl text-xs bg-white">
+            <input type="text" id="surgHospital" autocomplete="off" placeholder="اسم المشفى" class="w-full p-2 border border-slate-300 rounded-xl text-xs bg-white">
+            <div class="flex gap-1.5 mt-1.5">
+              <button type="button" onclick="pickHospital('مشفى الكندي')" class="hosp-pick h-8 px-3 rounded-lg border border-slate-300 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50">الكندي</button>
+              <button type="button" onclick="pickHospital('مشفى الرازي')" class="hosp-pick h-8 px-3 rounded-lg border border-slate-300 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50">الرازي</button>
+            </div>
           </div>
         </div>
 
@@ -1215,18 +1234,22 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
             <input type="text" id="surgSurgeon" value="د. هيام خضر" class="w-full p-2 border border-slate-300 rounded-xl text-xs bg-white font-semibold">
           </div>
         </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">طبيب/ة التخدير</label>
+          <input type="text" id="surgAnesthetist" autocomplete="off" placeholder="اسم طبيب التخدير" class="w-full p-2 border border-slate-300 rounded-xl text-xs bg-white">
+        </div>
 
         <!-- Baby Details (Shown only for Deliveries/C-Sections) -->
         <div id="surgBabyGroup" class="hidden bg-rose-50/60 p-2.5 rounded-xl border border-rose-200 space-y-2">
-          <span class="block font-bold text-rose-950 text-xs">👶 بيانات المولود (خاص بالولادات):</span>
+          <span class="block font-bold text-rose-950 text-xs"><i data-lucide="baby"></i> بيانات المولود (خاص بالولادات):</span>
           <div class="grid grid-cols-3 gap-2">
             <div>
               <label class="block text-[11px] font-semibold text-slate-700 mb-0.5">جنس المولود</label>
               <select id="surgBabyGender" class="w-full p-1.5 border border-rose-200 rounded-lg bg-white font-bold text-xs">
                 <option value="غير محدد">-</option>
-                <option value="ذكر 👦">ذكر 👦</option>
-                <option value="أنثى 👧">أنثى 👧</option>
-                <option value="توأم 👶👶">توأم 👶👶</option>
+                <option value="ذكر 👦">ذكر</option>
+                <option value="أنثى 👧">أنثى</option>
+                <option value="توأم 👶👶">توأم</option>
               </select>
             </div>
             <div>
@@ -1245,10 +1268,14 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
           <label class="block font-bold text-slate-700 mb-1">تقرير العملية الجراحية والموجودات السريرية</label>
           <textarea id="surgReport" rows="3" placeholder="ملاحظات الشق الجراحي، الموجودات، تفاصيل الاستئصال، النزف، الأدوية، الاختلاطات..." class="w-full p-2 border border-slate-300 rounded-xl text-xs bg-white"></textarea>
         </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">ملاحظات إضافية</label>
+          <textarea id="surgNotes" rows="2" placeholder="أي ملاحظات أخرى: متابعة، تعليمات، اختلاطات لاحقة..." class="w-full p-2 border border-slate-300 rounded-xl text-xs bg-white"></textarea>
+        </div>
 
         <!-- Auto GPA Notification Alert -->
         <div id="surgAutoGpaNotice" class="bg-rose-50 border border-rose-200 p-2.5 rounded-xl text-[11px] text-rose-950 flex items-center gap-1.5 font-bold">
-          <span>⚡ ربط تلقائي:</span>
+          <span><i data-lucide="zap"></i> ربط تلقائي:</span>
           <span id="surgAutoGpaNoticeText">سيتم ربط هذا العمل الجراحي بملف المريضة وتحديث سوابقها فوراً.</span>
         </div>
 
@@ -1256,7 +1283,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
         <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
           <button type="button" onclick="closeSurgeryModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs">إلغاء</button>
           <button type="submit" id="btnSaveSurgery" class="px-6 py-2 bg-rose-800 hover:bg-rose-900 text-white rounded-xl font-bold text-xs shadow-lg transition flex items-center gap-1.5 active:scale-95">
-            <span>💾</span> <span id="btnSaveSurgeryText">حفظ</span>
+            <span><i data-lucide="save"></i></span> <span id="btnSaveSurgeryText">حفظ</span>
           </button>
         </div>
       </form>
@@ -1267,7 +1294,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
   <div id="pregnancyModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-xs flex items-center justify-center p-3 z-50">
     <div class="bg-white rounded-3xl max-w-md w-full p-5 shadow-2xl space-y-3 text-xs border-2 border-pink-300">
       <div class="flex justify-between items-center border-b border-pink-100 pb-2">
-        <h2 id="pregModalTitle" class="text-base font-black text-pink-950">🤰 الحمل</h2>
+        <h2 id="pregModalTitle" class="text-base font-black text-pink-950"><i data-lucide="baby"></i> الحمل</h2>
         <button type="button" onclick="closePregnancyModal()" class="text-gray-400 hover:text-pink-600 text-2xl font-bold p-1">&times;</button>
       </div>
       <form onsubmit="handlePregnancySubmit(event)" class="space-y-3">
@@ -1291,10 +1318,21 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
             <label class="block font-bold text-slate-800 mb-1">ملاحظات (اختياري)</label>
             <input type="text" id="pregNotes" autocomplete="off" placeholder="مثال: ولادة في مشفى آخر، إجهاض دوائي..." class="w-full p-2.5 border border-slate-300 rounded-xl bg-white">
           </div>
+          <div id="pregElseBox" class="hidden space-y-2 bg-pink-50 border border-pink-200 rounded-xl p-2.5">
+            <div>
+              <label class="block font-bold text-slate-800 mb-1">نوع الولادة</label>
+              <select id="pregElseType" class="w-full p-2 border border-slate-300 rounded-xl bg-white font-bold">
+                <option value="vd">طبيعية</option><option value="cs">قيصرية</option><option value="">غير معروف</option>
+              </select>
+            </div>
+            <label class="flex items-center gap-2 font-bold text-slate-800 cursor-pointer">
+              <input type="checkbox" id="pregElseNote" checked class="w-4 h-4 accent-pink-600"> تسجيل أنها راجعت طبيباً آخر
+            </label>
+          </div>
           <p class="text-[11px] text-slate-500">لتوثيق ولادة أو عملية مع تقرير وبيانات المولود استخدمي زر «عملية أو ولادة»؛ سيُغلق الحمل تلقائياً.</p>
         </div>
         <div class="flex gap-2 pt-1">
-          <button type="submit" class="flex-1 py-2.5 bg-rose-800 hover:bg-rose-900 text-white rounded-xl font-black shadow active:scale-95 transition">💾 حفظ</button>
+          <button type="submit" class="flex-1 py-2.5 bg-rose-800 hover:bg-rose-900 text-white rounded-xl font-black shadow active:scale-95 transition"><i data-lucide="save"></i> حفظ</button>
           <button type="button" onclick="closePregnancyModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold">إلغاء</button>
         </div>
       </form>
@@ -1306,7 +1344,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
     <div class="bg-white rounded-3xl max-w-lg w-full p-5 shadow-2xl space-y-3.5 text-xs max-h-[90vh] overflow-y-auto border border-rose-100">
       <div class="flex justify-between items-center border-b border-rose-100 pb-2">
         <div class="flex items-center gap-2">
-          <span class="text-xl">💊</span>
+          <span class="text-xl"><i data-lucide="pill"></i></span>
           <h2 class="text-base font-black text-rose-950">صيدلية الأدوية والشركات</h2>
         </div>
         <button type="button" onclick="closeDrugsModal()" class="text-gray-400 hover:text-rose-600 text-2xl font-bold p-1">&times;</button>
@@ -1315,11 +1353,11 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
       <div class="flex gap-2">
         <input type="search" id="drugLibSearch" autocomplete="off" oninput="renderDrugsTable()" placeholder="🔍 ابحثي عن دواء أو شركة..."
                class="flex-1 min-w-0 h-10 px-3 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white focus:outline-none focus:border-rose-700 text-sm">
-        <button type="button" id="drugAddBtn" onclick="openDrugForm()" class="h-10 px-3 bg-rose-800 hover:bg-rose-900 text-white rounded-xl font-bold shrink-0 active:scale-95 transition">➕ دواء جديد</button>
+        <button type="button" id="drugAddBtn" onclick="openDrugForm()" class="h-10 px-3 bg-rose-800 hover:bg-rose-900 text-white rounded-xl font-bold shrink-0 active:scale-95 transition"><i data-lucide="plus"></i> دواء جديد</button>
       </div>
 
       <form id="drugForm" onsubmit="handleSaveDrug(event)" class="hidden bg-rose-50/40 p-3 rounded-2xl border border-rose-200 space-y-2">
-        <h3 id="drugFormTitle" class="font-bold text-rose-950">➕ دواء جديد</h3>
+        <h3 id="drugFormTitle" class="font-bold text-rose-950"><i data-lucide="plus"></i> دواء جديد</h3>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <div>
             <label class="block mb-0.5 text-slate-600 font-semibold">اسم الدواء والعيار *</label>
@@ -1341,10 +1379,9 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
           <input type="text" id="drugFormDose3" autocomplete="off" placeholder="الجرعة 3 (اختياري)" class="w-full p-2 border border-slate-300 rounded-xl bg-white">
         </div>
         <label class="flex items-center gap-2 font-bold text-slate-700 cursor-pointer select-none">
-          <input type="checkbox" id="drugFormFavorite" class="w-4 h-4 accent-amber-500"> ⭐ من الأدوية المفضلة (تظهر أولاً فوق الوصفة)
-        </label>
+          <input type="checkbox" id="drugFormFavorite" class="w-4 h-4 accent-amber-500"> من الأدوية المفضلة (تظهر أولاً فوق الوصفة) </label>
         <div class="flex gap-2">
-          <button type="submit" class="flex-1 py-2 bg-rose-800 hover:bg-rose-900 text-white rounded-xl font-bold shadow transition active:scale-95">💾 حفظ</button>
+          <button type="submit" class="flex-1 py-2 bg-rose-800 hover:bg-rose-900 text-white rounded-xl font-bold shadow transition active:scale-95"><i data-lucide="save"></i> حفظ</button>
           <button type="button" onclick="closeDrugForm()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold">إلغاء</button>
         </div>
       </form>
@@ -1356,9 +1393,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
   <!-- ==================== 8. SMART WHATSAPP ACTION MODAL ==================== -->
   <div id="whatsappModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 z-50">
     <div class="bg-white rounded-3xl max-w-sm w-full p-5 shadow-2xl space-y-3.5 text-xs text-center border border-emerald-100">
-      <div class="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-2xl flex items-center justify-center mx-auto text-2xl shadow-inner border border-emerald-200">
-        💬
-      </div>
+      <div class="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-2xl flex items-center justify-center mx-auto text-2xl shadow-inner border border-emerald-200"><i data-lucide="message-circle"></i></div>
       <div>
         <h3 class="text-base font-black text-slate-900">إرسال واتساب مباشر للمريضة</h3>
         <p id="whatsappModalPatientName" class="text-xs text-rose-900 font-bold mt-0.5"></p>
@@ -1367,17 +1402,17 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
 
       <div class="space-y-2 text-right">
         <button type="button" onclick="sendWhatsAppMessage('direct')" class="w-full p-3 bg-slate-50 hover:bg-slate-100 text-slate-800 font-bold rounded-2xl flex items-center justify-between border border-slate-200 transition">
-          <span>💬 فتح محادثة واتساب مباشرة</span>
+          <span><i data-lucide="message-circle"></i> فتح محادثة واتساب مباشرة</span>
           <span class="text-xs">➔</span>
         </button>
 
         <button type="button" onclick="sendWhatsAppMessage('rx')" class="w-full p-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-950 font-bold rounded-2xl flex items-center justify-between border border-emerald-200 transition">
-          <span>💊 إرسال الوصفة الطبية والتعليمات</span>
+          <span><i data-lucide="pill"></i> إرسال الوصفة الطبية والتعليمات</span>
           <span class="text-xs">➔</span>
         </button>
 
         <button type="button" onclick="sendWhatsAppMessage('reminder')" class="w-full p-3 bg-rose-50 hover:bg-rose-100 text-rose-950 font-bold rounded-2xl flex items-center justify-between border border-rose-200 transition">
-          <span>📅 إرسال تذكير بموعد المراجعة القادمة</span>
+          <span><i data-lucide="calendar-days"></i> إرسال تذكير بموعد المراجعة القادمة</span>
           <span class="text-xs">➔</span>
         </button>
       </div>
@@ -1397,16 +1432,12 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
   <!-- ==================== 10. CLOUD SYNC SUCCESS REPORT MODAL ==================== -->
   <div id="syncReportModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl space-y-4 border border-emerald-100">
-      <div class="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-2xl flex items-center justify-center mx-auto text-3xl shadow-inner border border-emerald-200">
-        ☁️
-      </div>
+      <div class="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-2xl flex items-center justify-center mx-auto text-3xl shadow-inner border border-emerald-200"><i data-lucide="cloud"></i></div>
       <div>
         <h3 class="text-lg font-black text-slate-900">تقرير المزامنة السحابية</h3>
         <p id="syncReportDetails" class="text-xs text-slate-600 mt-2 font-medium leading-relaxed"></p>
       </div>
-      <div class="bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl text-xs text-emerald-950 font-bold">
-        ✅ كافة بيانات العيادة مؤمنة ومحفوظة بالسحابة
-      </div>
+      <div class="bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl text-xs text-emerald-950 font-bold"><i data-lucide="circle-check"></i> كافة بيانات العيادة مؤمنة ومحفوظة بالسحابة</div>
       <button onclick="closeSyncReportModal()" class="w-full py-2.5 bg-rose-800 hover:bg-rose-900 text-white rounded-xl font-bold text-xs shadow-md transition active:scale-95">
         تم، إغلاق النافذة
       </button>
@@ -1418,7 +1449,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
     <div class="bg-white rounded-3xl max-w-sm w-full p-5 shadow-2xl space-y-4 text-xs max-h-[90vh] overflow-y-auto border border-rose-100">
       <div class="flex justify-between items-center border-b border-rose-100 pb-2">
         <div class="flex items-center gap-2">
-          <span class="text-xl">🔑</span>
+          <span class="text-xl"><i data-lucide="key-round"></i></span>
           <h2 class="text-base font-black text-rose-950">الحساب والإعدادات</h2>
         </div>
         <button type="button" onclick="closeChangePinModal()" class="text-gray-400 hover:text-rose-600 text-2xl font-bold p-1">&times;</button>
@@ -1440,7 +1471,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
       </form>
 
       <div class="bg-red-50 p-3 rounded-2xl border border-red-200 space-y-1.5 text-center">
-        <h3 class="font-bold text-red-900">🧹 مسح السجلات وتصفير قاعدة البيانات</h3>
+        <h3 class="font-bold text-red-900"><i data-lucide="sparkles"></i> مسح السجلات وتصفير قاعدة البيانات</h3>
         <p class="text-[10px] text-red-600">لحذف كل البطاقات القديمة نهائياً والبدء بسجل نظيف:</p>
         <button type="button" onclick="purgeAllOldTestPatients()" class="w-full py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition active:scale-95">مسح جميع السجلات نهائياً</button>
       </div>
@@ -1450,9 +1481,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
   <!-- ==================== 12. PIN-PROTECTED DELETE MODAL ==================== -->
   <div id="deleteModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 z-50">
     <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl space-y-4 border border-red-100">
-      <div class="w-14 h-14 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center mx-auto text-2xl border border-red-200">
-        🗑️
-      </div>
+      <div class="w-14 h-14 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center mx-auto text-2xl border border-red-200"><i data-lucide="trash-2"></i></div>
       <div>
         <h3 class="text-base font-black text-slate-900">تأكيد حذف ملف المريضة</h3>
         <p id="deleteModalPatientName" class="text-xs text-red-600 font-bold mt-1"></p>
@@ -1462,7 +1491,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
       <div>
         <input type="password" id="deletePinInput" autocomplete="current-password" placeholder="كلمة المرور"
                class="w-full text-center text-base py-2.5 border-2 border-red-200 rounded-xl focus:outline-none focus:border-red-600 font-bold bg-slate-50">
-        <p id="deletePinError" class="text-xs text-red-500 font-bold mt-1.5 hidden">⚠️ كلمة المرور غير صحيحة!</p>
+        <p id="deletePinError" class="text-xs text-red-500 font-bold mt-1.5 hidden"><i data-lucide="triangle-alert"></i> كلمة المرور غير صحيحة!</p>
       </div>
 
       <div class="flex gap-2 pt-2">
@@ -1480,6 +1509,16 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
     const SYNCED_PHOTOS_KEY = "clinic_synced_photo_sets_v1";
     const PRIMARY_DB_KEY = "syria_obgyn_permanent_records_v15";
     const DELETED_IDS_KEY = "clinic_deleted_tombstones_v15";
+    // --- ICONS: <i data-lucide="..."> placeholders become crisp line icons ---
+    const ic = (name, cls = '') => `<i data-lucide="${name}" class="${cls}"></i>`;
+    (function () {
+      let pending = false;
+      const draw = () => { pending = false; if (window.lucide) window.lucide.createIcons(); };
+      new MutationObserver(() => { if (!pending) { pending = true; requestAnimationFrame(draw); } })
+        .observe(document.documentElement, { childList: true, subtree: true });
+      window.addEventListener('load', draw);
+    })();
+
     const DRUGS_KEY = "clinic_custom_drugs_v6";
     const LAST_BACKUP_KEY = "clinic_last_weekly_backup_v2";
 
@@ -2510,6 +2549,9 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
       document.getElementById('pPhone').value = p.phone || '';
       document.getElementById('pBirthYear').value = p.birthYear || '';
       document.getElementById('pAddress').value = p.address || '';
+      document.getElementById('pMotherName').value = p.motherName || '';
+      document.getElementById('pPhone2').value = p.phone2 || '';
+      document.getElementById('pHusbandPhone').value = p.husbandPhone || '';
       updateDocAgePreview();
 
       document.getElementById('pIsHighRisk').checked = !!p.isHighRisk;
@@ -2553,6 +2595,9 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
       p.phone = convertArabicNumerals(document.getElementById('pPhone').value.trim());
       p.birthYear = convertArabicNumerals(document.getElementById('pBirthYear').value.trim());
       p.address = document.getElementById('pAddress').value.trim();
+      p.motherName = document.getElementById('pMotherName').value.trim();
+      p.phone2 = convertArabicNumerals(document.getElementById('pPhone2').value.trim());
+      p.husbandPhone = convertArabicNumerals(document.getElementById('pHusbandPhone').value.trim());
       p.blood = document.getElementById('pBlood').value;
       p.g = convertArabicNumerals(document.getElementById('pG').value);
       p.vd = convertArabicNumerals(document.getElementById('pVD').value);
@@ -2671,7 +2716,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
     }
 
     // --- Pregnancy modal ---
-    function openPregnancyModal(mode) {
+    function openPregnancyModal(mode, presetOutcome = '') {
       const p = activeArchivePatient;
       if (!p) return;
       const active = activePregnancy(p);
@@ -2683,7 +2728,10 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
       document.getElementById('pregLmp').value = mode === 'edit' && active ? (active.lmp || '') : '';
       document.getElementById('pregEndDate').value = getTodayDateString();
       document.getElementById('pregNotes').value = '';
-      document.getElementById('pregOutcome').value = '';
+      document.getElementById('pregOutcome').value = presetOutcome;
+      document.getElementById('pregElseBox').classList.toggle('hidden', presetOutcome !== 'elsewhere');
+      document.getElementById('pregElseNote').checked = true;
+      document.getElementById('pregElseType').value = 'vd';
       const box = document.getElementById('pregOutcomeButtons');
       box.innerHTML = '';
       PREG_OUTCOMES.forEach((o) => {
@@ -2694,6 +2742,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
         b.onclick = () => {
           document.getElementById('pregOutcome').value = o.key;
           box.querySelectorAll('button').forEach((x) => paintOutcome(x));
+          document.getElementById('pregElseBox').classList.toggle('hidden', o.key !== 'elsewhere');
         };
         paintOutcome(b);
         box.appendChild(b);
@@ -2716,6 +2765,27 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
         : '';
     }
 
+    function addExternalCare(p, date, text) {
+      p.externalCare = Array.isArray(p.externalCare) ? p.externalCare : [];
+      p.externalCare.push({ date: date || getTodayDateString(), text: text || 'راجعت طبيباً آخر' });
+    }
+
+    async function recordSawOtherDoctor() {
+      const p = activeArchivePatient;
+      if (!p) return;
+      const note = prompt('ملاحظة (اختياري): مثال «راجعت طبيباً آخر أثناء الحمل»', 'راجعت طبيباً آخر');
+      if (note === null) return;
+      addExternalCare(p, getTodayDateString(), note.trim() || 'راجعت طبيباً آخر');
+      notifyDataChanged();
+      await syncPatientToCloud(p);
+      openDoctorModal(p.id);
+    }
+
+    function quickDeliveredElsewhere(patientId) {
+      openDoctorModal(patientId);
+      openPregnancyModal('end', 'elsewhere');
+    }
+
     function closePregnancyModal() { document.getElementById('pregnancyModal').classList.add('hidden'); }
 
     async function handlePregnancySubmit(e) {
@@ -2726,8 +2796,18 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
       if (mode === 'end') {
         const outcome = document.getElementById('pregOutcome').value;
         if (!outcome) { alert('اختاري كيف انتهى الحمل'); return; }
-        endPregnancy(p, { outcome, date: document.getElementById('pregEndDate').value || getTodayDateString(),
-          notes: document.getElementById('pregNotes').value.trim() }, true);
+        const date = document.getElementById('pregEndDate').value || getTodayDateString();
+        const elseType = outcome === 'elsewhere' ? document.getElementById('pregElseType').value : '';
+        const preg = endPregnancy(p, { outcome, date, notes: document.getElementById('pregNotes').value.trim() }, true);
+        if (outcome === 'elsewhere') {
+          preg.deliveryType = elseType;
+          if (elseType === 'cs') {
+            // endPregnancy counted it as a vaginal delivery; move it to C-section.
+            const n = (x) => parseInt(convertArabicNumerals(x || '0'), 10) || 0;
+            p.vd = String(Math.max(0, n(p.vd) - 1)); p.cs = String(n(p.cs) + 1);
+          }
+          if (document.getElementById('pregElseNote').checked) addExternalCare(p, date, 'ولدت لدى طبيب أو مشفى آخر');
+        }
       } else {
         const lmp = document.getElementById('pregLmp').value;
         if (!lmp || !gestationalAgeAt(lmp, getTodayDateString())) { alert('أدخلي تاريخ آخر دورة صحيحاً'); return; }
@@ -2756,10 +2836,10 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
         const overdue = weeks >= 41;
         html += `<div class="bg-pink-50 border-2 ${overdue ? 'border-red-400' : 'border-pink-200'} rounded-2xl p-3 text-xs space-y-2">
           <div class="flex justify-between items-center flex-wrap gap-2">
-            <span class="font-black text-pink-950 text-sm">🤰 الحمل الحالي</span>
+            <span class="font-black text-pink-950 text-sm inline-flex items-center gap-1.5">${ic('baby')} الحمل الحالي</span>
             <span class="flex gap-1">
-              <button type="button" onclick="openPregnancyModal('edit')" class="px-2 py-1 rounded-lg bg-white border border-pink-200 font-bold text-pink-900">✏️ LMP</button>
-              <button type="button" onclick="openPregnancyModal('end')" class="px-2 py-1 rounded-lg bg-white border border-pink-200 font-bold text-pink-900">⏹ إنهاء</button>
+              <button type="button" onclick="openPregnancyModal('edit')" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-white border border-pink-200 font-bold text-pink-900">${ic('pencil')} LMP</button>
+              <button type="button" onclick="openPregnancyModal('end')" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-white border border-pink-200 font-bold text-pink-900">${ic('circle-stop')} إنهاء</button>
             </span>
           </div>
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -2768,6 +2848,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
             <div class="bg-white rounded-xl p-2 text-center border border-pink-100"><div class="text-[10px] text-slate-500 font-bold">زيارات الحمل</div><div class="font-black text-pink-900 text-base">${visits.length}</div></div>
             <div class="bg-white rounded-xl p-2 text-center border border-pink-100"><div class="text-[10px] text-slate-500 font-bold">آخر ضغط / وزن</div><div class="font-black text-slate-800" dir="ltr">${escapeHTML((last && last.bp) || '—')} / ${escapeHTML((last && last.weight) || '—')}</div></div>
           </div>
+          ${weeks >= 40 ? `<button type="button" onclick="openPregnancyModal('end', 'elsewhere')" class="w-full h-9 rounded-xl bg-pink-600 hover:bg-pink-700 text-white font-bold text-xs inline-flex items-center justify-center gap-1.5">${ic('hospital')} تجاوزت موعد الولادة: هل ولدت في مكان آخر؟</button>` : ''}
         </div>`;
       } else {
         html += `<button type="button" onclick="openPregnancyModal('start')" class="w-full py-2 rounded-2xl border-2 border-dashed border-pink-300 text-pink-800 font-bold text-xs hover:bg-pink-50">🤰 تسجيل حمل جديد</button>`;
@@ -2776,7 +2857,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
       const ended = list.filter((x) => x.status === 'ended').sort((a, b) => (b.endDate || '').localeCompare(a.endDate || ''));
       if (ended.length) {
         html += `<details class="bg-slate-50 border border-slate-200 rounded-2xl text-xs">
-          <summary class="cursor-pointer select-none p-2.5 font-bold text-slate-800">📚 الحملات السابقة (${ended.length})</summary>
+          <summary class="cursor-pointer select-none p-2.5 font-bold text-slate-800 inline-flex items-center gap-1.5">${ic('history')} الحملات السابقة (${ended.length})</summary>
           <div class="p-2.5 pt-0 space-y-1.5">${ended.map((x) => {
             const o = pregOutcome(x.outcome);
             const gaEnd = x.lmp ? gestationalAgeAt(x.lmp, x.endDate) : '';
@@ -2803,22 +2884,31 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
       const chips = [];
       const n = (x) => parseInt(convertArabicNumerals(x || '0'), 10) || 0;
       const g = n(p.g), vd = n(p.vd), cs = n(p.cs), a = n(p.a);
-      chips.push(`<span class="px-2 py-1 rounded-lg bg-slate-100 text-slate-800 font-black font-mono" dir="ltr">G${g} P${vd + cs} A${a}</span>`);
+      chips.push(`<span class="px-2 py-1 rounded-lg bg-slate-100 text-slate-800 font-bold font-mono" dir="ltr">G${g} P${vd + cs} A${a}</span>`);
       if (cs) chips.push(`<span class="px-2 py-1 rounded-lg bg-slate-100 text-slate-700 font-bold">قيصرية: ${cs}</span>`);
-      if (p.blood && p.blood !== 'غير محدد') chips.push(`<span class="px-2 py-1 rounded-lg bg-slate-100 text-slate-800 font-black" dir="ltr">🩸 ${escapeHTML(p.blood)}</span>`);
+      if (p.blood && p.blood !== 'غير محدد') chips.push(`<span class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-100 text-slate-800 font-bold" dir="ltr">${ic('droplet', 'text-red-500')} ${escapeHTML(p.blood)}</span>`);
       if (p.phone) {
         const tel = convertArabicNumerals(p.phone).replace(/[^\d+]/g, '');
-        chips.push(`<a href="tel:${escapeHTML(tel)}" class="px-2 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold" dir="ltr">📞 ${escapeHTML(p.phone)}</a>`);
+        chips.push(`<a href="tel:${escapeHTML(tel)}" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold" dir="ltr">${ic('phone')} ${escapeHTML(p.phone)}</a>`);
       }
+      if (p.phone2) {
+        const tel2 = convertArabicNumerals(p.phone2).replace(/[^\d+]/g, '');
+        chips.push(`<a href="tel:${escapeHTML(tel2)}" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-100 text-slate-800 font-bold" dir="ltr">${ic('phone-forwarded')} ${escapeHTML(p.phone2)}</a>`);
+      }
+      if (p.motherName) chips.push(`<span class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-100 text-slate-700 font-bold">${ic('heart', 'text-slate-400')} الأم: ${escapeHTML(p.motherName)}</span>`);
       let html = `<div class="flex flex-wrap gap-1.5 text-xs">${chips.join('')}</div>`;
 
       const warnings = [];
-      if (p.allergies && p.allergies.trim()) warnings.push(`⚠️ تحسس: ${escapeHTML(p.allergies)}`);
-      if (p.isHighRisk) warnings.push(`🚨 حمل عالي الخطورة${p.highRiskReason ? ': ' + escapeHTML(p.highRiskReason) : ''}`);
+      if (p.allergies && p.allergies.trim()) warnings.push(`${ic('triangle-alert')} تحسس: ${escapeHTML(p.allergies)}`);
+      if (p.isHighRisk) warnings.push(`${ic('siren')} حمل عالي الخطورة${p.highRiskReason ? ': ' + escapeHTML(p.highRiskReason) : ''}`);
       if (p.medHistory && p.medHistory.trim()) warnings.push(`<span class="text-red-800 font-bold">سوابق: ${escapeHTML(p.medHistory)}</span>`);
       if (warnings.length) {
-        html += `<div class="bg-red-50 border-2 border-red-300 rounded-2xl p-2.5 text-xs font-black text-red-800 space-y-1">${warnings.map((w) => `<div>${w}</div>`).join('')}</div>`;
+        html += `<div class="bg-red-50 border-2 border-red-300 rounded-2xl p-2.5 text-xs font-bold text-red-800 space-y-1">${warnings.map((w) => `<div class="flex items-start gap-1.5">${w}</div>`).join('')}</div>`;
       }
+      const ext = Array.isArray(p.externalCare) ? p.externalCare : [];
+      html += `<div class="flex flex-wrap items-center gap-1.5 text-xs">${ext.map((x) =>
+        `<span class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-amber-50 text-amber-900 border border-amber-200 font-bold">${ic('hospital')} ${escapeHTML(x.text)} • ${escapeHTML(x.date)}</span>`).join('')}
+        <button type="button" onclick="recordSawOtherDoctor()" class="inline-flex items-center gap-1 h-7 px-2 rounded-lg border border-dashed border-slate-300 text-slate-500 font-bold hover:bg-slate-50">${ic('plus')} راجعت طبيباً آخر</button></div>`;
 
       html += pregnancySectionHTML(p);
       box.innerHTML = html;
@@ -2880,19 +2970,21 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
           item.className = 'bg-amber-50 p-3 rounded-2xl border-2 border-amber-200 text-xs space-y-1.5';
           item.innerHTML = `
             <div class="flex justify-between items-center gap-2 flex-wrap">
-              <span class="font-black text-amber-950">✂️ ${escapeHTML(s.type)}</span>
+              <span class="font-black text-amber-950 inline-flex items-center gap-1.5">${ic('scissors')} ${escapeHTML(s.type)}</span>
               <span class="flex items-center gap-1">
                 <span class="text-amber-800 font-bold">📅 ${escapeHTML(s.date)}</span>
-                <button type="button" onclick="openSurgeryModal(${jsArg(patient.id)}, ${jsArg(s.id)})" class="px-2 py-1 rounded-lg bg-white hover:bg-amber-100 border border-amber-200 font-bold text-amber-900">✏️ تعديل</button>
-                <button type="button" onclick="deleteSurgeryRecord(${jsArg(patient.id)}, ${jsArg(s.id)})" class="text-red-600 hover:bg-red-50 rounded-lg px-1.5 py-1 font-bold" title="حذف">🗑️</button>
+                <button type="button" onclick="openSurgeryModal(${jsArg(patient.id)}, ${jsArg(s.id)})" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-white hover:bg-amber-100 border border-amber-200 font-bold text-amber-900">${ic('pencil')} تعديل</button>
+                <button type="button" onclick="deleteSurgeryRecord(${jsArg(patient.id)}, ${jsArg(s.id)})" class="text-red-600 hover:bg-red-50 rounded-lg px-1.5 py-1 font-bold" title="حذف">${ic('trash-2')}</button>
               </span>
             </div>
             <div class="flex flex-wrap gap-x-3 text-[11px] text-slate-600">
               ${s.hospital ? `<span>المشفى: <strong class="text-slate-900">${escapeHTML(s.hospital)}</strong></span>` : ''}
               ${s.anesthesia ? `<span>التخدير: <strong class="text-slate-900">${escapeHTML(s.anesthesia)}</strong></span>` : ''}
+              ${s.anesthetist ? `<span>طبيب التخدير: <strong class="text-slate-900">${escapeHTML(s.anesthetist)}</strong></span>` : ''}
             </div>
             ${s.babyGender ? `<div class="text-emerald-900 font-bold bg-white p-1.5 rounded-lg border border-emerald-100">👶 ${escapeHTML(s.babyGender)} • ${escapeHTML(s.babyWeight || '-')} كغ • ${escapeHTML(s.babyStatus || 'سليم')}</div>` : ''}
             ${s.report ? `<p class="text-slate-800 bg-white p-2 rounded-xl border border-amber-100 whitespace-pre-line">${escapeHTML(s.report)}</p>` : ''}
+            ${s.notes ? `<p class="text-slate-700 bg-white p-2 rounded-xl border border-amber-100 whitespace-pre-line"><strong>ملاحظات:</strong> ${escapeHTML(s.notes)}</p>` : ''}
           `;
           container.appendChild(item);
           return;
@@ -2906,14 +2998,14 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
         item.innerHTML = `
           <div class="flex justify-between items-start gap-2 flex-wrap">
             <div class="flex items-center gap-1.5 flex-wrap">
-              ${k ? `<span class="px-2 py-0.5 rounded-lg border font-black text-[11px] ${k.badge}">${k.icon} ${k.label}</span>` : `<span class="px-2 py-0.5 rounded-lg border font-black text-[11px] bg-slate-100 text-slate-700 border-slate-300">زيارة</span>`}
+              ${k ? `<span class="px-2 py-0.5 rounded-lg border font-black text-[11px] ${k.badge}">${ic(k.icon)} ${k.label}</span>` : `<span class="px-2 py-0.5 rounded-lg border font-black text-[11px] bg-slate-100 text-slate-700 border-slate-300">زيارة</span>`}
               <span class="px-2 py-0.5 rounded-lg font-bold text-[10px] ${first ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-500'}">${first ? 'زيارة أولى' : 'مراجعة #' + visitNumber.get(v.id)}</span>
               <span class="font-bold text-slate-700">📅 ${escapeHTML(v.date)}</span>
             </div>
             <div class="flex items-center gap-1">
               ${v.fee ? `<span class="bg-emerald-50 text-emerald-800 font-bold px-2 py-0.5 rounded-lg border border-emerald-200 font-mono">${Number(v.fee).toLocaleString()} ل.س</span>` : ''}
-              <button type="button" onclick="openNewVisitModal(${jsArg(patient.id)}, ${jsArg(v.id)})" class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 font-bold text-slate-700">✏️ تعديل</button>
-              <button type="button" onclick="deleteVisitFromArchive(${jsArg(patient.id)}, ${jsArg(v.id)})" class="px-1.5 py-1 rounded-lg text-red-600 hover:bg-red-50 font-bold" title="حذف">🗑️</button>
+              <button type="button" onclick="openNewVisitModal(${jsArg(patient.id)}, ${jsArg(v.id)})" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 font-bold text-slate-700">${ic('pencil')} تعديل</button>
+              <button type="button" onclick="deleteVisitFromArchive(${jsArg(patient.id)}, ${jsArg(v.id)})" class="px-1.5 py-1 rounded-lg text-red-600 hover:bg-red-50 font-bold" title="حذف">${ic('trash-2')}</button>
             </div>
           </div>
 
@@ -3109,19 +3201,19 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
 
    // --- 13. VISIT FORM: four kinds of visit, new or edit ---
     const VISIT_KINDS = [
-      { key: 'anc', label: 'متابعة حمل', icon: '🤰',
+      { key: 'anc', label: 'متابعة حمل', icon: 'baby',
         on: 'bg-pink-600 text-white border-pink-600', badge: 'bg-pink-50 text-pink-800 border-pink-200',
         complaints: ['متابعة دورية', 'غثيان وإقياء', 'ألم بطن', 'نزف', 'تقلصات', 'نقص حركات الجنين', 'نزول ماء', 'صداع / ضغط'],
         diagnoses: ['حمل طبيعي', 'سكري حملي', 'ارتفاع ضغط حملي', 'مقدمات ارتجاج', 'فقر دم', 'تهديد بالإجهاض', 'تهديد بولادة مبكرة', 'تأخر نمو جنين', 'مشيمة منزاحة'] },
-      { key: 'gyn', label: 'شكوى نسائية', icon: '🩺',
+      { key: 'gyn', label: 'شكوى نسائية', icon: 'stethoscope',
         on: 'bg-violet-700 text-white border-violet-700', badge: 'bg-violet-100 text-violet-800 border-violet-300',
         complaints: ['نزف غير منتظم', 'ألم حوض', 'مفرزات مهبلية', 'اضطراب دورة', 'عسر طمث', 'حكة', 'كتلة / كيسة', 'فحص دوري'],
         diagnoses: ['التهاب مهبل', 'كيسة مبيض', 'ورم ليفي', 'تكيس مبايض', 'التهاب حوض', 'اضطراب هرموني', 'بطانة رحم مهاجرة', 'فحص طبيعي'] },
-      { key: 'infertility', label: 'عقم', icon: '🌱',
+      { key: 'infertility', label: 'عقم', icon: 'sprout',
         on: 'bg-sky-700 text-white border-sky-700', badge: 'bg-sky-100 text-sky-800 border-sky-300',
         complaints: ['تأخر حمل', 'متابعة تحريض', 'متابعة جريبات', 'نتائج تحاليل'],
         diagnoses: ['عقم أولي', 'عقم ثانوي', 'قصور إباضة', 'تكيس مبايض', 'عامل ذكري', 'انسداد أنابيب', 'غير مفسر'] },
-      { key: 'postpartum', label: 'مراجعة نفاس', icon: '🤱',
+      { key: 'postpartum', label: 'مراجعة نفاس', icon: 'heart-handshake',
         on: 'bg-emerald-700 text-white border-emerald-700', badge: 'bg-emerald-100 text-emerald-800 border-emerald-300',
         complaints: ['مراجعة بعد الولادة', 'ألم الجرح', 'نزف', 'حرارة', 'مشاكل إرضاع', 'منع حمل'],
         diagnoses: ['نفاس طبيعي', 'التهاب جرح', 'التهاب ثدي', 'نزف نفاسي', 'اكتئاب نفاس'] }
@@ -3173,7 +3265,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
         const on = k.key === current;
         b.className = 'py-2.5 px-2 rounded-xl border-2 font-black text-xs transition active:scale-95 flex items-center justify-center gap-1 ' +
           (on ? k.on + ' shadow-md' : 'bg-white text-slate-700 border-slate-200 hover:border-slate-400');
-        b.textContent = `${k.icon} ${k.label}`;
+        b.innerHTML = `${ic(k.icon)} ${k.label}`;
         b.onclick = () => setVisitKind(k.key);
         box.appendChild(b);
       });
@@ -3464,10 +3556,27 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
       document.getElementById('surgBabyWeight').value = sg ? (sg.babyWeight || '') : '';
       document.getElementById('surgBabyStatus').value = sg ? (sg.babyStatus || '') : '';
       document.getElementById('surgReport').value = sg ? (sg.report || '') : '';
+      document.getElementById('surgAnesthetist').value = sg ? (sg.anesthetist || '') : '';
+      document.getElementById('surgNotes').value = sg ? (sg.notes || '') : '';
+      paintHospitalPicks();
+      document.getElementById('surgHospital').oninput = paintHospitalPicks;
 
       handleSurgeryTypeChange(select.value);
       if (sg) document.getElementById('surgAutoGpaNoticeText').innerText = 'تعديل فقط: لن تتغير السوابق التوليدية (G/P/A).';
       document.getElementById('surgeryModal').classList.remove('hidden');
+    }
+
+    function pickHospital(name) {
+      document.getElementById('surgHospital').value = name;
+      paintHospitalPicks();
+    }
+    function paintHospitalPicks() {
+      const v = document.getElementById('surgHospital').value.trim();
+      document.querySelectorAll('.hosp-pick').forEach((b) => {
+        const on = v.includes(b.textContent.trim());
+        b.classList.toggle('bg-rose-800', on); b.classList.toggle('text-white', on); b.classList.toggle('border-rose-800', on);
+        b.classList.toggle('bg-white', !on); b.classList.toggle('text-slate-700', !on);
+      });
     }
 
     function closeSurgeryModal() {
@@ -3537,6 +3646,8 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
         anesthesia: anesthesia,
         surgeon: surgeon,
         report: report,
+        anesthetist: document.getElementById('surgAnesthetist').value.trim(),
+        notes: document.getElementById('surgNotes').value.trim(),
         babyGender: babyGender !== 'غير محدد' ? babyGender : null,
         babyWeight: babyWeight || null,
         babyStatus: babyStatus || null,
@@ -3700,6 +3811,9 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
         phone: phone,
         birthYear: birthYear,
         address: address,
+        motherName: document.getElementById('dnpMotherName').value.trim(),
+        phone2: convertArabicNumerals(document.getElementById('dnpPhone2').value.trim()),
+        husbandPhone: convertArabicNumerals(document.getElementById('dnpHusbandPhone').value.trim()),
         blood: blood,
         g: g, vd: vd, cs: cs, a: a,
         obsNotes: obsNotes,
@@ -3876,19 +3990,19 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
         <div class="flex justify-between items-center gap-2 flex-wrap">
           <h2 class="text-lg font-black text-slate-900">${escapeHTML(arabicDayTitle(today))}</h2>
           <div class="flex gap-1.5">
-            <button onclick="setActiveTab('daily')" class="h-9 px-3 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50">📅 يوم آخر</button>
-            <button onclick="openDoctorNewPatientModal()" class="h-9 px-3 rounded-xl bg-rose-800 hover:bg-rose-900 text-white text-xs font-black shadow-xs">➕ مريضة جديدة</button>
+            <button onclick="setActiveTab('daily')" class="h-9 px-3 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50 inline-flex items-center gap-1.5">${ic('calendar-days')} يوم آخر</button>
+            <button onclick="openDoctorNewPatientModal()" class="h-9 px-3 rounded-xl bg-rose-800 hover:bg-rose-900 text-white text-xs font-bold shadow-xs inline-flex items-center gap-1.5">${ic('user-plus')} مريضة جديدة</button>
           </div>
         </div>
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
           ${[
-            ['📅', 'مواعيد اليوم', appointments.length, 'text-rose-700', 'bg-white border-slate-200'],
-            ['✅', 'تمت رؤيتهن', seen.length, 'text-emerald-700', 'bg-white border-slate-200'],
-            ['💰', 'دخل اليوم', income.toLocaleString('en-US'), 'text-slate-900', 'bg-white border-slate-200'],
-            ['🤰', 'ولادات قريبة', dueSoon.length, 'text-pink-600', 'bg-white border-slate-200']
-          ].map(([icon, label, value, tc, bc]) => `
+            ['calendar-check', 'مواعيد اليوم', appointments.length, 'text-rose-700', 'bg-white border-slate-200', 'bg-rose-50 text-rose-700'],
+            ['circle-check', 'تمت رؤيتهن', seen.length, 'text-emerald-700', 'bg-white border-slate-200', 'bg-emerald-50 text-emerald-700'],
+            ['wallet', 'دخل اليوم', income.toLocaleString('en-US'), 'text-slate-900', 'bg-white border-slate-200', 'bg-slate-100 text-slate-700'],
+            ['baby', 'ولادات قريبة', dueSoon.length, 'text-pink-600', 'bg-white border-slate-200', 'bg-pink-50 text-pink-600']
+          ].map(([icon, label, value, tc, bc, ib]) => `
             <div class="rounded-2xl border p-3 shadow-2xs ${bc}">
-              <div class="text-[11px] font-bold text-slate-500">${icon} ${label}</div>
+              <div class="flex items-center gap-2 text-[11px] font-bold text-slate-500"><span class="icon-tile w-8 h-8 rounded-xl flex items-center justify-center ${ib}">${ic(icon)}</span>${label}</div>
               <div class="text-2xl font-black ${tc} font-mono mt-0.5">${value}</div>
             </div>`).join('')}
         </div>`;
@@ -3898,7 +4012,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
         if (!items.length && !empty) return;
         const box = document.createElement('section');
         box.className = 'space-y-2 pt-2';
-        box.innerHTML = `<h3 class="text-sm font-black text-slate-800 flex items-center gap-2">${title} <span class="bg-slate-200 text-slate-700 rounded-full px-2 text-[11px] font-mono">${items.length}</span></h3>`;
+        box.innerHTML = `<h3 class="text-sm font-black text-slate-800 flex items-center gap-2">${ic(title[0], 'text-slate-500')}${title[1]} <span class="bg-slate-200 text-slate-700 rounded-full px-2 text-[11px] font-mono">${items.length}</span></h3>`;
         if (!items.length) {
           const e = document.createElement('div');
           e.className = 'bg-white border border-dashed border-slate-300 rounded-2xl p-4 text-center text-xs text-slate-400 font-bold';
@@ -3907,16 +4021,16 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
         }
         const grid = document.createElement('div');
         grid.className = 'grid grid-cols-1 lg:grid-cols-2 gap-2';
-        items.forEach((it, i) => grid.appendChild(createPatientCardElement(it.p || it, i, { note: note ? note(it) : '' })));
+        items.forEach((it, i) => grid.appendChild(createPatientCardElement(it.p || it, i, { note: note ? note(it) : '', overdue: !!(it.p && it.days !== undefined && it.days < 0) })));
         box.appendChild(grid);
         list.appendChild(box);
       };
 
-      section('📅 مواعيد اليوم', appointments, () => '📅 موعدها اليوم', 'لا توجد مواعيد مسجلة لليوم.');
-      section('⏳ في الانتظار', waiting, () => '⏳ بانتظار الفحص', '');
-      section('✅ تمت رؤيتهن اليوم', seen, null, 'لم تُسجل أي زيارة اليوم بعد.');
-      section('🤰 ولادات خلال أسبوعين', dueSoon, (it) => it.days < 0 ? `⚠️ تجاوزت الموعد بـ ${-it.days} يوم` : (it.days === 0 ? '🤰 موعد الولادة اليوم' : `🤰 الولادة بعد ${it.days} يوم (${it.edd})`), '');
-      section('⚠️ مواعيد فائتة (آخر أسبوعين)', missed, (p) => `⚠️ كان موعدها ${latestNextVisit(p)}`, '');
+      section(['calendar-check', 'مواعيد اليوم'], appointments, () => 'موعدها اليوم', 'لا توجد مواعيد مسجلة لليوم.');
+      section(['hourglass', 'في الانتظار'], waiting, () => 'بانتظار الفحص', '');
+      section(['circle-check', 'تمت رؤيتهن اليوم'], seen, null, 'لم تُسجل أي زيارة اليوم بعد.');
+      section(['baby', 'ولادات خلال أسبوعين'], dueSoon, (it) => it.days < 0 ? `تجاوزت الموعد بـ ${-it.days} يوم` : (it.days === 0 ? 'موعد الولادة اليوم' : `الولادة بعد ${it.days} يوم`), '');
+      section(['calendar-x', 'مواعيد فائتة (آخر أسبوعين)'], missed, (p) => `كان موعدها ${latestNextVisit(p)}`, '');
     }
 
     function renderApp() {
@@ -3974,7 +4088,10 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
                  normalizeArabic(p.husband).includes(q) || 
                  safeIncludes(p.nationalId, q) || 
                  normalizeArabic(p.address).includes(q) || 
-                 safeIncludes(p.phone, q);
+                 safeIncludes(p.phone, q) ||
+                 safeIncludes(p.phone2, q) ||
+                 safeIncludes(p.husbandPhone, q) ||
+                 normalizeArabic(p.motherName).includes(q);
         });
 
         searchAlertText.innerText = `🔍 نتائج البحث الشامل في كامل أرشيف العيادة عن "${rawSearch}" (وجدت ${displayList.length} مريضة):`;
@@ -4148,6 +4265,12 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
     }
 
     // --- 19. UNIFIED MODERN PATIENT CARD (TOUCH-FRIENDLY & NO OVERLAPS) ---
+    function cardTab(btn, name) {
+      const card = btn.closest('[data-card]');
+      card.querySelectorAll('[data-tab-btn]').forEach((b) => b.classList.toggle('is-on', b.dataset.tabBtn === name));
+      card.querySelectorAll('[data-panel]').forEach((x) => x.classList.toggle('hidden', x.dataset.panel !== name));
+    }
+
     function createPatientCardElement(p, index, opts = {}) {
       normalizePatientObject(p);
       const card = document.createElement('div');
@@ -4158,58 +4281,93 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
       const latest = visitsList[0] || null;
       const q = document.getElementById('searchInput').value.trim();
       const showQueueNumber = (activeTab === 'daily' || currentRole === 'secretary') && !q && !opts.note;
-      const queueNum = p.dynamicQueueNumber || (index + 1);
       const preg = isDoctor ? activePregnancy(p) : null;
       const ga = preg && preg.lmp ? gestationalAgeAt(preg.lmp, getTodayDateString()) : '';
       const highBP = latest ? checkHighBloodPressure(latest.bp) : false;
       const abnormalLabs = isDoctor && latest ? labChipsHTML(latest.labs, { abnormalOnly: true }) : '';
       const k = latest ? visitKind(latest.kind) : null;
-      const lastLine = latest ? [latest.diagnosis, latest.complaint && latest.complaint !== 'فحص ومتابعة' ? latest.complaint : ''].filter(Boolean)[0] : '';
-      const initial = (p.name || '؟').trim().charAt(0);
+      const nextVisit = latestNextVisit(p);
 
-      card.className = `bg-white rounded-2xl p-3 shadow-2xs border ${p.isHighRisk ? 'border-red-300' : (isWaiting ? 'border-amber-300' : 'border-slate-200')} space-y-2`;
+      // Expressive number: queue position, pregnancy week, or number of visits.
+      let big, small, tone;
+      if (showQueueNumber) { big = p.dynamicQueueNumber || (index + 1); small = 'الدور'; tone = isWaiting ? 'bg-amber-500 text-white' : 'bg-slate-100 text-slate-700'; }
+      else if (ga) { big = parseInt(ga, 10); small = 'أسبوع'; tone = 'bg-pink-50 text-pink-700 border border-pink-200'; }
+      else { big = visitsList.length; small = visitsList.length === 1 ? 'زيارة' : 'زيارات'; tone = 'bg-rose-50 text-rose-800 border border-rose-100'; }
+
+      card.dataset.card = '1';
+      card.className = `bg-white rounded-2xl p-3 shadow-2xs border ${p.isHighRisk ? 'border-red-300' : (isWaiting ? 'border-amber-300' : 'border-slate-200')} space-y-2.5`;
+
+      const tel = p.phone ? convertArabicNumerals(p.phone).replace(/[^\d+]/g, '') : '';
+      const contactRows = [
+        p.phone ? `<a href="tel:${escapeHTML(tel)}" class="flex items-center gap-2 font-bold text-slate-800">${ic('phone', 'text-emerald-600')} <span dir="ltr" class="font-mono">${escapeHTML(p.phone)}</span></a>` : '',
+        p.phone2 ? `<a href="tel:${escapeHTML(convertArabicNumerals(p.phone2).replace(/[^\d+]/g, ''))}" class="flex items-center gap-2 text-slate-700">${ic('phone-forwarded', 'text-slate-400')} <span dir="ltr" class="font-mono">${escapeHTML(p.phone2)}</span></a>` : '',
+        p.husband ? `<div class="flex items-center gap-2 text-slate-700">${ic('user', 'text-slate-400')} زوجها: <strong>${escapeHTML(p.husband)}</strong>${p.husbandPhone ? ` <span dir="ltr" class="font-mono text-slate-500">${escapeHTML(p.husbandPhone)}</span>` : ''}</div>` : '',
+        p.motherName ? `<div class="flex items-center gap-2 text-slate-700">${ic('heart', 'text-slate-400')} الأم: <strong>${escapeHTML(p.motherName)}</strong></div>` : '',
+        p.address ? `<div class="flex items-center gap-2 text-slate-700">${ic('map-pin', 'text-slate-400')} ${escapeHTML(p.address)}</div>` : ''
+      ].filter(Boolean).join('');
+
+      const summaryRows = [
+        latest && k ? `<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded border ${k.badge} font-bold">${ic(k.icon)} ${k.label}</span>` : '',
+        latest && latest.diagnosis ? `<span class="font-bold text-slate-900">${escapeHTML(latest.diagnosis)}</span>` : '',
+        ga ? `<span class="text-pink-700 font-bold">الولادة ${escapeHTML(addDaysIso(preg.lmp, 280))}</span>` : '',
+        nextVisit && nextVisit >= getTodayDateString() ? `<span class="inline-flex items-center gap-1 text-purple-700 font-bold">${ic('calendar-clock')} ${escapeHTML(nextVisit)}</span>` : ''
+      ].filter(Boolean);
+
       card.innerHTML = `
         <div class="flex items-start gap-2.5">
-          <button type="button" onclick="${isDoctor ? `openDoctorModal(${jsArg(p.id)})` : ''}" class="w-11 h-11 rounded-2xl shrink-0 flex items-center justify-center font-black text-base ${showQueueNumber ? (isWaiting ? 'bg-amber-500 text-white' : 'bg-slate-100 text-slate-600') : 'bg-rose-50 text-rose-800 border border-rose-100'}">
-            ${showQueueNumber ? queueNum : escapeHTML(initial)}
+          <button type="button" ${isDoctor ? `onclick="openDoctorModal(${jsArg(p.id)})"` : ''} class="w-12 h-12 rounded-2xl shrink-0 flex flex-col items-center justify-center leading-none ${tone}">
+            <span class="text-lg font-black font-mono">${escapeHTML(String(big))}</span>
+            <span class="text-[9px] font-bold mt-0.5 opacity-80">${small}</span>
           </button>
           <div class="min-w-0 flex-1">
-            <div class="flex items-center gap-1.5 flex-wrap">
-              <h3 class="text-sm font-black text-slate-900 truncate ${isDoctor ? 'cursor-pointer hover:text-rose-800' : ''}" ${isDoctor ? `onclick="openDoctorModal(${jsArg(p.id)})"` : ''}>${escapeHTML(p.name)}</h3>
-              ${p.isHighRisk ? `<span class="bg-red-600 text-white text-[10px] px-1.5 py-0.5 rounded-md font-black">🚨 خطورة عالية</span>` : ''}
-              ${ga ? `<span class="bg-pink-100 text-pink-800 text-[10px] px-1.5 py-0.5 rounded-md font-black">🤰 <span dir="ltr">${escapeHTML(ga)}</span></span>` : ''}
-              ${p.allergies && p.allergies.trim() ? `<span class="bg-red-50 text-red-700 border border-red-200 text-[10px] px-1.5 py-0.5 rounded-md font-bold">⚠️ تحسس</span>` : ''}
-            </div>
-            <div class="text-[11px] text-slate-500 flex flex-wrap gap-x-2 mt-0.5">
-              ${p.husband ? `<span>زوجها: ${escapeHTML(p.husband)}</span>` : ''}
-              ${age ? `<span>${escapeHTML(String(age))} سنة</span>` : ''}
-              ${p.phone ? `<span class="font-mono" dir="ltr">${escapeHTML(p.phone)}</span>` : ''}
-              ${isDoctor && visitsList.length ? `<span>${visitsList.length} زيارة</span>` : ''}
+            <h3 class="text-[15px] font-black text-slate-900 leading-snug ${isDoctor ? 'cursor-pointer hover:text-rose-800' : ''}" ${isDoctor ? `onclick="openDoctorModal(${jsArg(p.id)})"` : ''}>${escapeHTML(p.name)}</h3>
+            <div class="flex items-center gap-1 flex-wrap mt-1">
+              ${p.isHighRisk ? `<span class="inline-flex items-center gap-1 bg-red-600 text-white text-[10px] px-1.5 py-0.5 rounded-md font-bold">${ic('siren')} خطورة عالية</span>` : ''}
+              ${p.allergies && p.allergies.trim() ? `<span class="inline-flex items-center gap-1 bg-red-50 text-red-700 border border-red-200 text-[10px] px-1.5 py-0.5 rounded-md font-bold">${ic('triangle-alert')} تحسس</span>` : ''}
+              ${age ? `<span class="text-[11px] text-slate-500">${escapeHTML(String(age))} سنة</span>` : ''}
+              ${opts.note ? `<span class="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-700">${escapeHTML(opts.note)}</span>`
+                : (isWaiting ? `<span class="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-800">${ic('hourglass')} بالانتظار</span>` : '')}
             </div>
           </div>
-          ${opts.note ? `<span class="text-[10px] font-black px-2 py-1 rounded-lg bg-slate-100 text-slate-700 shrink-0 max-w-[45%] text-center">${escapeHTML(opts.note)}</span>`
-            : (isWaiting ? `<span class="text-[10px] font-black px-2 py-1 rounded-lg bg-amber-100 text-amber-800 shrink-0">⏳ بالانتظار</span>` : '')}
         </div>
 
         ${isWaiting && p.complaint ? `<div class="bg-amber-50 border border-amber-200 rounded-xl px-2.5 py-1.5 text-xs text-amber-950"><strong>شكوى اليوم:</strong> ${escapeHTML(p.complaint)}</div>` : ''}
 
-        ${isDoctor && latest ? `
-          <div class="bg-slate-50 rounded-xl px-2.5 py-1.5 text-[11px] text-slate-600 flex flex-wrap items-center gap-x-2 gap-y-1">
-            <span class="font-bold text-slate-700">آخر زيارة ${escapeHTML(latest.date)}</span>
-            ${k ? `<span class="px-1.5 rounded border ${k.badge} font-bold">${k.icon} ${k.label}</span>` : ''}
-            ${lastLine ? `<span class="text-slate-800 font-bold truncate max-w-full">${escapeHTML(lastLine)}</span>` : ''}
-            ${latest.bp ? `<span class="font-mono ${highBP ? 'text-red-600 font-black' : ''}" dir="ltr">BP ${escapeHTML(latest.bp)}</span>` : ''}
-          </div>
-          ${abnormalLabs ? `<div class="flex flex-wrap gap-1.5 items-center"><span class="text-[11px] font-bold text-red-800">🧪 خارج المجال:</span>${abnormalLabs}</div>` : ''}
-        ` : ''}
-
         ${isDoctor ? `
-          <div class="grid grid-cols-4 gap-1.5">
-            <button onclick="openNewVisitModal(${jsArg(p.id)})" class="col-span-2 h-10 bg-rose-800 hover:bg-rose-900 text-white rounded-xl font-black text-xs flex items-center justify-center gap-1 active:scale-95 transition">➕ زيارة</button>
-            <button onclick="openDoctorModal(${jsArg(p.id)})" class="h-10 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-bold text-xs border border-slate-200">📂 الملف</button>
-            ${p.phone ? `<button onclick="openWhatsAppModal(${jsArg(p.id)})" class="h-10 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl font-bold text-xs border border-emerald-200">💬 واتساب</button>`
-              : `<button onclick="openSurgeryModal(${jsArg(p.id)})" class="h-10 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-bold text-xs border border-slate-200">✂️ عملية</button>`}
+          <div class="flex gap-1 p-1 bg-slate-100 rounded-xl">
+            <button type="button" data-tab-btn="sum" onclick="cardTab(this,'sum')" class="ctab is-on">${ic('layout-list')} ملخص</button>
+            <button type="button" data-tab-btn="last" onclick="cardTab(this,'last')" class="ctab">${ic('clipboard-list')} آخر زيارة</button>
+            <button type="button" data-tab-btn="contact" onclick="cardTab(this,'contact')" class="ctab">${ic('phone')} تواصل</button>
           </div>
+
+          <div data-panel="sum" class="text-xs min-h-[40px] space-y-1.5">
+            ${summaryRows.length ? `<div class="flex flex-wrap items-center gap-x-2 gap-y-1">${summaryRows.join('')}</div>` : `<div class="text-slate-400">لا توجد زيارات بعد.</div>`}
+            ${abnormalLabs ? `<div class="flex flex-wrap gap-1.5 items-center"><span class="text-[11px] font-bold text-red-700">خارج المجال:</span>${abnormalLabs}</div>` : ''}
+          </div>
+
+          <div data-panel="last" class="hidden text-xs min-h-[40px] space-y-1">
+            ${latest ? `
+              <div class="flex flex-wrap gap-x-3 gap-y-1 text-slate-600">
+                <span class="font-bold text-slate-800">${escapeHTML(latest.date)}</span>
+                ${latest.complaint && latest.complaint !== 'فحص ومتابعة' ? `<span>${escapeHTML(latest.complaint)}</span>` : ''}
+                ${latest.bp ? `<span dir="ltr" class="font-mono ${highBP ? 'text-red-600 font-bold' : ''}">BP ${escapeHTML(latest.bp)}</span>` : ''}
+                ${latest.weight ? `<span>${escapeHTML(latest.weight)} كغ</span>` : ''}
+                ${latest.fee ? `<span class="text-emerald-700 font-bold font-mono">${Number(latest.fee).toLocaleString()} ل.س</span>` : ''}
+              </div>
+              ${latest.rx ? `<div class="bg-amber-50 border border-amber-200 rounded-lg px-2 py-1 text-slate-800 line-clamp-2 whitespace-pre-line">${escapeHTML(latest.rx)}</div>` : ''}
+            ` : `<div class="text-slate-400">لا توجد زيارات بعد.</div>`}
+          </div>
+
+          <div data-panel="contact" class="hidden text-xs min-h-[40px] space-y-1.5">
+            ${contactRows || `<div class="text-slate-400">لا توجد بيانات تواصل.</div>`}
+            ${p.phone ? `<button type="button" onclick="openWhatsAppModal(${jsArg(p.id)})" class="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold">${ic('message-circle')} واتساب</button>` : ''}
+          </div>
+
+          <div class="grid grid-cols-2 gap-1.5">
+            <button onclick="openNewVisitModal(${jsArg(p.id)})" class="h-10 bg-rose-800 hover:bg-rose-900 text-white rounded-xl font-bold text-xs inline-flex items-center justify-center gap-1.5 active:scale-95 transition">${ic('plus')} زيارة جديدة</button>
+            <button onclick="openDoctorModal(${jsArg(p.id)})" class="h-10 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-bold text-xs border border-slate-200 inline-flex items-center justify-center gap-1.5">${ic('folder-open')} الملف</button>
+          </div>
+          ${opts.overdue ? `<button onclick="quickDeliveredElsewhere(${jsArg(p.id)})" class="w-full h-9 rounded-xl border border-dashed border-pink-300 text-pink-700 font-bold text-xs inline-flex items-center justify-center gap-1.5 hover:bg-pink-50">${ic('hospital')} ولدت في مكان آخر؟</button>` : ''}
         ` : ''}
       `;
       return card;
@@ -5777,55 +5935,36 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
       // Render Surgery Record Cards
       filtered.forEach((s) => {
         const card = document.createElement('div');
-        card.className = 'bg-white rounded-2xl p-3.5 shadow-xs border border-slate-200 space-y-2.5';
+        card.className = 'bg-white rounded-2xl p-3 shadow-2xs border border-slate-200 space-y-2.5';
+        const meta = [
+          s.hospital ? [ 'hospital', s.hospital ] : null,
+          s.anesthesia ? [ 'syringe', s.anesthesia.replace(/\s*\(.*\)/, '') ] : null,
+          s.anesthetist ? [ 'user-round', 'التخدير: ' + s.anesthetist ] : null,
+          s.surgeon ? [ 'stethoscope', s.surgeon ] : null
+        ].filter(Boolean);
         card.innerHTML = `
-          <div class="flex justify-between items-start gap-2 border-b border-slate-100 pb-2">
-            <div class="flex items-center gap-2.5 min-w-0">
-              <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-900 border border-amber-200 flex items-center justify-center text-lg font-bold shrink-0">
-                ✂️
+          <div class="flex items-start gap-2.5">
+            <div class="icon-tile w-11 h-11 rounded-2xl bg-amber-50 text-amber-700 border border-amber-200 flex items-center justify-center shrink-0">${ic('scissors')}</div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-start justify-between gap-2">
+                <h4 class="text-[15px] font-black text-slate-900 leading-snug">${escapeHTML(s.patient.name)}</h4>
+                <span class="text-[11px] font-bold text-slate-500 font-mono shrink-0 mt-0.5">${escapeHTML(s.date)}</span>
               </div>
-              <div class="min-w-0">
-                <div class="flex items-center gap-2 flex-wrap">
-                  <h4 class="text-sm font-black text-slate-900">${escapeHTML(s.patient.name)}</h4>
-                  ${s.patient.husband ? `<span class="text-slate-500 text-xs font-normal">(زوجها: ${escapeHTML(s.patient.husband)})</span>` : ''}
-                  <span class="bg-rose-100 text-rose-900 text-[10px] font-bold px-2 py-0.5 rounded-md border border-rose-200">${escapeHTML(s.type)}</span>
-                </div>
-                <div class="text-[11px] text-slate-500 flex items-center gap-2 flex-wrap mt-0.5 font-mono">
-                  <span>📅 التاريخ: <strong>${escapeHTML(s.date)}</strong></span>
-                  ${s.hospital ? `<span>| 🏥 ${escapeHTML(s.hospital)}</span>` : ''}
-                  ${s.anesthesia ? `<span>| 💉 تخدير: ${escapeHTML(s.anesthesia)}</span>` : ''}
-                  ${s.surgeon ? `<span>| 👩‍⚕️ ${escapeHTML(s.surgeon)}</span>` : ''}
-                </div>
-              </div>
-            </div>
-
-            <div class="flex items-center gap-1 shrink-0">
-              <button onclick="openDoctorModal(${jsArg(s.patient.id)})" class="btn-touch h-8 px-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg text-xs font-bold border border-slate-300">
-                📂 الملف
-              </button>
-              <button onclick="openSurgeryModal(${jsArg(s.patient.id)}, ${jsArg(s.id)})" class="btn-touch h-8 px-2.5 bg-amber-50 hover:bg-amber-100 text-amber-900 rounded-lg text-xs font-bold border border-amber-200">
-                ✏️ تعديل
-              </button>
-              <button onclick="deleteSurgeryRecord(${jsArg(s.patient.id)}, ${jsArg(s.id)})" class="btn-touch h-8 px-2 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg text-xs font-bold border border-red-200">
-                🗑️
-              </button>
+              <div class="mt-1"><span class="inline-block bg-amber-50 text-amber-900 border border-amber-200 text-[11px] font-bold px-2 py-0.5 rounded-md">${escapeHTML(s.type)}</span></div>
             </div>
           </div>
-
-          ${s.babyGender ? `
-            <div class="bg-rose-50/70 border border-rose-200 p-2.5 rounded-xl text-xs text-rose-950 flex justify-between items-center flex-wrap gap-2">
-              <span class="font-bold">👶 بيانات المولود: <strong>${escapeHTML(s.babyGender)}</strong></span>
-              ${s.babyWeight ? `<span>الوزن: <strong>${escapeHTML(s.babyWeight)} كغ</strong></span>` : ''}
-              ${s.babyStatus ? `<span>الحالة: <strong>${escapeHTML(s.babyStatus)}</strong></span>` : ''}
-            </div>
-          ` : ''}
-
-          ${s.report ? `
-            <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-xs text-slate-700 leading-relaxed">
-              <strong class="text-slate-900 block mb-0.5">📝 التقرير الجراحي والموجودات:</strong>
-              ${escapeHTML(s.report)}
-            </div>
-          ` : '<p class="text-[11px] text-slate-400 italic">لا توجد ملاحظات تفصيلية مدونة لهذا الإجراء.</p>'}
+          ${meta.length ? `<div class="flex flex-wrap gap-1.5">${meta.map(([i, t]) => `<span class="inline-flex items-center gap-1 text-[11px] text-slate-700 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1">${ic(i, 'text-slate-400')} ${escapeHTML(t)}</span>`).join('')}</div>` : ''}
+          ${s.babyGender ? `<div class="flex flex-wrap items-center gap-x-3 gap-y-1 bg-pink-50 border border-pink-200 rounded-xl px-2.5 py-1.5 text-xs text-pink-900">${ic('baby')} <strong>${escapeHTML(s.babyGender)}</strong>${s.babyWeight ? `<span>${escapeHTML(s.babyWeight)} كغ</span>` : ''}${s.babyStatus ? `<span>${escapeHTML(s.babyStatus)}</span>` : ''}</div>` : ''}
+          ${s.report || s.notes ? `
+            <details class="bg-slate-50 border border-slate-200 rounded-xl text-xs">
+              <summary class="cursor-pointer select-none px-2.5 py-2 font-bold text-slate-700 inline-flex items-center gap-1.5">${ic('file-text')} التقرير والملاحظات</summary>
+              <div class="px-2.5 pb-2 space-y-1.5 text-slate-700 leading-relaxed whitespace-pre-line">${s.report ? escapeHTML(s.report) : ''}${s.notes ? `<div class="text-slate-600"><strong>ملاحظات:</strong> ${escapeHTML(s.notes)}</div>` : ''}</div>
+            </details>` : ''}
+          <div class="grid grid-cols-3 gap-1.5">
+            <button onclick="openDoctorModal(${jsArg(s.patient.id)})" class="h-9 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold border border-slate-200 inline-flex items-center justify-center gap-1">${ic('folder-open')} الملف</button>
+            <button onclick="openSurgeryModal(${jsArg(s.patient.id)}, ${jsArg(s.id)})" class="h-9 bg-amber-50 hover:bg-amber-100 text-amber-900 rounded-xl text-xs font-bold border border-amber-200 inline-flex items-center justify-center gap-1">${ic('pencil')} تعديل</button>
+            <button onclick="deleteSurgeryRecord(${jsArg(s.patient.id)}, ${jsArg(s.id)})" class="h-9 bg-red-50 hover:bg-red-100 text-red-700 rounded-xl text-xs font-bold border border-red-200 inline-flex items-center justify-center gap-1">${ic('trash-2')} حذف</button>
+          </div>
         `;
         container.appendChild(card);
       });

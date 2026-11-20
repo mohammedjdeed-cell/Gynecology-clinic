@@ -1,6 +1,6 @@
 // sw.js - Offline Cache Engine
 // Bump CACHE_NAME on every release so phones drop the old copy of the app.
-const CACHE_NAME = 'obgyn-secure-v15';
+const CACHE_NAME = 'obgyn-secure-v16';
 
 const APP_SHELL = [
   './',
@@ -16,7 +16,8 @@ const CACHEABLE_HOSTS = [
   'cdn.tailwindcss.com',
   'fonts.googleapis.com',
   'fonts.gstatic.com',
-  'www.gstatic.com'
+  'www.gstatic.com',
+  'unpkg.com'
 ];
 
 self.addEventListener('install', (e) => {
