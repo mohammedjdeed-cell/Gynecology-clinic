@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#881337">
+  <meta name="theme-color" content="#134d49">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>عيادة النسائية والتوليد وجراحتها - د. هيام خضر</title>
@@ -14,9 +14,32 @@
   
   <!-- Tailwind CSS & Google Fonts -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // Clinic design system. The app's classes say "rose" for the brand color; it is
+    // redefined here as a calm medical teal, so every screen changes together.
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            rose: {
+              50: '#eefaf8', 100: '#d4f1ec', 200: '#a9e2da', 300: '#74cbc0', 400: '#41ada2',
+              500: '#249187', 600: '#18766e', 700: '#155f59', 800: '#134d49', 900: '#12403d', 950: '#062624'
+            },
+            slate: {
+              50: '#f6f8f8', 100: '#eef1f2', 200: '#dde3e5', 300: '#c3ccd0', 400: '#93a1a7',
+              500: '#66767d', 600: '#4b5a61', 700: '#38454b', 800: '#243034', 900: '#151e21', 950: '#0b1214'
+            }
+          },
+          fontFamily: {
+            sans: ['"IBM Plex Sans Arabic"', 'Cairo', 'system-ui', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Cairo:wght@600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   
   <!-- Firebase Compat Scripts v10.8.0 -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -25,14 +48,16 @@
 
 <style>
     :root {
-      --primary: #881337;
-      --primary-hover: #4c0519;
+      --primary: #134d49;
+      --primary-hover: #12403d;
       --surface: #ffffff;
-      --bg-app: #f8fafc;
+      --bg-app: #f3f6f6;
     }
     body {
-      font-family: 'Cairo', sans-serif;
+      font-family: 'IBM Plex Sans Arabic', 'Cairo', system-ui, sans-serif;
       background-color: var(--bg-app);
+      font-feature-settings: "tnum" 1;
+      letter-spacing: 0;
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
     }
@@ -54,12 +79,17 @@
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     .bn-btn { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 0 6px; font-size: 11px; font-weight: 800; color: #64748b; }
-    .bn-btn.is-active { color: #9f1239; }
+    .bn-btn.is-active { color: #155f59; }
     .bn-btn.is-active span:first-child { transform: translateY(-1px); }
     .tab-btn { height: 40px; padding: 0 14px; border-radius: 12px; font-size: 12px; font-weight: 800; white-space: nowrap; flex-shrink: 0;
                background: #fff; color: #334155; border: 1px solid #e2e8f0; display: inline-flex; align-items: center; gap: 6px; }
-    .tab-btn:hover { background: #fff1f2; }
-    .tab-btn.is-active { background: #881337; color: #fff; border-color: #881337; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+    .tab-btn:hover { background: #eefaf8; }
+    .tab-btn.is-active { background: #134d49; color: #fff; border-color: #134d49; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+    /* Softer, consistent depth for cards and dialogs */
+    .shadow-2xs { box-shadow: 0 1px 2px rgba(16, 40, 38, .05); }
+    .shadow-xs  { box-shadow: 0 1px 3px rgba(16, 40, 38, .07); }
+    .shadow-2xl { box-shadow: 0 24px 48px -12px rgba(16, 40, 38, .25); }
+    :focus-visible { outline: 2px solid #249187; outline-offset: 2px; }
     ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-track { background: #f1f5f9; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; }
@@ -68,7 +98,7 @@
 <body class="text-slate-800 antialiased selection:bg-rose-200 selection:text-rose-900 min-h-screen flex flex-col justify-between">
 
   <!-- ==================== 1. SECURITY LOCK SCREEN ==================== -->
-  <div id="lockScreen" class="fixed inset-0 bg-rose-950/95 backdrop-blur-md flex items-center justify-center p-4 z-50">
+  <div id="lockScreen" class="fixed inset-0 bg-gradient-to-br from-rose-900 via-rose-950 to-slate-950 backdrop-blur-md flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl space-y-5 border border-rose-100">
       <div class="w-16 h-16 bg-rose-50 text-rose-700 rounded-2xl flex items-center justify-center mx-auto text-3xl shadow-inner border border-rose-100">
         🩺
@@ -84,7 +114,7 @@
                class="w-full text-center text-sm py-3 border-2 border-rose-200 rounded-2xl focus:outline-none focus:border-rose-700 font-bold bg-rose-50/30 text-rose-950 shadow-inner">
         <input type="password" id="loginPassword" required autocomplete="current-password" dir="ltr" placeholder="كلمة المرور"
                class="w-full text-center text-sm py-3 border-2 border-rose-200 rounded-2xl focus:outline-none focus:border-rose-700 font-bold bg-rose-50/30 text-rose-950 shadow-inner">
-        <p id="loginError" class="text-xs text-rose-600 font-bold hidden"></p>
+        <p id="loginError" class="text-xs text-red-600 font-bold hidden"></p>
         <button type="submit" id="loginBtn" class="w-full bg-rose-700 hover:bg-rose-800 text-white font-black py-3.5 rounded-2xl shadow-lg shadow-rose-900/20 active:scale-98 transition duration-150">
           دخول إلى العيادة
         </button>
@@ -196,7 +226,7 @@
     </div>
   </header>
   <!-- Notification Toast -->
-  <div id="realtimeToast" class="fixed bottom-24 md:bottom-4 left-4 bg-slate-900/95 backdrop-blur text-white px-4 py-3 rounded-2xl text-xs font-bold shadow-2xl flex items-center gap-2.5 transform translate-y-28 transition-transform duration-300 z-50 pointer-events-none border border-slate-700">
+  <div id="realtimeToast" class="fixed bottom-24 md:bottom-4 left-4 bg-slate-900/95 backdrop-blur text-white px-4 py-3 rounded-2xl text-xs font-bold shadow-2xl flex items-center gap-2.5 transform translate-y-48 transition-transform duration-300 z-50 pointer-events-none border border-slate-700">
     <span class="text-rose-400 text-base">⚡</span>
     <span id="realtimeToastMsg">تم التحديث</span>
   </div>
@@ -210,7 +240,7 @@
     <div id="tabsContainer" class="hidden md:flex gap-1.5 pb-1 overflow-x-auto no-scrollbar">
       <button onclick="setActiveTab('today')" id="tabToday" data-tab="today">🏠 اليوم</button>
       <button onclick="setActiveTab('all')" id="tabAll" data-tab="all">📋 المريضات</button>
-      <button onclick="setActiveTab('dueMonth')" id="tabDueMonth" data-tab="dueMonth"><span>🤰 الولادات</span> <span id="dueThisMonthCount" class="bg-rose-600 text-white px-1.5 rounded-full text-[10px] font-mono hidden">0</span></button>
+      <button onclick="setActiveTab('dueMonth')" id="tabDueMonth" data-tab="dueMonth"><span>🤰 الولادات</span> <span id="dueThisMonthCount" class="bg-pink-600 text-white px-1.5 rounded-full text-[10px] font-mono hidden">0</span></button>
       <button onclick="setActiveTab('surgeries')" id="tabSurgeries" data-tab="surgeries"><span>✂️ العمليات</span> <span id="allSurgeriesCountBadge" class="bg-slate-700 text-white px-1.5 rounded-full text-[10px] font-mono">0</span></button>
       <button onclick="setActiveTab('weekly')" id="tabWeekly" data-tab="weekly">📊 المالية</button>
       <button onclick="setActiveTab('daily')" id="tabDaily" data-tab="daily">📅 سجل يوم</button>
@@ -417,7 +447,7 @@
           </div>
         </div>
         <div class="flex items-center gap-1">
-          <button type="button" id="btnArchiveDeletePatient" title="حذف ملف المريضة" class="text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg px-2 py-1 text-sm">🗑️</button>
+          <button type="button" id="btnArchiveDeletePatient" title="حذف ملف المريضة" class="text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg px-2 py-1 text-sm">🗑️</button>
           <button type="button" onclick="closeDoctorModal()" class="text-gray-400 hover:text-rose-600 text-2xl font-bold p-1">&times;</button>
         </div>
       </div>
@@ -427,7 +457,7 @@
 
       <!-- Main actions -->
       <div class="grid grid-cols-2 gap-2">
-        <button type="button" id="btnArchiveQuickNewVisit" class="bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-2xl font-black text-sm shadow-md transition flex items-center justify-center gap-2 active:scale-95">
+        <button type="button" id="btnArchiveQuickNewVisit" class="bg-rose-800 hover:bg-rose-900 text-white py-3 rounded-2xl font-black text-sm shadow-md transition flex items-center justify-center gap-2 active:scale-95">
           <span>➕</span> <span>زيارة جديدة</span>
         </button>
         <button type="button" id="btnArchiveNewSurgery" class="bg-amber-500 hover:bg-amber-600 text-white py-3 rounded-2xl font-black text-sm shadow-md transition flex items-center justify-center gap-2 active:scale-95">
@@ -607,13 +637,13 @@
         </div>
 
         <!-- Pregnancy follow-up: LMP, gestational age, fetus -->
-        <div id="nvAncBlock" class="bg-rose-50/70 p-2.5 rounded-2xl border border-rose-200 space-y-2">
+        <div id="nvAncBlock" class="bg-pink-50/70 p-2.5 rounded-2xl border border-pink-200 space-y-2">
           <div class="flex justify-between items-center flex-wrap gap-2">
-            <label class="block font-bold text-rose-950 text-xs">🤰 أول يوم من آخر دورة شهرية (LMP):</label>
+            <label class="block font-bold text-pink-950 text-xs">🤰 أول يوم من آخر دورة شهرية (LMP):</label>
             <div class="flex items-center gap-1.5 flex-1 max-w-xs">
               <input type="date" id="nvLMP" oninput="updateNvPregnancyPreview()" onchange="updateNvPregnancyPreview()"
-                     class="w-full p-2 border border-rose-200 rounded-xl font-bold bg-white text-xs text-rose-950 focus:outline-none focus:ring-2 focus:ring-rose-500">
-              <button type="button" onclick="clearNvLMP()" title="مسح تاريخ الدورة" class="btn-touch h-8 px-2.5 bg-white hover:bg-rose-100 text-slate-500 hover:text-rose-700 rounded-lg text-xs border border-rose-200">
+                     class="w-full p-2 border border-pink-200 rounded-xl font-bold bg-white text-xs text-pink-950 focus:outline-none focus:ring-2 focus:ring-pink-500">
+              <button type="button" onclick="clearNvLMP()" title="مسح تاريخ الدورة" class="btn-touch h-8 px-2.5 bg-white hover:bg-pink-100 text-slate-500 hover:text-pink-700 rounded-lg text-xs border border-pink-200">
                 ✖
               </button>
             </div>
@@ -622,12 +652,12 @@
           <div id="nvPregnancyPreview" class="hidden"></div>
           <div class="grid grid-cols-2 gap-2">
             <div>
-              <label class="block font-semibold mb-1 text-rose-950">نبض الجنين</label>
-              <input type="text" id="nvFetalHeart" autocomplete="off" placeholder="موجود / 140" class="w-full p-2 border border-rose-200 rounded-xl text-xs bg-white">
+              <label class="block font-semibold mb-1 text-pink-950">نبض الجنين</label>
+              <input type="text" id="nvFetalHeart" autocomplete="off" placeholder="موجود / 140" class="w-full p-2 border border-pink-200 rounded-xl text-xs bg-white">
             </div>
             <div>
-              <label class="block font-semibold mb-1 text-rose-950">المجيء</label>
-              <select id="nvPresentation" class="w-full p-2 border border-rose-200 rounded-xl text-xs bg-white font-bold">
+              <label class="block font-semibold mb-1 text-pink-950">المجيء</label>
+              <select id="nvPresentation" class="w-full p-2 border border-pink-200 rounded-xl text-xs bg-white font-bold">
                 <option value="">—</option><option>رأسي</option><option>مقعدي</option><option>مستعرض</option>
               </select>
             </div>
@@ -761,7 +791,7 @@
         <!-- Submit Button -->
         <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
           <button type="button" onclick="closeNewVisitModal()" class="px-4 py-2.5 bg-slate-100 text-slate-700 rounded-xl font-bold text-xs">إلغاء</button>
-          <button type="submit" id="btnSaveNewVisit" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-lg transition flex items-center gap-1.5 active:scale-95">
+          <button type="submit" id="btnSaveNewVisit" class="px-6 py-2.5 bg-rose-800 hover:bg-rose-900 text-white rounded-xl font-bold text-xs shadow-lg transition flex items-center gap-1.5 active:scale-95">
             <span>💾</span> <span id="btnSaveNewVisitText">حفظ الزيارة</span>
           </button>
         </div>
@@ -1076,10 +1106,10 @@
 
   <!-- ==================== PREGNANCY: START / FIX LMP / END ==================== -->
   <div id="pregnancyModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-xs flex items-center justify-center p-3 z-50">
-    <div class="bg-white rounded-3xl max-w-md w-full p-5 shadow-2xl space-y-3 text-xs border-2 border-rose-300">
-      <div class="flex justify-between items-center border-b border-rose-100 pb-2">
-        <h2 id="pregModalTitle" class="text-base font-black text-rose-950">🤰 الحمل</h2>
-        <button type="button" onclick="closePregnancyModal()" class="text-gray-400 hover:text-rose-600 text-2xl font-bold p-1">&times;</button>
+    <div class="bg-white rounded-3xl max-w-md w-full p-5 shadow-2xl space-y-3 text-xs border-2 border-pink-300">
+      <div class="flex justify-between items-center border-b border-pink-100 pb-2">
+        <h2 id="pregModalTitle" class="text-base font-black text-pink-950">🤰 الحمل</h2>
+        <button type="button" onclick="closePregnancyModal()" class="text-gray-400 hover:text-pink-600 text-2xl font-bold p-1">&times;</button>
       </div>
       <form onsubmit="handlePregnancySubmit(event)" class="space-y-3">
         <input type="hidden" id="pregMode">
@@ -1609,8 +1639,8 @@
       const toastMsg = document.getElementById('realtimeToastMsg');
       if (toast && toastMsg) {
         toastMsg.innerText = msg;
-        toast.classList.remove('translate-y-28');
-        setTimeout(() => toast.classList.add('translate-y-28'), 3500);
+        toast.classList.remove('translate-y-48');
+        setTimeout(() => toast.classList.add('translate-y-48'), 3500);
       }
     }
 
@@ -2565,23 +2595,23 @@
         const visits = pregnancyVisits(p, active);
         const last = visits[0];
         const overdue = weeks >= 41;
-        html += `<div class="bg-rose-50 border-2 ${overdue ? 'border-red-400' : 'border-rose-200'} rounded-2xl p-3 text-xs space-y-2">
+        html += `<div class="bg-pink-50 border-2 ${overdue ? 'border-red-400' : 'border-pink-200'} rounded-2xl p-3 text-xs space-y-2">
           <div class="flex justify-between items-center flex-wrap gap-2">
-            <span class="font-black text-rose-950 text-sm">🤰 الحمل الحالي</span>
+            <span class="font-black text-pink-950 text-sm">🤰 الحمل الحالي</span>
             <span class="flex gap-1">
-              <button type="button" onclick="openPregnancyModal('edit')" class="px-2 py-1 rounded-lg bg-white border border-rose-200 font-bold text-rose-900">✏️ LMP</button>
-              <button type="button" onclick="openPregnancyModal('end')" class="px-2 py-1 rounded-lg bg-white border border-rose-200 font-bold text-rose-900">⏹ إنهاء</button>
+              <button type="button" onclick="openPregnancyModal('edit')" class="px-2 py-1 rounded-lg bg-white border border-pink-200 font-bold text-pink-900">✏️ LMP</button>
+              <button type="button" onclick="openPregnancyModal('end')" class="px-2 py-1 rounded-lg bg-white border border-pink-200 font-bold text-pink-900">⏹ إنهاء</button>
             </span>
           </div>
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            <div class="bg-white rounded-xl p-2 text-center border border-rose-100"><div class="text-[10px] text-slate-500 font-bold">عمر الحمل</div><div class="font-black text-rose-900 text-base" dir="ltr">${escapeHTML(ga || '—')}</div><div class="text-[10px] text-slate-500">${tri}</div></div>
-            <div class="bg-white rounded-xl p-2 text-center border border-rose-100"><div class="text-[10px] text-slate-500 font-bold">موعد الولادة</div><div class="font-black ${overdue ? 'text-red-700' : 'text-rose-900'} font-mono">${escapeHTML(addDaysIso(active.lmp, 280))}</div></div>
-            <div class="bg-white rounded-xl p-2 text-center border border-rose-100"><div class="text-[10px] text-slate-500 font-bold">زيارات الحمل</div><div class="font-black text-rose-900 text-base">${visits.length}</div></div>
-            <div class="bg-white rounded-xl p-2 text-center border border-rose-100"><div class="text-[10px] text-slate-500 font-bold">آخر ضغط / وزن</div><div class="font-black text-slate-800" dir="ltr">${escapeHTML((last && last.bp) || '—')} / ${escapeHTML((last && last.weight) || '—')}</div></div>
+            <div class="bg-white rounded-xl p-2 text-center border border-pink-100"><div class="text-[10px] text-slate-500 font-bold">عمر الحمل</div><div class="font-black text-pink-900 text-base" dir="ltr">${escapeHTML(ga || '—')}</div><div class="text-[10px] text-slate-500">${tri}</div></div>
+            <div class="bg-white rounded-xl p-2 text-center border border-pink-100"><div class="text-[10px] text-slate-500 font-bold">موعد الولادة</div><div class="font-black ${overdue ? 'text-red-700' : 'text-pink-900'} font-mono">${escapeHTML(addDaysIso(active.lmp, 280))}</div></div>
+            <div class="bg-white rounded-xl p-2 text-center border border-pink-100"><div class="text-[10px] text-slate-500 font-bold">زيارات الحمل</div><div class="font-black text-pink-900 text-base">${visits.length}</div></div>
+            <div class="bg-white rounded-xl p-2 text-center border border-pink-100"><div class="text-[10px] text-slate-500 font-bold">آخر ضغط / وزن</div><div class="font-black text-slate-800" dir="ltr">${escapeHTML((last && last.bp) || '—')} / ${escapeHTML((last && last.weight) || '—')}</div></div>
           </div>
         </div>`;
       } else {
-        html += `<button type="button" onclick="openPregnancyModal('start')" class="w-full py-2 rounded-2xl border-2 border-dashed border-rose-300 text-rose-800 font-bold text-xs hover:bg-rose-50">🤰 تسجيل حمل جديد</button>`;
+        html += `<button type="button" onclick="openPregnancyModal('start')" class="w-full py-2 rounded-2xl border-2 border-dashed border-pink-300 text-pink-800 font-bold text-xs hover:bg-pink-50">🤰 تسجيل حمل جديد</button>`;
       }
 
       const ended = list.filter((x) => x.status === 'ended').sort((a, b) => (b.endDate || '').localeCompare(a.endDate || ''));
@@ -2695,7 +2725,7 @@
               <span class="flex items-center gap-1">
                 <span class="text-amber-800 font-bold">📅 ${escapeHTML(s.date)}</span>
                 <button type="button" onclick="openSurgeryModal(${jsArg(patient.id)}, ${jsArg(s.id)})" class="px-2 py-1 rounded-lg bg-white hover:bg-amber-100 border border-amber-200 font-bold text-amber-900">✏️ تعديل</button>
-                <button type="button" onclick="deleteSurgeryRecord(${jsArg(patient.id)}, ${jsArg(s.id)})" class="text-rose-600 hover:bg-rose-50 rounded-lg px-1.5 py-1 font-bold" title="حذف">🗑️</button>
+                <button type="button" onclick="deleteSurgeryRecord(${jsArg(patient.id)}, ${jsArg(s.id)})" class="text-red-600 hover:bg-red-50 rounded-lg px-1.5 py-1 font-bold" title="حذف">🗑️</button>
               </span>
             </div>
             <div class="flex flex-wrap gap-x-3 text-[11px] text-slate-600">
@@ -2724,7 +2754,7 @@
             <div class="flex items-center gap-1">
               ${v.fee ? `<span class="bg-emerald-50 text-emerald-800 font-bold px-2 py-0.5 rounded-lg border border-emerald-200 font-mono">${Number(v.fee).toLocaleString()} ل.س</span>` : ''}
               <button type="button" onclick="openNewVisitModal(${jsArg(patient.id)}, ${jsArg(v.id)})" class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 font-bold text-slate-700">✏️ تعديل</button>
-              <button type="button" onclick="deleteVisitFromArchive(${jsArg(patient.id)}, ${jsArg(v.id)})" class="px-1.5 py-1 rounded-lg text-rose-600 hover:bg-rose-50 font-bold" title="حذف">🗑️</button>
+              <button type="button" onclick="deleteVisitFromArchive(${jsArg(patient.id)}, ${jsArg(v.id)})" class="px-1.5 py-1 rounded-lg text-red-600 hover:bg-red-50 font-bold" title="حذف">🗑️</button>
             </div>
           </div>
 
@@ -2921,7 +2951,7 @@
    // --- 13. VISIT FORM: four kinds of visit, new or edit ---
     const VISIT_KINDS = [
       { key: 'anc', label: 'متابعة حمل', icon: '🤰',
-        on: 'bg-rose-700 text-white border-rose-700', badge: 'bg-rose-100 text-rose-800 border-rose-300',
+        on: 'bg-pink-600 text-white border-pink-600', badge: 'bg-pink-50 text-pink-800 border-pink-200',
         complaints: ['متابعة دورية', 'غثيان وإقياء', 'ألم بطن', 'نزف', 'تقلصات', 'نقص حركات الجنين', 'نزول ماء', 'صداع / ضغط'],
         diagnoses: ['حمل طبيعي', 'سكري حملي', 'ارتفاع ضغط حملي', 'مقدمات ارتجاج', 'فقر دم', 'تهديد بالإجهاض', 'تهديد بولادة مبكرة', 'تأخر نمو جنين', 'مشيمة منزاحة'] },
       { key: 'gyn', label: 'شكوى نسائية', icon: '🩺',
@@ -3045,7 +3075,7 @@
       const editing = editId ? (p.visits || []).find((v) => v.id === editId) : null;
       // Earlier = an older date, or the same date but saved before the visit being edited.
       const hasEarlier = (p.visits || []).some((v) => v.id !== editId && v.date && (
-        v.date < date || (v.date === date && editing && (v.timestamp || 0) < (editing.timestamp || 0))));
+        v.date < date || (v.date === date && (!editing || (v.timestamp || 0) < (editing.timestamp || 0)))));
       el.textContent = hasEarlier ? '🔁 مراجعة' : '🆕 زيارة أولى';
       el.className = 'text-[11px] font-bold px-2 py-0.5 rounded-lg ' + (hasEarlier ? 'bg-slate-100 text-slate-600' : 'bg-amber-100 text-amber-800');
     }
@@ -3070,9 +3100,9 @@
       }
 
       previewEl.innerHTML = `
-        <div class="bg-white border border-rose-300 p-2.5 rounded-xl text-xs text-rose-950 flex justify-between items-center flex-wrap gap-1 font-bold shadow-2xs">
-          <span>🤰 مرحلة الحمل: <span class="${preg.isOverdue ? 'bg-red-700' : 'bg-rose-800'} text-white px-2 py-0.5 rounded text-[11px]">${preg.monthName}</span> (${preg.weeks})</span>
-          <span>📅 موعد الولادة (EDD): <strong class="text-rose-900 underline font-mono">${preg.edd}</strong></span>
+        <div class="bg-white border border-pink-300 p-2.5 rounded-xl text-xs text-pink-950 flex justify-between items-center flex-wrap gap-1 font-bold shadow-2xs">
+          <span>🤰 مرحلة الحمل: <span class="${preg.isOverdue ? 'bg-red-700' : 'bg-pink-800'} text-white px-2 py-0.5 rounded text-[11px]">${preg.monthName}</span> (${preg.weeks})</span>
+          <span>📅 موعد الولادة (EDD): <strong class="text-pink-900 underline font-mono">${preg.edd}</strong></span>
         </div>
       `;
       previewEl.classList.remove('hidden');
@@ -3693,12 +3723,12 @@
         </div>
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
           ${[
-            ['📅', 'مواعيد اليوم', appointments.length, 'text-purple-800', 'bg-purple-50 border-purple-200'],
-            ['✅', 'تمت رؤيتهن', seen.length, 'text-emerald-800', 'bg-emerald-50 border-emerald-200'],
+            ['📅', 'مواعيد اليوم', appointments.length, 'text-rose-700', 'bg-white border-slate-200'],
+            ['✅', 'تمت رؤيتهن', seen.length, 'text-emerald-700', 'bg-white border-slate-200'],
             ['💰', 'دخل اليوم', income.toLocaleString('en-US'), 'text-slate-900', 'bg-white border-slate-200'],
-            ['🤰', 'ولادات قريبة', dueSoon.length, 'text-rose-800', 'bg-rose-50 border-rose-200']
+            ['🤰', 'ولادات قريبة', dueSoon.length, 'text-pink-600', 'bg-white border-slate-200']
           ].map(([icon, label, value, tc, bc]) => `
-            <div class="rounded-2xl border p-3 ${bc}">
+            <div class="rounded-2xl border p-3 shadow-2xs ${bc}">
               <div class="text-[11px] font-bold text-slate-500">${icon} ${label}</div>
               <div class="text-2xl font-black ${tc} font-mono mt-0.5">${value}</div>
             </div>`).join('')}
@@ -3988,7 +4018,7 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
             <div class="flex items-center gap-1.5 flex-wrap">
               <h3 class="text-sm font-black text-slate-900 truncate ${isDoctor ? 'cursor-pointer hover:text-rose-800' : ''}" ${isDoctor ? `onclick="openDoctorModal(${jsArg(p.id)})"` : ''}>${escapeHTML(p.name)}</h3>
               ${p.isHighRisk ? `<span class="bg-red-600 text-white text-[10px] px-1.5 py-0.5 rounded-md font-black">🚨 خطورة عالية</span>` : ''}
-              ${ga ? `<span class="bg-rose-100 text-rose-800 text-[10px] px-1.5 py-0.5 rounded-md font-black">🤰 <span dir="ltr">${escapeHTML(ga)}</span></span>` : ''}
+              ${ga ? `<span class="bg-pink-100 text-pink-800 text-[10px] px-1.5 py-0.5 rounded-md font-black">🤰 <span dir="ltr">${escapeHTML(ga)}</span></span>` : ''}
               ${p.allergies && p.allergies.trim() ? `<span class="bg-red-50 text-red-700 border border-red-200 text-[10px] px-1.5 py-0.5 rounded-md font-bold">⚠️ تحسس</span>` : ''}
             </div>
             <div class="text-[11px] text-slate-500 flex flex-wrap gap-x-2 mt-0.5">
@@ -5371,7 +5401,7 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
             edit.onclick = () => openDrugForm(d.id);
             const del = document.createElement('button');
             del.type = 'button';
-            del.className = 'px-2 py-1 rounded-lg text-rose-600 hover:bg-rose-50 font-bold';
+            del.className = 'px-2 py-1 rounded-lg text-red-600 hover:bg-red-50 font-bold';
             del.textContent = '🗑️';
             del.title = 'حذف';
             del.onclick = () => deleteDrug(d.id);
@@ -5617,7 +5647,7 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
               <button onclick="openSurgeryModal(${jsArg(s.patient.id)}, ${jsArg(s.id)})" class="btn-touch h-8 px-2.5 bg-amber-50 hover:bg-amber-100 text-amber-900 rounded-lg text-xs font-bold border border-amber-200">
                 ✏️ تعديل
               </button>
-              <button onclick="deleteSurgeryRecord(${jsArg(s.patient.id)}, ${jsArg(s.id)})" class="btn-touch h-8 px-2 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg text-xs font-bold border border-rose-200">
+              <button onclick="deleteSurgeryRecord(${jsArg(s.patient.id)}, ${jsArg(s.id)})" class="btn-touch h-8 px-2 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg text-xs font-bold border border-red-200">
                 🗑️
               </button>
             </div>
