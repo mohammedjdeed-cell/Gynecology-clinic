@@ -644,7 +644,7 @@
               ⚙️ صيدلية الأدوية
             </button>
           </div>
-          <div id="quickDrugsContainer" class="flex gap-1.5 flex-wrap py-1"></div>
+          <div id="quickDrugsContainer" class="py-1"></div>
           <textarea id="nvRx" rows="3" placeholder="العلاج والتعليمات الخاصة بهذه الزيارة..." class="w-full p-2.5 border border-amber-200 rounded-xl text-sm bg-amber-50/50 font-sans"></textarea>
         </div>
 
@@ -832,7 +832,7 @@
               <span class="font-bold text-slate-800 text-xs">💊 الوصفة الطبية الأولى (Rx):</span>
               <button type="button" onclick="openDrugsModal()" class="text-[11px] text-rose-800 hover:text-rose-950 font-bold underline">⚙️ صيدلية الأدوية</button>
             </div>
-            <div id="dnpQuickDrugsContainer" class="flex gap-1.5 flex-wrap py-1"></div>
+            <div id="dnpQuickDrugsContainer" class="py-1"></div>
             <textarea id="dnpRx" rows="2" placeholder="العلاج والتعليمات الطبية للمريضة..." class="w-full p-2.5 border border-amber-200 rounded-xl text-sm bg-amber-50/50 font-sans"></textarea>
           </div>
 
@@ -985,31 +985,44 @@
         <button type="button" onclick="closeDrugsModal()" class="text-gray-400 hover:text-rose-600 text-2xl font-bold p-1">&times;</button>
       </div>
 
-      <form onsubmit="handleAddNewDrug(event)" class="bg-rose-50/40 p-3 rounded-2xl border border-rose-200 space-y-2">
-        <h3 class="font-bold text-rose-950">➕ إضافة دواء جديد للقائمة السريعة:</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+      <div class="flex gap-2">
+        <input type="search" id="drugLibSearch" autocomplete="off" oninput="renderDrugsTable()" placeholder="🔍 ابحثي عن دواء أو شركة..."
+               class="flex-1 min-w-0 h-10 px-3 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white focus:outline-none focus:border-rose-700 text-sm">
+        <button type="button" id="drugAddBtn" onclick="openDrugForm()" class="h-10 px-3 bg-rose-800 hover:bg-rose-900 text-white rounded-xl font-bold shrink-0 active:scale-95 transition">➕ دواء جديد</button>
+      </div>
+
+      <form id="drugForm" onsubmit="handleSaveDrug(event)" class="hidden bg-rose-50/40 p-3 rounded-2xl border border-rose-200 space-y-2">
+        <h3 id="drugFormTitle" class="font-bold text-rose-950">➕ دواء جديد</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <div>
             <label class="block mb-0.5 text-slate-600 font-semibold">اسم الدواء والعيار *</label>
-            <input type="text" id="newDrugName" required placeholder="مثال: لوتوفوليك أو دوفاستون" class="w-full p-2 border border-slate-300 rounded-xl bg-white">
+            <input type="text" id="drugFormName" required autocomplete="off" placeholder="مثال: دوفاستون 10 مغ" class="w-full p-2 border border-slate-300 rounded-xl bg-white">
           </div>
           <div>
-            <label class="block mb-0.5 text-slate-600 font-semibold">الشركة المصنعة (اختياري)</label>
-            <input type="text" id="newDrugCompany" placeholder="مثال: ابن حيان، آسيا، تاميكو" class="w-full p-2 border border-slate-300 rounded-xl bg-white">
+            <label class="block mb-0.5 text-slate-600 font-semibold">الشركة (اختياري)</label>
+            <input type="text" id="drugFormCompany" autocomplete="off" placeholder="مثال: ابن حيان، آسيا" class="w-full p-2 border border-slate-300 rounded-xl bg-white">
           </div>
         </div>
         <div>
-          <label class="block mb-0.5 text-slate-600 font-semibold">طريقة الاستعمال والجرعة المعتادة</label>
-          <input type="text" id="newDrugDose" placeholder="مثال: حبة يومياً بعد الغداء" class="w-full p-2 border border-slate-300 rounded-xl bg-white">
+          <label class="block mb-0.5 text-slate-600 font-semibold">التصنيف</label>
+          <select id="drugFormCategory" class="w-full p-2 border border-slate-300 rounded-xl bg-white font-bold"></select>
         </div>
-        <button type="submit" class="w-full py-2 bg-rose-800 hover:bg-rose-900 text-white rounded-xl font-bold shadow transition active:scale-95">
-          ➕ حفظ وإضافة الدواء للقائمة
-        </button>
+        <div class="space-y-1">
+          <label class="block text-slate-600 font-semibold">الجرعات المعتادة (حتى 3، عند الضغط على الدواء تختارين واحدة)</label>
+          <input type="text" id="drugFormDose1" autocomplete="off" placeholder="الجرعة 1: مثال: حبة مرتين يومياً" class="w-full p-2 border border-slate-300 rounded-xl bg-white">
+          <input type="text" id="drugFormDose2" autocomplete="off" placeholder="الجرعة 2 (اختياري)" class="w-full p-2 border border-slate-300 rounded-xl bg-white">
+          <input type="text" id="drugFormDose3" autocomplete="off" placeholder="الجرعة 3 (اختياري)" class="w-full p-2 border border-slate-300 rounded-xl bg-white">
+        </div>
+        <label class="flex items-center gap-2 font-bold text-slate-700 cursor-pointer select-none">
+          <input type="checkbox" id="drugFormFavorite" class="w-4 h-4 accent-amber-500"> ⭐ من الأدوية المفضلة (تظهر أولاً فوق الوصفة)
+        </label>
+        <div class="flex gap-2">
+          <button type="submit" class="flex-1 py-2 bg-rose-800 hover:bg-rose-900 text-white rounded-xl font-bold shadow transition active:scale-95">💾 حفظ</button>
+          <button type="button" onclick="closeDrugForm()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold">إلغاء</button>
+        </div>
       </form>
 
-      <div class="space-y-2">
-        <h3 class="font-bold text-slate-800">قائمة الأدوية المتوفرة حالياً:</h3>
-        <div id="drugsListTable" class="space-y-1.5 max-h-60 overflow-y-auto"></div>
-      </div>
+      <div id="drugsListTable" class="space-y-3"></div>
     </div>
   </div>
 
@@ -1144,15 +1157,60 @@
     const LAST_BACKUP_KEY = "clinic_last_weekly_backup_v2";
 
     const DEFAULT_DRUGS = [
-      { id: "d_1", name: "حديد + فوليك أسيد", company: "ابن حيان", dose: "حبة يومياً بعد الغداء" },
-      { id: "d_2", name: "دوفاستون 10 مغ", company: "آسيا", dose: "حبة مرتين يومياً" },
-      { id: "d_3", name: "بروجستيرون 200", company: "يونيفارما", dose: "تحميلة مهبلية مساءً" },
-      { id: "d_4", name: "كالسيوم + فيتامين د3", company: "ألفا", dose: "حبة بعد الغداء" },
-      { id: "d_5", name: "أسبرين أطفال 81 مغ", company: "ميديكو", dose: "حبة يومياً بعد الغداء" },
-      { id: "d_6", name: "سيتامول 500 مغ", company: "تاميكو", dose: "عند اللزوم لتسكين الألم" },
-      { id: "d_7", name: "أوغمنتين 1 غرام", company: "ميديكو", dose: "حبة كل 12 ساعة بعد الطعام" },
-      { id: "d_8", name: "فيتامينات حمل (Pregnacare)", company: "مستورد", dose: "حبة يومياً" }
+      { id: "d_1", name: "حديد + فوليك أسيد", company: "ابن حيان", category: "pregnancy", favorite: true, doses: ["حبة يومياً بعد الغداء"] },
+      { id: "d_2", name: "دوفاستون 10 مغ", company: "آسيا", category: "hormones", favorite: true, doses: ["حبة مرتين يومياً", "حبة ثلاث مرات يومياً"] },
+      { id: "d_3", name: "بروجستيرون 200", company: "يونيفارما", category: "hormones", favorite: true, doses: ["تحميلة مهبلية مساءً", "تحميلة مهبلية صباحاً ومساءً"] },
+      { id: "d_4", name: "كالسيوم + فيتامين د3", company: "ألفا", category: "pregnancy", favorite: false, doses: ["حبة بعد الغداء"] },
+      { id: "d_5", name: "أسبرين أطفال 81 مغ", company: "ميديكو", category: "pregnancy", favorite: false, doses: ["حبة يومياً بعد الغداء"] },
+      { id: "d_6", name: "سيتامول 500 مغ", company: "تاميكو", category: "painkillers", favorite: false, doses: ["عند اللزوم لتسكين الألم"] },
+      { id: "d_7", name: "أوغمنتين 1 غرام", company: "ميديكو", category: "antibiotics", favorite: false, doses: ["حبة كل 12 ساعة بعد الطعام"] },
+      { id: "d_8", name: "فيتامينات حمل (Pregnacare)", company: "مستورد", category: "pregnancy", favorite: false, doses: ["حبة يومياً"] }
     ];
+
+    // Drug categories, in display order. A drug without a known category goes to "other".
+    const DRUG_CATEGORIES = [
+      { key: 'pregnancy', label: 'حمل ومكملات', icon: '🤰' },
+      { key: 'hormones', label: 'هرمونات', icon: '🧬' },
+      { key: 'antibiotics', label: 'مضادات حيوية', icon: '🦠' },
+      { key: 'painkillers', label: 'مسكنات', icon: '🩹' },
+      { key: 'vaginal', label: 'مهبلية وفطريات', icon: '💧' },
+      { key: 'other', label: 'أخرى', icon: '📦' }
+    ];
+    const MAX_DRUG_DOSES = 3;
+
+    // Best guess for drugs saved before categories existed; the doctor can change it later.
+    function guessDrugCategory(name) {
+      const n = String(name || '').toLowerCase();
+      if (/تحميل|مهبل|غسول|فطر|كلوتريم|clotrim|فلوكون|flucon|نيستات|nystat|ovule|vaginal/.test(n)) return 'vaginal';
+      if (/دوفاستون|duphaston|بروجست|progest|استروج|estro|كلوميد|clomi|ليتروز|letroz|هرمون|سيتروتايد|gonal|غونال|اوترو|utro/.test(n)) return 'hormones';
+      if (/اوغمنت|أوغمنت|augment|اموكس|أموكس|amox|سيفا|ceph|cef|ازيث|أزيث|azith|مترونيد|metronid|فلاجيل|flagyl|دوكسي|doxy|سيبرو|cipro|مضاد حيوي/.test(n)) return 'antibiotics';
+      if (/سيتامول|باراسيت|paracet|بروفين|ibupro|ديكلو|diclo|ميفينام|mefenam|بونستان|ponstan|مسكن|بوسكوبان|buscopan/.test(n)) return 'painkillers';
+      if (/فوليك|folic|حديد|iron|فيرو|ferro|كالسيوم|calcium|فيتامين|vitamin|pregna|اوميغا|أوميغا|omega|اسبرين|أسبرين|aspirin|حمل/.test(n)) return 'pregnancy';
+      return 'other';
+    }
+
+    // Accepts drugs from any app version (old ones had a single "dose").
+    function normalizeDrug(d) {
+      if (!d || typeof d !== 'object') return null;
+      const name = String(d.name || '').trim();
+      if (!name) return null;
+      let doses = Array.isArray(d.doses) ? d.doses : (d.dose ? [d.dose] : []);
+      doses = doses.map((x) => String(x || '').trim()).filter(Boolean).slice(0, MAX_DRUG_DOSES);
+      const category = DRUG_CATEGORIES.some((c) => c.key === d.category) ? d.category : guessDrugCategory(name);
+      return {
+        id: String(d.id || ('drug_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7))),
+        name,
+        company: String(d.company || '').trim(),
+        category,
+        favorite: !!d.favorite,
+        doses,
+        dose: doses[0] || '' // kept for older copies of the app
+      };
+    }
+
+    function normalizeDrugList(list) {
+      return (Array.isArray(list) ? list : []).map(normalizeDrug).filter(Boolean);
+    }
 
     // --- 2. TOMBSTONES DELETION LIST ---
     function getDeletedIds() {
@@ -1349,7 +1407,10 @@
     }
 
     let patients = loadInitialPatients();
-    let drugs = JSON.parse(localStorage.getItem(DRUGS_KEY) || JSON.stringify(DEFAULT_DRUGS));
+    let drugs = (() => {
+      try { return normalizeDrugList(JSON.parse(localStorage.getItem(DRUGS_KEY) || 'null') || DEFAULT_DRUGS); }
+      catch (e) { return normalizeDrugList(DEFAULT_DRUGS); }
+    })();
     let currentRole = null;
     let activeTab = 'daily';
     let currentAttachedPhotos = [];
@@ -2505,6 +2566,7 @@
 
       currentAttachedPhotos = [];
       renderPhotosPreview();
+      resetDrugPicker('quickDrugsContainer');
       renderDrugChips();
 
       const modal = document.getElementById('newVisitModal');
@@ -2724,6 +2786,7 @@
       toggleDnpHighRiskReason();
       document.getElementById('dnpPregnancyPreview').classList.add('hidden');
 
+      resetDrugPicker('dnpQuickDrugsContainer');
       renderDnpDrugChips();
       document.getElementById('doctorNewPatientModal').classList.remove('hidden');
       setTimeout(() => document.getElementById('dnpName').focus(), 150);
@@ -2768,29 +2831,7 @@
     }
 
     function renderDnpDrugChips() {
-      const container = document.getElementById('dnpQuickDrugsContainer');
-      if (!container) return;
-      container.innerHTML = '';
-
-      drugs.forEach((d) => {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        const colorBadgeClass = getCompanyColorBadge(d.company);
-        btn.className = 'chip-btn bg-white hover:bg-rose-50 text-slate-800 px-2.5 py-1.5 rounded-xl text-xs font-bold border border-slate-300 flex items-center gap-1.5 shadow-sm';
-        btn.innerHTML = `
-          <span>+ ${escapeHTML(d.name)}</span>
-          ${d.company ? `<span class="${colorBadgeClass} text-[9px] px-2 py-0.5 rounded-md font-bold shadow-xs">${escapeHTML(d.company)}</span>` : ''}
-        `;
-        btn.onclick = () => {
-          const rxBox = document.getElementById('dnpRx');
-          const companyPart = d.company ? ` (${d.company})` : '';
-          const dosePart = d.dose ? ` - ${d.dose}` : '';
-          const textToAppend = `+ ${d.name}${companyPart}${dosePart}`;
-          rxBox.value = rxBox.value.trim() ? (rxBox.value.trim() + '\n' + textToAppend) : textToAppend;
-          rxBox.focus();
-        };
-        container.appendChild(btn);
-      });
+      renderDrugPicker('dnpQuickDrugsContainer', 'dnpRx');
     }
 
     async function handleDoctorNewPatientSubmit(e) {
@@ -3993,7 +4034,7 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
       try {
         settingsUnsubscribers.push(db.collection('settings').doc('drugs').onSnapshot((doc) => {
           if (doc.exists && doc.data().list) {
-            drugs = doc.data().list;
+            drugs = normalizeDrugList(doc.data().list);
             localStorage.setItem(DRUGS_KEY, JSON.stringify(drugs));
             renderDrugChips();
             renderDrugsTable();
@@ -4022,97 +4063,396 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
     }
 
     // --- 23. PHARMACY MANAGEMENT ---
-    function renderDrugChips() {
-      const container = document.getElementById('quickDrugsContainer');
-      if (!container) return;
-      container.innerHTML = '';
+    // --- DRUG PICKER (above each prescription box) ---
+    const drugPickerState = {}; // containerId -> { q, openCat, choosingId, rxId }
 
-      drugs.forEach((d) => {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        const colorBadgeClass = getCompanyColorBadge(d.company);
-
-        btn.className = 'chip-btn bg-white hover:bg-rose-50 text-slate-800 px-2.5 py-1.5 rounded-xl text-xs font-bold border border-slate-300 flex items-center gap-1.5 shadow-sm';
-        btn.innerHTML = `
-          <span>+ ${escapeHTML(d.name)}</span>
-          ${d.company ? `<span class="${colorBadgeClass} text-[9px] px-2 py-0.5 rounded-md font-bold shadow-xs">${escapeHTML(d.company)}</span>` : ''}
-          ${d.dose ? `<span class="text-slate-400 text-[10px] font-normal">(${escapeHTML(d.dose)})</span>` : ''}
-        `;
-        btn.onclick = () => insertDrugToPrescription(d);
-        container.appendChild(btn);
-      });
+    function drugMatches(d, q) {
+      if (!q) return true;
+      const nq = normalizeArabic(q);
+      return normalizeArabic(d.name).includes(nq) || normalizeArabic(d.company).includes(nq);
     }
 
-    function insertDrugToPrescription(drug) {
-      const rxBox = document.getElementById('nvRx');
+    function drugCategory(key) {
+      return DRUG_CATEGORIES.find((c) => c.key === key) || DRUG_CATEGORIES[DRUG_CATEGORIES.length - 1];
+    }
+
+    function sortDrugsByName(list) {
+      return list.slice().sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+    }
+
+    function makeDrugChip(d, onClick) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'chip-btn bg-white hover:bg-rose-50 text-slate-800 px-2.5 py-1.5 rounded-xl text-xs font-bold border border-slate-300 flex items-center gap-1.5 shadow-sm';
+      const label = document.createElement('span');
+      label.textContent = (d.favorite ? '⭐ ' : '+ ') + d.name;
+      btn.appendChild(label);
+      if (d.company) {
+        const badge = document.createElement('span');
+        badge.className = getCompanyColorBadge(d.company) + ' text-[9px] px-2 py-0.5 rounded-md font-bold shadow-xs';
+        badge.textContent = d.company;
+        btn.appendChild(badge);
+      }
+      if (d.doses.length > 1) {
+        const more = document.createElement('span');
+        more.className = 'text-[10px] text-rose-700 font-black';
+        more.textContent = `${d.doses.length} جرعات ▾`;
+        btn.appendChild(more);
+      }
+      btn.onclick = onClick;
+      return btn;
+    }
+
+    function appendDrugToRx(rxId, drug, dose) {
+      const rxBox = document.getElementById(rxId);
       if (!rxBox) return;
       const companyPart = drug.company ? ` (${drug.company})` : '';
-      const dosePart = drug.dose ? ` - ${drug.dose}` : '';
-      const textToAppend = `+ ${drug.name}${companyPart}${dosePart}`;
-
-      if (rxBox.value.trim().length === 0) rxBox.value = textToAppend;
-      else rxBox.value = rxBox.value.trim() + '\n' + textToAppend;
-      rxBox.focus();
+      const dosePart = dose ? ` - ${dose}` : '';
+      const line = `+ ${drug.name}${companyPart}${dosePart}`;
+      rxBox.value = rxBox.value.trim() ? (rxBox.value.trim() + '\n' + line) : line;
+      rxBox.classList.add('ring-2', 'ring-emerald-400');
+      setTimeout(() => rxBox.classList.remove('ring-2', 'ring-emerald-400'), 600);
     }
+
+    function renderDrugPicker(containerId, rxId) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      const state = drugPickerState[containerId] || (drugPickerState[containerId] = { q: '', openCat: null, choosingId: null });
+      state.rxId = rxId;
+
+      if (!container.dataset.built) {
+        container.dataset.built = '1';
+        container.innerHTML = '';
+        const search = document.createElement('input');
+        search.type = 'search';
+        search.autocomplete = 'off';
+        search.placeholder = '🔍 ابحثي عن دواء لإضافته للوصفة...';
+        search.className = 'w-full h-9 px-3 mb-1.5 border border-slate-300 rounded-xl bg-white focus:outline-none focus:border-rose-700 text-xs';
+        search.oninput = () => { state.q = search.value; state.choosingId = null; renderDrugPickerResults(containerId); };
+        const results = document.createElement('div');
+        results.className = 'drug-picker-results space-y-1.5';
+        container.appendChild(search);
+        container.appendChild(results);
+      }
+      // A fresh form starts with an empty search.
+      const search = container.querySelector('input');
+      search.value = state.q;
+      renderDrugPickerResults(containerId);
+    }
+
+    function resetDrugPicker(containerId) {
+      const state = drugPickerState[containerId];
+      if (state) { state.q = ''; state.openCat = null; state.choosingId = null; }
+    }
+
+    function renderDrugPickerResults(containerId) {
+      const container = document.getElementById(containerId);
+      const state = drugPickerState[containerId];
+      if (!container || !state) return;
+      const results = container.querySelector('.drug-picker-results');
+      results.innerHTML = '';
+
+      const pick = (d) => {
+        if (d.doses.length > 1) { state.choosingId = d.id; renderDrugPickerResults(containerId); return; }
+        appendDrugToRx(state.rxId, d, d.doses[0] || '');
+        if (state.q) {
+          state.q = '';
+          container.querySelector('input').value = '';
+          renderDrugPickerResults(containerId);
+        }
+      };
+
+      // Choosing one of several doses
+      const choosing = state.choosingId && drugs.find((x) => x.id === state.choosingId);
+      if (choosing) {
+        const panel = document.createElement('div');
+        panel.className = 'bg-amber-50 border border-amber-300 rounded-xl p-2 space-y-1.5';
+        const title = document.createElement('p');
+        title.className = 'text-xs font-black text-amber-900';
+        title.textContent = `اختاري الجرعة: ${choosing.name}`;
+        panel.appendChild(title);
+        const row = document.createElement('div');
+        row.className = 'flex flex-wrap gap-1.5';
+        const finish = (dose) => {
+          appendDrugToRx(state.rxId, choosing, dose);
+          state.choosingId = null; state.q = '';
+          container.querySelector('input').value = '';
+          renderDrugPickerResults(containerId);
+        };
+        choosing.doses.forEach((dose) => {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'px-2.5 py-1.5 bg-white hover:bg-amber-100 border border-amber-400 rounded-lg text-xs font-bold text-slate-800';
+          b.textContent = dose;
+          b.onclick = () => finish(dose);
+          row.appendChild(b);
+        });
+        const none = document.createElement('button');
+        none.type = 'button';
+        none.className = 'px-2.5 py-1.5 bg-white hover:bg-slate-100 border border-slate-300 rounded-lg text-xs font-bold text-slate-500';
+        none.textContent = 'بدون جرعة';
+        none.onclick = () => finish('');
+        const cancel = document.createElement('button');
+        cancel.type = 'button';
+        cancel.className = 'px-2.5 py-1.5 text-xs font-bold text-rose-700 underline';
+        cancel.textContent = 'إلغاء';
+        cancel.onclick = () => { state.choosingId = null; renderDrugPickerResults(containerId); };
+        row.appendChild(none);
+        row.appendChild(cancel);
+        panel.appendChild(row);
+        results.appendChild(panel);
+        return;
+      }
+
+      const chipRow = (list) => {
+        const row = document.createElement('div');
+        row.className = 'flex gap-1.5 flex-wrap';
+        list.forEach((d) => row.appendChild(makeDrugChip(d, () => pick(d))));
+        return row;
+      };
+
+      // Searching: every match, favorites first
+      if (state.q.trim()) {
+        const matches = drugs.filter((d) => drugMatches(d, state.q.trim()));
+        matches.sort((a, b) => (b.favorite - a.favorite) || a.name.localeCompare(b.name, 'ar'));
+        if (matches.length) {
+          results.appendChild(chipRow(matches.slice(0, 40)));
+        } else {
+          const empty = document.createElement('div');
+          empty.className = 'text-xs text-slate-500 flex flex-wrap items-center gap-2';
+          empty.textContent = 'لا يوجد دواء بهذا الاسم.';
+          if (currentRole === 'doctor') {
+            const add = document.createElement('button');
+            add.type = 'button';
+            add.className = 'text-rose-800 font-bold underline';
+            add.textContent = `➕ إضافة «${state.q.trim()}» للصيدلية`;
+            add.onclick = () => openDrugsModal(state.q.trim());
+            empty.appendChild(add);
+          }
+          results.appendChild(empty);
+        }
+        return;
+      }
+
+      if (!drugs.length) {
+        const empty = document.createElement('div');
+        empty.className = 'text-xs text-slate-400';
+        empty.textContent = 'الصيدلية فارغة. أضيفي الأدوية من «صيدلية الأدوية».';
+        results.appendChild(empty);
+        return;
+      }
+
+      // Favorites first
+      const favs = sortDrugsByName(drugs.filter((d) => d.favorite));
+      if (favs.length) results.appendChild(chipRow(favs));
+
+      // Then one button per category; tapping opens its drugs
+      const catRow = document.createElement('div');
+      catRow.className = 'flex gap-1.5 flex-wrap';
+      DRUG_CATEGORIES.forEach((c) => {
+        const count = drugs.filter((d) => d.category === c.key).length;
+        if (!count) return;
+        const open = state.openCat === c.key;
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'px-2.5 py-1 rounded-full text-[11px] font-bold border transition ' +
+          (open ? 'bg-rose-800 text-white border-rose-800' : 'bg-slate-50 text-slate-600 border-slate-300 hover:bg-slate-100');
+        b.textContent = `${c.icon} ${c.label} (${count})`;
+        b.onclick = () => { state.openCat = open ? null : c.key; renderDrugPickerResults(containerId); };
+        catRow.appendChild(b);
+      });
+      results.appendChild(catRow);
+
+      if (state.openCat) {
+        const inCat = sortDrugsByName(drugs.filter((d) => d.category === state.openCat));
+        const box = chipRow(inCat);
+        box.className += ' bg-slate-50 border border-slate-200 rounded-xl p-2';
+        results.appendChild(box);
+      }
+    }
+
+    function renderDrugChips() {
+      renderDrugPicker('quickDrugsContainer', 'nvRx');
+      renderDnpDrugChips();
+    }
+
+    // Kept for any older call sites: adds the drug with its first dose.
+    function insertDrugToPrescription(drug) {
+      appendDrugToRx('nvRx', drug, (drug.doses && drug.doses[0]) || drug.dose || '');
+    }
+
+    // --- DRUG LIBRARY (pharmacy screen) ---
+    let editingDrugId = null;
 
     function renderDrugsTable() {
       const table = document.getElementById('drugsListTable');
       if (!table) return;
       table.innerHTML = '';
+      const canEdit = currentRole === 'doctor';
+      document.getElementById('drugAddBtn').classList.toggle('hidden', !canEdit);
 
-      if (drugs.length === 0) {
-        table.innerHTML = `<div class="text-center py-4 text-slate-400">لا توجد أدوية مضافة حالياً.</div>`;
+      const q = (document.getElementById('drugLibSearch').value || '').trim();
+      const list = drugs.filter((d) => drugMatches(d, q));
+
+      if (!list.length) {
+        table.innerHTML = `<div class="text-center py-4 text-slate-400">${q ? 'لا يوجد دواء بهذا الاسم.' : 'لا توجد أدوية مضافة حالياً.'}</div>`;
         return;
       }
 
-      drugs.forEach((d, idx) => {
-        const item = document.createElement('div');
-        const colorBadgeClass = getCompanyColorBadge(d.company);
-        item.className = 'flex justify-between items-center bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-xs';
-        item.innerHTML = `
-          <div>
-            <div class="flex items-center gap-1.5 font-bold text-slate-900">
-              <span>${escapeHTML(d.name)}</span>
-              ${d.company ? `<span class="${colorBadgeClass} text-[10px] px-2 py-0.5 rounded-md font-bold">${escapeHTML(d.company)}</span>` : ''}
-            </div>
-            <p class="text-[11px] text-slate-500 mt-0.5">${escapeHTML(d.dose) || 'بدون تعليمات جرعة'}</p>
-          </div>
-          <button type="button" onclick="deleteDrug(${idx})" class="text-rose-600 hover:text-rose-800 font-bold p-1">&times; حذف</button>
-        `;
-        table.appendChild(item);
+      DRUG_CATEGORIES.forEach((c) => {
+        const inCat = sortDrugsByName(list.filter((d) => d.category === c.key));
+        if (!inCat.length) return;
+        const section = document.createElement('div');
+        section.className = 'space-y-1.5';
+        const h = document.createElement('h3');
+        h.className = 'font-black text-slate-700 text-xs';
+        h.textContent = `${c.icon} ${c.label} (${inCat.length})`;
+        section.appendChild(h);
+
+        inCat.forEach((d) => {
+          const row = document.createElement('div');
+          row.className = 'flex justify-between items-start gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-xs';
+
+          const info = document.createElement('div');
+          info.className = 'min-w-0';
+          const top = document.createElement('div');
+          top.className = 'flex items-center gap-1.5 flex-wrap font-bold text-slate-900';
+          const nm = document.createElement('span');
+          nm.textContent = d.name;
+          top.appendChild(nm);
+          if (d.company) {
+            const badge = document.createElement('span');
+            badge.className = getCompanyColorBadge(d.company) + ' text-[10px] px-2 py-0.5 rounded-md font-bold';
+            badge.textContent = d.company;
+            top.appendChild(badge);
+          }
+          info.appendChild(top);
+          const doses = document.createElement('p');
+          doses.className = 'text-[11px] text-slate-500 mt-0.5';
+          doses.textContent = d.doses.length ? d.doses.join(' • ') : 'بدون جرعة محددة';
+          info.appendChild(doses);
+          row.appendChild(info);
+
+          const actions = document.createElement('div');
+          actions.className = 'flex items-center gap-0.5 shrink-0';
+          const star = document.createElement('button');
+          star.type = 'button';
+          star.title = d.favorite ? 'إزالة من المفضلة' : 'إضافة للمفضلة';
+          star.className = 'text-lg p-1 leading-none ' + (d.favorite ? '' : 'grayscale opacity-40 hover:opacity-80');
+          star.textContent = '⭐';
+          star.disabled = !canEdit;
+          if (canEdit) star.onclick = () => toggleDrugFavorite(d.id);
+          actions.appendChild(star);
+          if (canEdit) {
+            const edit = document.createElement('button');
+            edit.type = 'button';
+            edit.className = 'px-2 py-1 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 font-bold text-slate-700';
+            edit.textContent = '✏️ تعديل';
+            edit.onclick = () => openDrugForm(d.id);
+            const del = document.createElement('button');
+            del.type = 'button';
+            del.className = 'px-2 py-1 rounded-lg text-rose-600 hover:bg-rose-50 font-bold';
+            del.textContent = '🗑️';
+            del.title = 'حذف';
+            del.onclick = () => deleteDrug(d.id);
+            actions.appendChild(edit);
+            actions.appendChild(del);
+          }
+          row.appendChild(actions);
+          section.appendChild(row);
+        });
+        table.appendChild(section);
       });
     }
 
-    async function handleAddNewDrug(e) {
-      e.preventDefault();
-      const name = document.getElementById('newDrugName').value.trim();
-      const company = document.getElementById('newDrugCompany').value.trim();
-      const dose = document.getElementById('newDrugDose').value.trim();
-
-      if (!name) return;
-
-      drugs.unshift({ id: 'drug_' + Date.now(), name, company: company || '', dose: dose || '' });
-      await syncDrugsToCloud();
-
-      document.getElementById('newDrugName').value = '';
-      document.getElementById('newDrugCompany').value = '';
-      document.getElementById('newDrugDose').value = '';
-
-      alert(`✅ تم إضافة دواء (${name}) إلى الصيدلية بنجاح!`);
-    }
-
-    async function deleteDrug(index) {
-      if (confirm(`هل أنتِ متأكدة من حذف هذا الدواء من القائمة؟`)) {
-        drugs.splice(index, 1);
-        await syncDrugsToCloud();
+    function openDrugForm(drugId = null, prefillName = '') {
+      if (currentRole !== 'doctor') return;
+      const d = drugId ? drugs.find((x) => x.id === drugId) : null;
+      editingDrugId = d ? d.id : null;
+      const sel = document.getElementById('drugFormCategory');
+      if (!sel.options.length) {
+        DRUG_CATEGORIES.forEach((c) => {
+          const o = document.createElement('option');
+          o.value = c.key; o.textContent = `${c.icon} ${c.label}`;
+          sel.appendChild(o);
+        });
       }
+      document.getElementById('drugFormTitle').textContent = d ? `✏️ تعديل: ${d.name}` : '➕ دواء جديد';
+      document.getElementById('drugFormName').value = d ? d.name : prefillName;
+      document.getElementById('drugFormCompany').value = d ? d.company : '';
+      sel.value = d ? d.category : (prefillName ? guessDrugCategory(prefillName) : 'other');
+      for (let i = 1; i <= MAX_DRUG_DOSES; i++) {
+        document.getElementById('drugFormDose' + i).value = d ? (d.doses[i - 1] || '') : '';
+      }
+      document.getElementById('drugFormFavorite').checked = d ? d.favorite : false;
+      const form = document.getElementById('drugForm');
+      form.classList.remove('hidden');
+      form.scrollIntoView({ block: 'nearest' });
+      document.getElementById('drugFormName').focus();
     }
 
-    function openDrugsModal() {
+    function closeDrugForm() {
+      editingDrugId = null;
+      document.getElementById('drugForm').classList.add('hidden');
+    }
+
+    async function handleSaveDrug(e) {
+      e.preventDefault();
+      if (currentRole !== 'doctor') return;
+      const name = document.getElementById('drugFormName').value.trim();
+      if (!name) return;
+      const company = document.getElementById('drugFormCompany').value.trim();
+      const doses = [];
+      for (let i = 1; i <= MAX_DRUG_DOSES; i++) {
+        const v = document.getElementById('drugFormDose' + i).value.trim();
+        if (v) doses.push(v);
+      }
+      const duplicate = drugs.find((x) => x.id !== editingDrugId &&
+        normalizeArabic(x.name) === normalizeArabic(name) && normalizeArabic(x.company) === normalizeArabic(company));
+      if (duplicate && !confirm(`يوجد دواء بنفس الاسم والشركة (${duplicate.name}). هل تريدين الحفظ على أي حال؟`)) return;
+
+      const drug = normalizeDrug({
+        id: editingDrugId || ('drug_' + Date.now()),
+        name, company, doses,
+        category: document.getElementById('drugFormCategory').value,
+        favorite: document.getElementById('drugFormFavorite').checked
+      });
+      const idx = editingDrugId ? drugs.findIndex((x) => x.id === editingDrugId) : -1;
+      if (idx >= 0) drugs[idx] = drug; else drugs.unshift(drug);
+      closeDrugForm();
+      await syncDrugsToCloud();
+      showRealtimeToast(idx >= 0 ? `✅ تم تعديل ${name}` : `✅ تمت إضافة ${name}`);
+    }
+
+    async function toggleDrugFavorite(drugId) {
+      if (currentRole !== 'doctor') return;
+      const d = drugs.find((x) => x.id === drugId);
+      if (!d) return;
+      d.favorite = !d.favorite;
+      await syncDrugsToCloud();
+    }
+
+    async function deleteDrug(drugId) {
+      if (currentRole !== 'doctor') return;
+      const d = drugs.find((x) => x.id === drugId);
+      if (!d) return;
+      if (!confirm(`حذف «${d.name}» من الصيدلية؟`)) return;
+      drugs = drugs.filter((x) => x.id !== drugId);
+      if (editingDrugId === drugId) closeDrugForm();
+      await syncDrugsToCloud();
+    }
+
+    function openDrugsModal(prefillName = '') {
+      document.getElementById('drugLibSearch').value = '';
+      closeDrugForm();
       renderDrugsTable();
       document.getElementById('drugsModal').classList.remove('hidden');
+      if (typeof prefillName === 'string' && prefillName) openDrugForm(null, prefillName);
     }
-    function closeDrugsModal() { document.getElementById('drugsModal').classList.add('hidden'); }
+    function closeDrugsModal() {
+      closeDrugForm();
+      document.getElementById('drugsModal').classList.add('hidden');
+    }
 
     // --- 24. AUTHENTICATION & ROLE SWITCHING ---
     // Hide every patient detail from the page while signed out.

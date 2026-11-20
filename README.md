@@ -52,7 +52,9 @@ Until step 4 is published, the database is still protected only by whatever rule
 - Each visit may hold `labs`: typed lab results (Hb, PLT, FBS, OGTT, TSH, urine, HBsAg,
   Toxo IgM, Rubella IgG, plus free text). Values outside the pregnancy reference points are
   shown in red; the reference points are in `LAB_TESTS` in `index.html` and can be adjusted.
-- `settings/drugs`: the shared drug list.
+- `settings/drugs`: the shared drug list. Each drug has `name`, `company`, `category`
+  (pregnancy, hormones, antibiotics, painkillers, vaginal, other), `favorite`, and up to 3 `doses`.
+  Drugs saved before categories existed get one guessed from their name. Only the doctor can edit it.
 - `users/{uid}`: staff roles (only editable from the console).
 
 ## Offline
