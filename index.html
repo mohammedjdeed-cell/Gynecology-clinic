@@ -229,7 +229,7 @@
 
       <div class="w-full md:w-80">
         <div class="relative">
-          <input type="search" id="searchInput" name="patient-search" autocomplete="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore oninput="renderApp()" placeholder="🔍 بحث شامل بالاسم، الهاتف، الزوج..." 
+          <input type="search" id="searchInput" name="patient-search" autocomplete="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore data-form-type="other" readonly onpointerdown="this.readOnly=false" onfocus="this.readOnly=false" onblur="this.readOnly=true" oninput="onSearchInput(this)" placeholder="🔍 بحث شامل بالاسم، الهاتف، الزوج..." 
                  class="h-10 w-full pl-3 pr-3 border border-slate-300 rounded-xl text-xs bg-slate-50 focus:bg-white focus:outline-none focus:border-rose-700 font-medium placeholder:text-slate-400">
         </div>
       </div>
@@ -3785,6 +3785,12 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
         console.warn('Google link note:', err);
         if (!isPopupCancel(err)) alert(googleErrorMessage(err));
       }
+    }
+
+    function onSearchInput(box) {
+      // A saved login email picked from the browser's list is never a patient search.
+      if (box.value.includes('@')) box.value = '';
+      renderApp();
     }
 
     // Password managers sometimes drop the saved email into the search box after sign-in.
