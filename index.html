@@ -511,7 +511,7 @@
               </div>
             </div>
 
-            <div class="bg-rose-50 p-2.5 rounded-xl border border-rose-200">
+            <div class="hidden bg-rose-50 p-2.5 rounded-xl border border-rose-200">
               <label class="block font-bold text-rose-950 mb-1">أول يوم من آخر دورة شهرية (LMP):</label>
               <input type="date" id="pLMP" oninput="updateModalPregnancyPreview()" onchange="updateModalPregnancyPreview()" class="w-full p-1.5 border border-rose-200 rounded-lg font-bold bg-white text-xs">
             </div>
@@ -954,7 +954,7 @@
             ✂️
           </div>
           <div>
-            <h2 class="text-base font-black text-rose-950">توثيق عمل جراحي / ولادة</h2>
+            <h2 id="surgModalTitle" class="text-base font-black text-rose-950">عملية أو ولادة</h2>
             <p id="surgPatientTitle" class="text-xs text-rose-800 font-bold mt-0.5"></p>
           </div>
         </div>
@@ -963,6 +963,7 @@
 
       <form onsubmit="handleSaveSurgerySubmit(event)" class="space-y-3">
         <input type="hidden" id="surgPatientId">
+        <input type="hidden" id="surgEditId">
 
         <!-- Surgery Type Presets -->
         <div>
@@ -1056,8 +1057,46 @@
         <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
           <button type="button" onclick="closeSurgeryModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs">إلغاء</button>
           <button type="submit" id="btnSaveSurgery" class="px-6 py-2 bg-rose-800 hover:bg-rose-900 text-white rounded-xl font-bold text-xs shadow-lg transition flex items-center gap-1.5 active:scale-95">
-            <span>💾</span> <span>توثيق وحفظ العمل الجراحي</span>
+            <span>💾</span> <span id="btnSaveSurgeryText">حفظ</span>
           </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== PREGNANCY: START / FIX LMP / END ==================== -->
+  <div id="pregnancyModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-xs flex items-center justify-center p-3 z-50">
+    <div class="bg-white rounded-3xl max-w-md w-full p-5 shadow-2xl space-y-3 text-xs border-2 border-rose-300">
+      <div class="flex justify-between items-center border-b border-rose-100 pb-2">
+        <h2 id="pregModalTitle" class="text-base font-black text-rose-950">🤰 الحمل</h2>
+        <button type="button" onclick="closePregnancyModal()" class="text-gray-400 hover:text-rose-600 text-2xl font-bold p-1">&times;</button>
+      </div>
+      <form onsubmit="handlePregnancySubmit(event)" class="space-y-3">
+        <input type="hidden" id="pregMode">
+        <div id="pregLmpBox" class="space-y-1">
+          <label class="block font-bold text-rose-950">أول يوم من آخر دورة (LMP)</label>
+          <input type="date" id="pregLmp" oninput="updatePregModalPreview()" onchange="updatePregModalPreview()" class="w-full p-2.5 border border-rose-200 rounded-xl font-bold bg-white">
+          <p id="pregLmpPreview" class="text-[11px] font-bold text-rose-800"></p>
+        </div>
+        <div id="pregEndBox" class="space-y-2">
+          <div>
+            <label class="block font-bold text-slate-800 mb-1">كيف انتهى الحمل؟</label>
+            <div id="pregOutcomeButtons" class="grid grid-cols-2 gap-1.5"></div>
+            <input type="hidden" id="pregOutcome">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-800 mb-1">التاريخ</label>
+            <input type="date" id="pregEndDate" class="w-full p-2.5 border border-slate-300 rounded-xl font-bold bg-white">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-800 mb-1">ملاحظات (اختياري)</label>
+            <input type="text" id="pregNotes" autocomplete="off" placeholder="مثال: ولادة في مشفى آخر، إجهاض دوائي..." class="w-full p-2.5 border border-slate-300 rounded-xl bg-white">
+          </div>
+          <p class="text-[11px] text-slate-500">لتوثيق ولادة أو عملية مع تقرير وبيانات المولود استخدمي زر «عملية أو ولادة»؛ سيُغلق الحمل تلقائياً.</p>
+        </div>
+        <div class="flex gap-2 pt-1">
+          <button type="submit" class="flex-1 py-2.5 bg-rose-800 hover:bg-rose-900 text-white rounded-xl font-black shadow active:scale-95 transition">💾 حفظ</button>
+          <button type="button" onclick="closePregnancyModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold">إلغاء</button>
         </div>
       </form>
     </div>
@@ -2329,6 +2368,226 @@
       openDoctorModal(p.id);
     }
 
+    // --- PREGNANCY RECORDS: one per pregnancy, kept in patient.pregnancies ---
+    // { id, lmp, status: 'active'|'ended', outcome, endDate, surgeryId, baby, notes }
+    const PREG_OUTCOMES = [
+      { key: 'vd', label: 'ولادة طبيعية', icon: '🤱' },
+      { key: 'cs', label: 'ولادة قيصرية', icon: '👶' },
+      { key: 'miscarriage', label: 'إجهاض', icon: '🩺' },
+      { key: 'ectopic', label: 'حمل هاجر', icon: '⚠️' },
+      { key: 'elsewhere', label: 'ولادة في مكان آخر', icon: '🏥' }
+    ];
+    function pregOutcome(key) { return PREG_OUTCOMES.find((o) => o.key === key) || null; }
+
+    function surgeryOutcome(type) {
+      const t = type || '';
+      if (/قيصرية|Cesarean/i.test(t)) return 'cs';
+      if (/ولادة طبيعية|Normal Delivery/i.test(t)) return 'vd';
+      if (/تجريف|كورتاج|D&C/i.test(t)) return 'miscarriage';
+      if (/حمل هاجر|Ectopic/i.test(t)) return 'ectopic';
+      return null;
+    }
+
+    function addDaysIso(dateStr, n) {
+      const d = new Date(dateStr + 'T12:00:00');
+      if (isNaN(d)) return '';
+      d.setDate(d.getDate() + n);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+
+    // Older patients have no pregnancy list yet: build it from their operations and visits.
+    // Ids are derived from the source, so building twice gives the same records.
+    function buildPregnanciesFromHistory(p) {
+      const list = [];
+      const lmpsFromVisits = (p.visits || []).map((v) => v.lmp).filter(Boolean).sort();
+      (p.surgeries || []).forEach((sg) => {
+        const outcome = surgeryOutcome(sg.type);
+        if (!outcome || !sg.date) return;
+        const from = addDaysIso(sg.date, -300);
+        const lmp = lmpsFromVisits.filter((l) => l >= from && l <= sg.date).pop() || '';
+        list.push({ id: 'preg_s_' + sg.id, lmp, status: 'ended', outcome, endDate: sg.date, surgeryId: sg.id,
+          baby: sg.babyGender ? { gender: sg.babyGender, weight: sg.babyWeight || '', status: sg.babyStatus || '' } : null });
+      });
+      const lastEnd = list.map((x) => x.endDate).sort().pop() || '';
+      const ga = p.lmp ? gestationalAgeAt(p.lmp, getTodayDateString()) : '';
+      if (p.lmp && ga && (!lastEnd || p.lmp > lastEnd)) {
+        list.push({ id: 'preg_l_' + p.lmp, lmp: p.lmp, status: 'active' });
+      }
+      return list;
+    }
+
+    function getPregnancies(p) {
+      if (!Array.isArray(p.pregnancies)) p.pregnancies = buildPregnanciesFromHistory(p);
+      return p.pregnancies;
+    }
+
+    function activePregnancy(p) {
+      return getPregnancies(p).find((x) => x.status === 'active') || null;
+    }
+
+    function pregnancyVisits(p, preg) {
+      const end = preg.endDate || '9999-12-31';
+      return (p.visits || []).filter((v) => v.pregnancyId ? v.pregnancyId === preg.id :
+        ((v.kind === 'anc' || (!v.kind && v.lmp)) && preg.lmp && v.date >= preg.lmp && v.date <= end));
+    }
+
+    // Used by pregnancy visits: returns the pregnancy the visit belongs to, starting one if needed.
+    function ensureActivePregnancy(p, lmp, visitDate, isNewestVisit) {
+      let preg = activePregnancy(p);
+      if (preg) {
+        if (lmp && lmp !== preg.lmp && isNewestVisit) { preg.lmp = lmp; p.lmp = lmp; }
+        return preg;
+      }
+      if (!lmp || !gestationalAgeAt(lmp, visitDate)) return null;
+      preg = { id: 'preg_' + Date.now(), lmp, status: 'active', createdAt: Date.now() };
+      getPregnancies(p).push(preg);
+      p.lmp = lmp;
+      return preg;
+    }
+
+    // Closes the current pregnancy (or records an ended one) and, if asked, updates G/P/A once.
+    function endPregnancy(p, { outcome, date, surgeryId = null, baby = null, notes = '' }, updateGpa) {
+      let preg = activePregnancy(p);
+      if (!preg) {
+        const from = addDaysIso(date, -300);
+        const lmp = (p.visits || []).map((v) => v.lmp).filter((l) => l && l >= from && l <= date).sort().pop() || '';
+        preg = { id: 'preg_' + Date.now(), lmp, createdAt: Date.now() };
+        getPregnancies(p).push(preg);
+      }
+      Object.assign(preg, { status: 'ended', outcome, endDate: date, surgeryId, baby, notes });
+      p.lmp = '';
+      if (updateGpa) {
+        const n = (x) => parseInt(convertArabicNumerals(x || '0'), 10) || 0;
+        p.g = String(n(p.g) + 1);
+        if (outcome === 'cs') p.cs = String(n(p.cs) + 1);
+        else if (outcome === 'vd' || outcome === 'elsewhere') p.vd = String(n(p.vd) + 1);
+        else if (outcome === 'miscarriage' || outcome === 'ectopic') p.a = String(n(p.a) + 1);
+      }
+      return preg;
+    }
+
+    // --- Pregnancy modal ---
+    function openPregnancyModal(mode) {
+      const p = activeArchivePatient;
+      if (!p) return;
+      const active = activePregnancy(p);
+      document.getElementById('pregMode').value = mode;
+      document.getElementById('pregModalTitle').textContent =
+        mode === 'end' ? '⏹ إنهاء الحمل الحالي' : (mode === 'edit' ? '✏️ تعديل تاريخ آخر دورة' : '🤰 تسجيل حمل جديد');
+      document.getElementById('pregLmpBox').classList.toggle('hidden', mode === 'end');
+      document.getElementById('pregEndBox').classList.toggle('hidden', mode !== 'end');
+      document.getElementById('pregLmp').value = mode === 'edit' && active ? (active.lmp || '') : '';
+      document.getElementById('pregEndDate').value = getTodayDateString();
+      document.getElementById('pregNotes').value = '';
+      document.getElementById('pregOutcome').value = '';
+      const box = document.getElementById('pregOutcomeButtons');
+      box.innerHTML = '';
+      PREG_OUTCOMES.forEach((o) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.dataset.key = o.key;
+        b.textContent = `${o.icon} ${o.label}`;
+        b.onclick = () => {
+          document.getElementById('pregOutcome').value = o.key;
+          box.querySelectorAll('button').forEach((x) => paintOutcome(x));
+        };
+        paintOutcome(b);
+        box.appendChild(b);
+      });
+      updatePregModalPreview();
+      document.getElementById('pregnancyModal').classList.remove('hidden');
+    }
+
+    function paintOutcome(b) {
+      const on = document.getElementById('pregOutcome').value === b.dataset.key;
+      b.className = 'py-2 px-2 rounded-xl border-2 font-bold text-xs transition ' +
+        (on ? 'bg-rose-800 text-white border-rose-800' : 'bg-white text-slate-700 border-slate-200 hover:border-slate-400');
+    }
+
+    function updatePregModalPreview() {
+      const lmp = document.getElementById('pregLmp').value;
+      const ga = lmp ? gestationalAgeAt(lmp, getTodayDateString()) : '';
+      document.getElementById('pregLmpPreview').textContent = lmp
+        ? (ga ? `عمر الحمل اليوم: ${ga} أسبوع • موعد الولادة: ${addDaysIso(lmp, 280)}` : '⚠️ التاريخ غير مناسب لحمل جارٍ')
+        : '';
+    }
+
+    function closePregnancyModal() { document.getElementById('pregnancyModal').classList.add('hidden'); }
+
+    async function handlePregnancySubmit(e) {
+      e.preventDefault();
+      const p = activeArchivePatient;
+      if (!p) return;
+      const mode = document.getElementById('pregMode').value;
+      if (mode === 'end') {
+        const outcome = document.getElementById('pregOutcome').value;
+        if (!outcome) { alert('اختاري كيف انتهى الحمل'); return; }
+        endPregnancy(p, { outcome, date: document.getElementById('pregEndDate').value || getTodayDateString(),
+          notes: document.getElementById('pregNotes').value.trim() }, true);
+      } else {
+        const lmp = document.getElementById('pregLmp').value;
+        if (!lmp || !gestationalAgeAt(lmp, getTodayDateString())) { alert('أدخلي تاريخ آخر دورة صحيحاً'); return; }
+        const active = activePregnancy(p);
+        if (active) active.lmp = lmp;
+        else getPregnancies(p).push({ id: 'preg_' + Date.now(), lmp, status: 'active', createdAt: Date.now() });
+        p.lmp = lmp;
+      }
+      closePregnancyModal();
+      notifyDataChanged();
+      await syncPatientToCloud(p);
+      showRealtimeToast(mode === 'end' ? '✅ تم إنهاء الحمل وتحديث السوابق' : '✅ تم حفظ الحمل');
+      openDoctorModal(p.id);
+    }
+
+    function pregnancySectionHTML(p) {
+      const list = getPregnancies(p);
+      const active = list.find((x) => x.status === 'active');
+      let html = '';
+      if (active) {
+        const ga = gestationalAgeAt(active.lmp, getTodayDateString());
+        const weeks = ga ? parseInt(ga, 10) : 0;
+        const tri = weeks < 14 ? 'الثلث الأول' : (weeks < 28 ? 'الثلث الثاني' : 'الثلث الثالث');
+        const visits = pregnancyVisits(p, active);
+        const last = visits[0];
+        const overdue = weeks >= 41;
+        html += `<div class="bg-rose-50 border-2 ${overdue ? 'border-red-400' : 'border-rose-200'} rounded-2xl p-3 text-xs space-y-2">
+          <div class="flex justify-between items-center flex-wrap gap-2">
+            <span class="font-black text-rose-950 text-sm">🤰 الحمل الحالي</span>
+            <span class="flex gap-1">
+              <button type="button" onclick="openPregnancyModal('edit')" class="px-2 py-1 rounded-lg bg-white border border-rose-200 font-bold text-rose-900">✏️ LMP</button>
+              <button type="button" onclick="openPregnancyModal('end')" class="px-2 py-1 rounded-lg bg-white border border-rose-200 font-bold text-rose-900">⏹ إنهاء</button>
+            </span>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div class="bg-white rounded-xl p-2 text-center border border-rose-100"><div class="text-[10px] text-slate-500 font-bold">عمر الحمل</div><div class="font-black text-rose-900 text-base" dir="ltr">${escapeHTML(ga || '—')}</div><div class="text-[10px] text-slate-500">${tri}</div></div>
+            <div class="bg-white rounded-xl p-2 text-center border border-rose-100"><div class="text-[10px] text-slate-500 font-bold">موعد الولادة</div><div class="font-black ${overdue ? 'text-red-700' : 'text-rose-900'} font-mono">${escapeHTML(addDaysIso(active.lmp, 280))}</div></div>
+            <div class="bg-white rounded-xl p-2 text-center border border-rose-100"><div class="text-[10px] text-slate-500 font-bold">زيارات الحمل</div><div class="font-black text-rose-900 text-base">${visits.length}</div></div>
+            <div class="bg-white rounded-xl p-2 text-center border border-rose-100"><div class="text-[10px] text-slate-500 font-bold">آخر ضغط / وزن</div><div class="font-black text-slate-800" dir="ltr">${escapeHTML((last && last.bp) || '—')} / ${escapeHTML((last && last.weight) || '—')}</div></div>
+          </div>
+        </div>`;
+      } else {
+        html += `<button type="button" onclick="openPregnancyModal('start')" class="w-full py-2 rounded-2xl border-2 border-dashed border-rose-300 text-rose-800 font-bold text-xs hover:bg-rose-50">🤰 تسجيل حمل جديد</button>`;
+      }
+
+      const ended = list.filter((x) => x.status === 'ended').sort((a, b) => (b.endDate || '').localeCompare(a.endDate || ''));
+      if (ended.length) {
+        html += `<details class="bg-slate-50 border border-slate-200 rounded-2xl text-xs">
+          <summary class="cursor-pointer select-none p-2.5 font-bold text-slate-800">📚 الحملات السابقة (${ended.length})</summary>
+          <div class="p-2.5 pt-0 space-y-1.5">${ended.map((x) => {
+            const o = pregOutcome(x.outcome);
+            const gaEnd = x.lmp ? gestationalAgeAt(x.lmp, x.endDate) : '';
+            const baby = x.baby && x.baby.gender ? ` • 👶 ${escapeHTML(x.baby.gender)}${x.baby.weight ? ' ' + escapeHTML(x.baby.weight) + ' كغ' : ''}` : '';
+            return `<div class="bg-white rounded-xl border border-slate-200 p-2 flex flex-wrap justify-between gap-1">
+              <span class="font-bold text-slate-900">${o ? o.icon + ' ' + o.label : 'انتهى'}${baby}</span>
+              <span class="text-slate-500">${escapeHTML(x.endDate || '')}${gaEnd ? ` • <span dir="ltr">${escapeHTML(gaEnd)}</span> أسبوع` : ''}</span>
+              ${x.notes ? `<div class="w-full text-slate-600">${escapeHTML(x.notes)}</div>` : ''}
+            </div>`;
+          }).join('')}</div>
+        </details>`;
+      }
+      return html;
+    }
+
    function patientAge(p) {
       const y = parseInt(convertArabicNumerals(p.birthYear || ''), 10);
       const now = new Date().getFullYear();
@@ -2357,14 +2616,7 @@
         html += `<div class="bg-red-50 border-2 border-red-300 rounded-2xl p-2.5 text-xs font-black text-red-800 space-y-1">${warnings.map((w) => `<div>${w}</div>`).join('')}</div>`;
       }
 
-      const preg = p.lmp ? calculatePregnancy(p.lmp) : null;
-      const ga = p.lmp ? gestationalAgeAt(p.lmp, getTodayDateString()) : '';
-      if (preg && !preg.isFuture && ga) {
-        html += `<div class="bg-rose-50 border border-rose-200 rounded-2xl p-2.5 text-xs flex flex-wrap justify-between items-center gap-2">
-          <span class="font-black text-rose-950">🤰 الحمل الحالي: <span class="bg-rose-800 text-white px-2 py-0.5 rounded-lg font-mono" dir="ltr">${escapeHTML(ga)}</span> أسبوع</span>
-          <span class="font-bold text-rose-900">موعد الولادة: <strong class="font-mono">${escapeHTML(preg.edd)}</strong></span>
-        </div>`;
-      }
+      html += pregnancySectionHTML(p);
       box.innerHTML = html;
     }
 
@@ -2427,6 +2679,7 @@
               <span class="font-black text-amber-950">✂️ ${escapeHTML(s.type)}</span>
               <span class="flex items-center gap-1">
                 <span class="text-amber-800 font-bold">📅 ${escapeHTML(s.date)}</span>
+                <button type="button" onclick="openSurgeryModal(${jsArg(patient.id)}, ${jsArg(s.id)})" class="px-2 py-1 rounded-lg bg-white hover:bg-amber-100 border border-amber-200 font-bold text-amber-900">✏️ تعديل</button>
                 <button type="button" onclick="deleteSurgeryRecord(${jsArg(patient.id)}, ${jsArg(s.id)})" class="text-rose-600 hover:bg-rose-50 rounded-lg px-1.5 py-1 font-bold" title="حذف">🗑️</button>
               </span>
             </div>
@@ -2930,7 +3183,7 @@
         complaint: val('nvComplaint'),
         diagnosis: val('nvDiagnosis'),
         bp: convertArabicNumerals(val('nvBP')),
-        weight: convertArabicNumerals(val('nvWeight')),
+        weight: convertArabicNumerals(val('nvWeight')).replace(/[٫،,]/g, '.'),
         fee: rawFee !== '' ? (parseInt(rawFee, 10) || 0) : 0,
         ultrasound: val('nvUltrasound'),
         rx: val('nvRx'),
@@ -2950,9 +3203,16 @@
       patient.visits.unshift(visit);
       patient.visits.sort((a, b) => (b.date || '').localeCompare(a.date || '') || ((b.timestamp || 0) - (a.timestamp || 0)));
 
-      // The patient's current LMP follows the newest pregnancy visit.
-      const newestAnc = patient.visits.find((x) => x.kind === 'anc' || (!x.kind && x.lmp));
-      if (newestAnc && newestAnc.id === visit.id && kind === 'anc') patient.lmp = lmpVal;
+      // Pregnancy visits belong to a pregnancy record; the newest one keeps its LMP current.
+      if (kind === 'anc') {
+        const newestAnc = patient.visits.find((x) => x.kind === 'anc' || (!x.kind && x.lmp));
+        const isNewest = !!newestAnc && newestAnc.id === visit.id;
+        const known = visit.pregnancyId && getPregnancies(patient).find((x) => x.id === visit.pregnancyId);
+        if (!known || known.status === 'active') {
+          const preg = ensureActivePregnancy(patient, lmpVal, visitDate, isNewest);
+          if (preg) visit.pregnancyId = preg.id;
+        }
+      }
       if (!old) patient.status = 'completed';
       const latest = patient.visits[0];
       patient.visitDate = latest.date;
@@ -2977,27 +3237,32 @@
     }
 
     // --- 14. SURGERIES & DELIVERIES ENGINE ---
-    function openSurgeryModal(patientId) {
+    function openSurgeryModal(patientId, surgId = null) {
       const p = patients.find(item => item.id === patientId);
       if (!p) return;
+      const sg = surgId ? (p.surgeries || []).find((x) => x.id === surgId) : null;
 
       document.getElementById('surgPatientId').value = p.id;
+      document.getElementById('surgEditId').value = sg ? sg.id : '';
+      document.getElementById('surgModalTitle').textContent = sg ? '✏️ تعديل العملية' : 'عملية أو ولادة';
+      document.getElementById('btnSaveSurgeryText').textContent = sg ? 'حفظ التعديلات' : 'حفظ';
       document.getElementById('surgPatientTitle').innerText = `المريضة: ${p.name} ${p.husband ? `(زوجها: ${p.husband})` : ''}`;
-      
-      document.getElementById('surgTypeSelect').value = '';
-      document.getElementById('surgCustomType').value = '';
-      document.getElementById('surgCustomTypeGroup').classList.add('hidden');
-      document.getElementById('surgDate').value = getTodayDateString();
-      document.getElementById('surgHospital').value = '';
-      document.getElementById('surgAnesthesia').value = 'عام (General)';
-      document.getElementById('surgSurgeon').value = 'د. هيام خضر';
-      document.getElementById('surgBabyGroup').classList.add('hidden');
-      document.getElementById('surgBabyGender').value = 'غير محدد';
-      document.getElementById('surgBabyWeight').value = '';
-      document.getElementById('surgBabyStatus').value = '';
-      document.getElementById('surgReport').value = '';
-      
-      handleSurgeryTypeChange('');
+
+      const select = document.getElementById('surgTypeSelect');
+      const known = sg && [...select.options].some((o) => o.value === sg.type);
+      select.value = sg ? (known ? sg.type : 'أخرى') : '';
+      document.getElementById('surgCustomType').value = sg && !known ? (sg.type || '') : '';
+      document.getElementById('surgDate').value = sg ? (sg.date || getTodayDateString()) : getTodayDateString();
+      document.getElementById('surgHospital').value = sg ? (sg.hospital || '') : '';
+      document.getElementById('surgAnesthesia').value = sg ? (sg.anesthesia || 'عام (General)') : 'عام (General)';
+      document.getElementById('surgSurgeon').value = sg ? (sg.surgeon || '') : 'د. هيام خضر';
+      document.getElementById('surgBabyGender').value = sg && sg.babyGender ? sg.babyGender : 'غير محدد';
+      document.getElementById('surgBabyWeight').value = sg ? (sg.babyWeight || '') : '';
+      document.getElementById('surgBabyStatus').value = sg ? (sg.babyStatus || '') : '';
+      document.getElementById('surgReport').value = sg ? (sg.report || '') : '';
+
+      handleSurgeryTypeChange(select.value);
+      if (sg) document.getElementById('surgAutoGpaNoticeText').innerText = 'تعديل فقط: لن تتغير السوابق التوليدية (G/P/A).';
       document.getElementById('surgeryModal').classList.remove('hidden');
     }
 
@@ -3039,7 +3304,7 @@
     async function handleSaveSurgerySubmit(e) {
       e.preventDefault();
       const saveBtn = document.getElementById('btnSaveSurgery');
-      if (saveBtn) { saveBtn.disabled = true; saveBtn.innerText = 'جاري الحفظ...'; }
+      if (saveBtn) saveBtn.disabled = true;
 
       const patientId = document.getElementById('surgPatientId').value;
       const p = patients.find(item => item.id === patientId);
@@ -3054,11 +3319,14 @@
       const report = document.getElementById('surgReport').value.trim();
 
       const babyGender = document.getElementById('surgBabyGender').value;
-      const babyWeight = convertArabicNumerals(document.getElementById('surgBabyWeight').value.trim());
+      const babyWeight = convertArabicNumerals(document.getElementById('surgBabyWeight').value.trim()).replace(/[٫،,]/g, '.');
       const babyStatus = document.getElementById('surgBabyStatus').value.trim();
 
+      const editId = document.getElementById('surgEditId').value || null;
+      const old = editId ? (p.surgeries || []).find((x) => x.id === editId) : null;
       const surgeryRecord = {
-        id: 'surg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+        ...(old || {}),
+        id: old ? old.id : 'surg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
         type: type,
         date: surgDate,
         hospital: hospital,
@@ -3068,33 +3336,29 @@
         babyGender: babyGender !== 'غير محدد' ? babyGender : null,
         babyWeight: babyWeight || null,
         babyStatus: babyStatus || null,
-        timestamp: Date.now()
+        timestamp: old ? (old.timestamp || Date.now()) : Date.now(),
+        updatedAt: Date.now()
       };
 
-      p.surgeries = Array.isArray(p.surgeries) ? p.surgeries : [];
+      p.surgeries = Array.isArray(p.surgeries) ? p.surgeries.filter((x) => x.id !== surgeryRecord.id) : [];
       p.surgeries.unshift(surgeryRecord);
 
-      // Automated GPA updates
-      if (type.includes('قيصرية') || type.includes('Cesarean')) {
-        p.cs = (parseInt(convertArabicNumerals(p.cs) || '0', 10) + 1).toString();
-        p.g = (parseInt(convertArabicNumerals(p.g) || '0', 10) + 1).toString();
-        p.lmp = '';
-      } else if (type.includes('تجريف') || type.includes('كورتاج') || type.includes('D&C')) {
-        p.a = (parseInt(convertArabicNumerals(p.a) || '0', 10) + 1).toString();
-        p.g = (parseInt(convertArabicNumerals(p.g) || '0', 10) + 1).toString();
-        p.lmp = '';
-      } else if (type.includes('ولادة طبيعية')) {
-        p.vd = (parseInt(convertArabicNumerals(p.vd) || '0', 10) + 1).toString();
-        p.g = (parseInt(convertArabicNumerals(p.g) || '0', 10) + 1).toString();
-        p.lmp = '';
+      const outcome = surgeryOutcome(type);
+      const baby = surgeryRecord.babyGender ? { gender: surgeryRecord.babyGender, weight: surgeryRecord.babyWeight || '', status: surgeryRecord.babyStatus || '' } : null;
+      const linked = getPregnancies(p).find((x) => x.surgeryId === surgeryRecord.id);
+      if (linked) {
+        // Editing: keep the linked pregnancy in step, but never count G/P/A again.
+        if (outcome) Object.assign(linked, { outcome, endDate: surgDate, baby });
+      } else if (outcome && !old) {
+        endPregnancy(p, { outcome, date: surgDate, surgeryId: surgeryRecord.id, baby }, true);
       }
 
       notifyDataChanged();
       await syncPatientToCloud(p);
 
-      if (saveBtn) { saveBtn.disabled = false; saveBtn.innerText = 'توثيق وحفظ العمل الجراحي'; }
+      if (saveBtn) saveBtn.disabled = false;
       closeSurgeryModal();
-      showRealtimeToast(`✂️ تم توثيق (${type}) وتحديث السوابق تلقائياً`);
+      showRealtimeToast(old ? `✅ تم حفظ تعديلات العملية` : (outcome ? `✂️ تم توثيق (${type}) وإغلاق الحمل وتحديث السوابق` : `✂️ تم توثيق (${type})`));
       if (!document.getElementById('doctorModal').classList.contains('hidden') &&
           activeArchivePatient && activeArchivePatient.id === p.id) {
         openDoctorModal(p.id);
@@ -3106,6 +3370,7 @@
       if (!p || !p.surgeries) return;
 
       p.surgeries = p.surgeries.filter(s => s.id !== surgId);
+      getPregnancies(p).forEach((x) => { if (x.surgeryId === surgId) x.surgeryId = null; });
       notifyDataChanged();
       await syncPatientToCloud(p);
       showRealtimeToast('🗑️ تم حذف تقرير العملية بنجاح');
@@ -5344,6 +5609,9 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
             <div class="flex items-center gap-1 shrink-0">
               <button onclick="openDoctorModal(${jsArg(s.patient.id)})" class="btn-touch h-8 px-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg text-xs font-bold border border-slate-300">
                 📂 الملف
+              </button>
+              <button onclick="openSurgeryModal(${jsArg(s.patient.id)}, ${jsArg(s.id)})" class="btn-touch h-8 px-2.5 bg-amber-50 hover:bg-amber-100 text-amber-900 rounded-lg text-xs font-bold border border-amber-200">
+                ✏️ تعديل
               </button>
               <button onclick="deleteSurgeryRecord(${jsArg(s.patient.id)}, ${jsArg(s.id)})" class="btn-touch h-8 px-2 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg text-xs font-bold border border-rose-200">
                 🗑️

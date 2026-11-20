@@ -50,6 +50,9 @@ Each visit and each operation is its own document, so a save only sends what cha
 devices editing the same patient cannot overwrite each other.
 
 - `patients/{id}`: patient profile only, with `schemaVersion: 2`.
+  The profile also holds `pregnancies`: one entry per pregnancy (`lmp`, `status` active/ended,
+  `outcome`, `endDate`, linked `surgeryId`, `baby`). Patients saved before this get the list built
+  from their operations and visits the first time they are opened. Pregnancy visits carry `pregnancyId`.
 - `patients/{id}/visits/{visitId}`: one visit (`photoCount` only; the photos are separate).
 - `patients/{id}/surgeries/{surgeryId}`: one operation / delivery.
 - `patients/{id}/photos/{visitId}`: the photos of one visit (`list` of JPEG data URLs).
