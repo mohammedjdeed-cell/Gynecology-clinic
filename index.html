@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#134d49">
+  <meta name="theme-color" content="#0a5869">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>عيادة النسائية والتوليد وجراحتها - د. هيام خضر</title>
@@ -15,20 +15,15 @@
   <!-- Tailwind CSS & Google Fonts -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    // Clinic design system. The app's classes say "rose" for the brand color; it is
-    // redefined here as a calm medical teal, so every screen changes together.
+    // Clinic design system. The app's classes say "rose" (brand) and "slate" (greys);
+    // both read CSS variables, so light and dark mode swap every screen at once.
     tailwind.config = {
+      darkMode: 'class',
       theme: {
         extend: {
           colors: {
-            rose: {
-              50: '#eefaf8', 100: '#d4f1ec', 200: '#a9e2da', 300: '#74cbc0', 400: '#41ada2',
-              500: '#249187', 600: '#18766e', 700: '#155f59', 800: '#134d49', 900: '#12403d', 950: '#062624'
-            },
-            slate: {
-              50: '#f6f8f8', 100: '#eef1f2', 200: '#dde3e5', 300: '#c3ccd0', 400: '#93a1a7',
-              500: '#66767d', 600: '#4b5a61', 700: '#38454b', 800: '#243034', 900: '#151e21', 950: '#0b1214'
-            }
+            rose: { 50: 'rgb(var(--brand-50) / <alpha-value>)', 100: 'rgb(var(--brand-100) / <alpha-value>)', 200: 'rgb(var(--brand-200) / <alpha-value>)', 300: 'rgb(var(--brand-300) / <alpha-value>)', 400: 'rgb(var(--brand-400) / <alpha-value>)', 500: 'rgb(var(--brand-500) / <alpha-value>)', 600: 'rgb(var(--brand-600) / <alpha-value>)', 700: 'rgb(var(--brand-700) / <alpha-value>)', 800: 'rgb(var(--brand-800) / <alpha-value>)', 900: 'rgb(var(--brand-900) / <alpha-value>)', 950: 'rgb(var(--brand-950) / <alpha-value>)' },
+            slate: { 50: 'rgb(var(--gray-50) / <alpha-value>)', 100: 'rgb(var(--gray-100) / <alpha-value>)', 200: 'rgb(var(--gray-200) / <alpha-value>)', 300: 'rgb(var(--gray-300) / <alpha-value>)', 400: 'rgb(var(--gray-400) / <alpha-value>)', 500: 'rgb(var(--gray-500) / <alpha-value>)', 600: 'rgb(var(--gray-600) / <alpha-value>)', 700: 'rgb(var(--gray-700) / <alpha-value>)', 800: 'rgb(var(--gray-800) / <alpha-value>)', 900: 'rgb(var(--gray-900) / <alpha-value>)', 950: 'rgb(var(--gray-950) / <alpha-value>)' }
           },
           fontFamily: {
             sans: ['"IBM Plex Sans Arabic"', 'Cairo', 'system-ui', 'sans-serif']
@@ -36,7 +31,174 @@
         }
       }
     };
+    // Theme: 'system' (default), 'light' or 'dark'; remembered on this device.
+    (function () {
+      var KEY = 'clinic_theme_v1';
+      var mq = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+      function pref() { try { return localStorage.getItem(KEY) || 'system'; } catch (e) { return 'system'; } }
+      function apply() {
+        var mode = pref();
+        var dark = mode === 'dark' || (mode === 'system' && mq && mq.matches);
+        document.documentElement.classList.toggle('dark', dark);
+        var meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute('content', dark ? '#0b1215' : '#0a5869');
+        document.querySelectorAll('.theme-toggle').forEach(function (b) {
+          b.textContent = mode === 'dark' ? '🌙' : (mode === 'light' ? '☀️' : '🖥️');
+          b.title = mode === 'dark' ? 'الوضع: داكن' : (mode === 'light' ? 'الوضع: فاتح' : 'الوضع: حسب الجهاز');
+        });
+      }
+      window.clinicTheme = {
+        apply: apply,
+        cycle: function () {
+          var next = { system: 'light', light: 'dark', dark: 'system' }[pref()] || 'system';
+          try { localStorage.setItem(KEY, next); } catch (e) {}
+          apply();
+          return next;
+        }
+      };
+      if (mq && mq.addEventListener) mq.addEventListener('change', apply);
+      apply();
+      document.addEventListener('DOMContentLoaded', apply);
+    })();
   </script>
+  <style>
+    :root {
+      --brand-50: 235 248 250;
+      --brand-100: 205 238 243;
+      --brand-200: 159 221 232;
+      --brand-300: 98 195 213;
+      --brand-400: 37 163 187;
+      --brand-500: 11 135 159;
+      --brand-600: 8 109 130;
+      --brand-700: 10 88 105;
+      --brand-800: 12 71 86;
+      --brand-900: 13 59 72;
+      --brand-950: 5 37 47;
+      --gray-50: 245 247 248;
+      --gray-100: 237 241 243;
+      --gray-200: 218 226 230;
+      --gray-300: 186 198 204;
+      --gray-400: 123 140 148;
+      --gray-500: 86 102 110;
+      --gray-600: 67 83 90;
+      --gray-700: 49 63 70;
+      --gray-800: 31 44 50;
+      --gray-900: 18 28 33;
+      --gray-950: 9 17 21;
+      --bg-app: #f2f5f6;
+      --surface: #ffffff;
+    }
+    html.dark {
+      --brand-50: 12 42 50;
+      --brand-100: 16 52 62;
+      --brand-200: 22 69 85;
+      --brand-300: 30 92 111;
+      --brand-400: 43 127 149;
+      --brand-500: 58 161 185;
+      --brand-600: 24 160 187;
+      --brand-700: 16 147 173;
+      --brand-800: 14 134 160;
+      --brand-900: 11 116 139;
+      --brand-950: 8 90 108;
+      --gray-50: 20 29 34;
+      --gray-100: 26 37 43;
+      --gray-200: 38 52 59;
+      --gray-300: 54 70 78;
+      --gray-400: 126 145 154;
+      --gray-500: 156 173 181;
+      --gray-600: 179 194 201;
+      --gray-700: 201 213 218;
+      --gray-800: 220 229 233;
+      --gray-900: 236 242 244;
+      --gray-950: 246 249 250;
+      --bg-app: #0b1215;
+      --surface: #141d22;
+      color-scheme: dark;
+    }
+    /* Dark mode: white surfaces become the dark surface; text-white stays white. */
+    html.dark [class~='bg-white'], html.dark [class*='bg-white/'] { background-color: var(--surface) !important; }
+    html.dark [class~='border-white'], html.dark [class*='border-white/'] { border-color: rgb(var(--gray-200)) !important; }
+    html.dark [class~='bg-slate-800'], html.dark [class*='bg-slate-800/'], html.dark [class~='bg-slate-900'], html.dark [class*='bg-slate-900/'] { background-color: #1f2c32 !important; }
+    html.dark [class~='text-rose-600'], html.dark [class~='text-rose-700'] { color: #5fcfe2 !important; }
+    html.dark [class~='text-rose-800'], html.dark [class~='text-rose-900'], html.dark [class~='text-rose-950'] { color: #9fe3ee !important; }
+    html.dark #lockScreen { background: radial-gradient(circle at 30% 20%, #0f3b47, #06171c 70%) !important; }
+    html.dark .tab-btn { background: var(--surface); color: rgb(var(--gray-700)); border-color: rgb(var(--gray-200)); }
+    html.dark .tab-btn:hover { background: rgb(var(--brand-50)); }
+    html.dark .tab-btn.is-active { background: rgb(var(--brand-800)); color: #fff; border-color: rgb(var(--brand-800)); }
+    html.dark .bn-btn { color: rgb(var(--gray-500)); }
+    html.dark .bn-btn.is-active { color: #5fcfe2; }
+    html.dark input::placeholder, html.dark textarea::placeholder { color: rgb(var(--gray-400)); }
+html.dark [class~='bg-amber-50'], html.dark [class*='bg-amber-50/'], html.dark [class~='bg-amber-100'], html.dark [class*='bg-amber-100/'] { background-color: rgba(245, 158, 11, .14) !important; }
+html.dark [class~='bg-amber-200'] { background-color: rgba(245, 158, 11, .24) !important; }
+html.dark [class~='border-amber-100'], html.dark [class~='border-amber-200'], html.dark [class~='border-amber-300'], html.dark [class*='border-amber-200/'] { border-color: rgba(245, 158, 11, .38) !important; }
+html.dark [class~='text-amber-700'], html.dark [class~='text-amber-800'], html.dark [class~='text-amber-900'], html.dark [class~='text-amber-950'] { color: #fcd34d !important; }
+html.dark [class~='text-amber-600'] { color: #fbbf24 !important; }
+html.dark [class~='bg-emerald-50'], html.dark [class*='bg-emerald-50/'], html.dark [class~='bg-emerald-100'], html.dark [class*='bg-emerald-100/'] { background-color: rgba(16, 185, 129, .14) !important; }
+html.dark [class~='bg-emerald-200'] { background-color: rgba(16, 185, 129, .24) !important; }
+html.dark [class~='border-emerald-100'], html.dark [class~='border-emerald-200'], html.dark [class~='border-emerald-300'], html.dark [class*='border-emerald-200/'] { border-color: rgba(16, 185, 129, .38) !important; }
+html.dark [class~='text-emerald-700'], html.dark [class~='text-emerald-800'], html.dark [class~='text-emerald-900'], html.dark [class~='text-emerald-950'] { color: #6ee7b7 !important; }
+html.dark [class~='text-emerald-600'] { color: #34d399 !important; }
+html.dark [class~='bg-red-50'], html.dark [class*='bg-red-50/'], html.dark [class~='bg-red-100'], html.dark [class*='bg-red-100/'] { background-color: rgba(239, 68, 68, .14) !important; }
+html.dark [class~='bg-red-200'] { background-color: rgba(239, 68, 68, .24) !important; }
+html.dark [class~='border-red-100'], html.dark [class~='border-red-200'], html.dark [class~='border-red-300'], html.dark [class*='border-red-200/'] { border-color: rgba(239, 68, 68, .38) !important; }
+html.dark [class~='text-red-700'], html.dark [class~='text-red-800'], html.dark [class~='text-red-900'], html.dark [class~='text-red-950'] { color: #fca5a5 !important; }
+html.dark [class~='text-red-600'] { color: #f87171 !important; }
+html.dark [class~='bg-pink-50'], html.dark [class*='bg-pink-50/'], html.dark [class~='bg-pink-100'], html.dark [class*='bg-pink-100/'] { background-color: rgba(236, 72, 153, .14) !important; }
+html.dark [class~='bg-pink-200'] { background-color: rgba(236, 72, 153, .24) !important; }
+html.dark [class~='border-pink-100'], html.dark [class~='border-pink-200'], html.dark [class~='border-pink-300'], html.dark [class*='border-pink-200/'] { border-color: rgba(236, 72, 153, .38) !important; }
+html.dark [class~='text-pink-700'], html.dark [class~='text-pink-800'], html.dark [class~='text-pink-900'], html.dark [class~='text-pink-950'] { color: #f9a8d4 !important; }
+html.dark [class~='text-pink-600'] { color: #f472b6 !important; }
+html.dark [class~='bg-sky-50'], html.dark [class*='bg-sky-50/'], html.dark [class~='bg-sky-100'], html.dark [class*='bg-sky-100/'] { background-color: rgba(14, 165, 233, .14) !important; }
+html.dark [class~='bg-sky-200'] { background-color: rgba(14, 165, 233, .24) !important; }
+html.dark [class~='border-sky-100'], html.dark [class~='border-sky-200'], html.dark [class~='border-sky-300'], html.dark [class*='border-sky-200/'] { border-color: rgba(14, 165, 233, .38) !important; }
+html.dark [class~='text-sky-700'], html.dark [class~='text-sky-800'], html.dark [class~='text-sky-900'], html.dark [class~='text-sky-950'] { color: #7dd3fc !important; }
+html.dark [class~='text-sky-600'] { color: #38bdf8 !important; }
+html.dark [class~='bg-violet-50'], html.dark [class*='bg-violet-50/'], html.dark [class~='bg-violet-100'], html.dark [class*='bg-violet-100/'] { background-color: rgba(139, 92, 246, .14) !important; }
+html.dark [class~='bg-violet-200'] { background-color: rgba(139, 92, 246, .24) !important; }
+html.dark [class~='border-violet-100'], html.dark [class~='border-violet-200'], html.dark [class~='border-violet-300'], html.dark [class*='border-violet-200/'] { border-color: rgba(139, 92, 246, .38) !important; }
+html.dark [class~='text-violet-700'], html.dark [class~='text-violet-800'], html.dark [class~='text-violet-900'], html.dark [class~='text-violet-950'] { color: #c4b5fd !important; }
+html.dark [class~='text-violet-600'] { color: #a78bfa !important; }
+html.dark [class~='bg-purple-50'], html.dark [class*='bg-purple-50/'], html.dark [class~='bg-purple-100'], html.dark [class*='bg-purple-100/'] { background-color: rgba(168, 85, 247, .14) !important; }
+html.dark [class~='bg-purple-200'] { background-color: rgba(168, 85, 247, .24) !important; }
+html.dark [class~='border-purple-100'], html.dark [class~='border-purple-200'], html.dark [class~='border-purple-300'], html.dark [class*='border-purple-200/'] { border-color: rgba(168, 85, 247, .38) !important; }
+html.dark [class~='text-purple-700'], html.dark [class~='text-purple-800'], html.dark [class~='text-purple-900'], html.dark [class~='text-purple-950'] { color: #d8b4fe !important; }
+html.dark [class~='text-purple-600'] { color: #c084fc !important; }
+html.dark [class~='bg-indigo-50'], html.dark [class*='bg-indigo-50/'], html.dark [class~='bg-indigo-100'], html.dark [class*='bg-indigo-100/'] { background-color: rgba(99, 102, 241, .14) !important; }
+html.dark [class~='bg-indigo-200'] { background-color: rgba(99, 102, 241, .24) !important; }
+html.dark [class~='border-indigo-100'], html.dark [class~='border-indigo-200'], html.dark [class~='border-indigo-300'], html.dark [class*='border-indigo-200/'] { border-color: rgba(99, 102, 241, .38) !important; }
+html.dark [class~='text-indigo-700'], html.dark [class~='text-indigo-800'], html.dark [class~='text-indigo-900'], html.dark [class~='text-indigo-950'] { color: #a5b4fc !important; }
+html.dark [class~='text-indigo-600'] { color: #818cf8 !important; }
+html.dark [class~='bg-green-50'], html.dark [class*='bg-green-50/'], html.dark [class~='bg-green-100'], html.dark [class*='bg-green-100/'] { background-color: rgba(34, 197, 94, .14) !important; }
+html.dark [class~='bg-green-200'] { background-color: rgba(34, 197, 94, .24) !important; }
+html.dark [class~='border-green-100'], html.dark [class~='border-green-200'], html.dark [class~='border-green-300'], html.dark [class*='border-green-200/'] { border-color: rgba(34, 197, 94, .38) !important; }
+html.dark [class~='text-green-700'], html.dark [class~='text-green-800'], html.dark [class~='text-green-900'], html.dark [class~='text-green-950'] { color: #86efac !important; }
+html.dark [class~='text-green-600'] { color: #4ade80 !important; }
+html.dark [class~='bg-yellow-50'], html.dark [class*='bg-yellow-50/'], html.dark [class~='bg-yellow-100'], html.dark [class*='bg-yellow-100/'] { background-color: rgba(234, 179, 8, .14) !important; }
+html.dark [class~='bg-yellow-200'] { background-color: rgba(234, 179, 8, .24) !important; }
+html.dark [class~='border-yellow-100'], html.dark [class~='border-yellow-200'], html.dark [class~='border-yellow-300'], html.dark [class*='border-yellow-200/'] { border-color: rgba(234, 179, 8, .38) !important; }
+html.dark [class~='text-yellow-700'], html.dark [class~='text-yellow-800'], html.dark [class~='text-yellow-900'], html.dark [class~='text-yellow-950'] { color: #fde047 !important; }
+html.dark [class~='text-yellow-600'] { color: #facc15 !important; }
+html.dark [class~='bg-orange-50'], html.dark [class*='bg-orange-50/'], html.dark [class~='bg-orange-100'], html.dark [class*='bg-orange-100/'] { background-color: rgba(249, 115, 22, .14) !important; }
+html.dark [class~='bg-orange-200'] { background-color: rgba(249, 115, 22, .24) !important; }
+html.dark [class~='border-orange-100'], html.dark [class~='border-orange-200'], html.dark [class~='border-orange-300'], html.dark [class*='border-orange-200/'] { border-color: rgba(249, 115, 22, .38) !important; }
+html.dark [class~='text-orange-700'], html.dark [class~='text-orange-800'], html.dark [class~='text-orange-900'], html.dark [class~='text-orange-950'] { color: #fdba74 !important; }
+html.dark [class~='text-orange-600'] { color: #fb923c !important; }
+html.dark [class~='bg-blue-50'], html.dark [class*='bg-blue-50/'], html.dark [class~='bg-blue-100'], html.dark [class*='bg-blue-100/'] { background-color: rgba(59, 130, 246, .14) !important; }
+html.dark [class~='bg-blue-200'] { background-color: rgba(59, 130, 246, .24) !important; }
+html.dark [class~='border-blue-100'], html.dark [class~='border-blue-200'], html.dark [class~='border-blue-300'], html.dark [class*='border-blue-200/'] { border-color: rgba(59, 130, 246, .38) !important; }
+html.dark [class~='text-blue-700'], html.dark [class~='text-blue-800'], html.dark [class~='text-blue-900'], html.dark [class~='text-blue-950'] { color: #93c5fd !important; }
+html.dark [class~='text-blue-600'] { color: #60a5fa !important; }
+html.dark [class~='bg-cyan-50'], html.dark [class*='bg-cyan-50/'], html.dark [class~='bg-cyan-100'], html.dark [class*='bg-cyan-100/'] { background-color: rgba(6, 182, 212, .14) !important; }
+html.dark [class~='bg-cyan-200'] { background-color: rgba(6, 182, 212, .24) !important; }
+html.dark [class~='border-cyan-100'], html.dark [class~='border-cyan-200'], html.dark [class~='border-cyan-300'], html.dark [class*='border-cyan-200/'] { border-color: rgba(6, 182, 212, .38) !important; }
+html.dark [class~='text-cyan-700'], html.dark [class~='text-cyan-800'], html.dark [class~='text-cyan-900'], html.dark [class~='text-cyan-950'] { color: #67e8f9 !important; }
+html.dark [class~='text-cyan-600'] { color: #22d3ee !important; }
+html.dark [class~='bg-teal-50'], html.dark [class*='bg-teal-50/'], html.dark [class~='bg-teal-100'], html.dark [class*='bg-teal-100/'] { background-color: rgba(20, 184, 166, .14) !important; }
+html.dark [class~='bg-teal-200'] { background-color: rgba(20, 184, 166, .24) !important; }
+html.dark [class~='border-teal-100'], html.dark [class~='border-teal-200'], html.dark [class~='border-teal-300'], html.dark [class*='border-teal-200/'] { border-color: rgba(20, 184, 166, .38) !important; }
+html.dark [class~='text-teal-700'], html.dark [class~='text-teal-800'], html.dark [class~='text-teal-900'], html.dark [class~='text-teal-950'] { color: #5eead4 !important; }
+html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
+  </style>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Cairo:wght@600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
@@ -47,12 +209,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
 <style>
-    :root {
-      --primary: #134d49;
-      --primary-hover: #12403d;
-      --surface: #ffffff;
-      --bg-app: #f3f6f6;
-    }
     body {
       font-family: 'IBM Plex Sans Arabic', 'Cairo', system-ui, sans-serif;
       background-color: var(--bg-app);
@@ -79,17 +235,25 @@
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     .bn-btn { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 0 6px; font-size: 11px; font-weight: 800; color: #64748b; }
-    .bn-btn.is-active { color: #155f59; }
+    .bn-btn.is-active { color: rgb(var(--brand-700)); }
     .bn-btn.is-active span:first-child { transform: translateY(-1px); }
     .tab-btn { height: 40px; padding: 0 14px; border-radius: 12px; font-size: 12px; font-weight: 800; white-space: nowrap; flex-shrink: 0;
                background: #fff; color: #334155; border: 1px solid #e2e8f0; display: inline-flex; align-items: center; gap: 6px; }
-    .tab-btn:hover { background: #eefaf8; }
-    .tab-btn.is-active { background: #134d49; color: #fff; border-color: #134d49; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+    .tab-btn:hover { background: rgb(var(--brand-50)); }
+    .tab-btn.is-active { background: rgb(var(--brand-800)); color: #fff; border-color: rgb(var(--brand-800)); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
     /* Softer, consistent depth for cards and dialogs */
     .shadow-2xs { box-shadow: 0 1px 2px rgba(16, 40, 38, .05); }
     .shadow-xs  { box-shadow: 0 1px 3px rgba(16, 40, 38, .07); }
     .shadow-2xl { box-shadow: 0 24px 48px -12px rgba(16, 40, 38, .25); }
-    :focus-visible { outline: 2px solid #249187; outline-offset: 2px; }
+    :focus-visible { outline: 2px solid rgb(var(--brand-500)); outline-offset: 2px; }
+    /* Modern thin scrollbars */
+    * { scrollbar-width: thin; scrollbar-color: rgb(var(--gray-300)) transparent; }
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background-color: rgb(var(--gray-300)); border-radius: 999px; border: 3px solid transparent; background-clip: content-box; }
+    ::-webkit-scrollbar-thumb:hover { background-color: rgb(var(--gray-400)); }
+    ::-webkit-scrollbar-corner { background: transparent; }
+    body, .tab-btn, .bn-btn { transition: background-color .2s, color .2s, border-color .2s; }
     ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-track { background: #f1f5f9; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; }
@@ -99,10 +263,9 @@
 
   <!-- ==================== 1. SECURITY LOCK SCREEN ==================== -->
   <div id="lockScreen" class="fixed inset-0 bg-gradient-to-br from-rose-900 via-rose-950 to-slate-950 backdrop-blur-md flex items-center justify-center p-4 z-50">
+    <button type="button" onclick="clinicTheme.cycle()" class="theme-toggle absolute top-4 left-4 h-10 w-10 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-lg" title="الوضع">🖥️</button>
     <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl space-y-5 border border-rose-100">
-      <div class="w-16 h-16 bg-rose-50 text-rose-700 rounded-2xl flex items-center justify-center mx-auto text-3xl shadow-inner border border-rose-100">
-        🩺
-      </div>
+      <div class="w-16 h-16 mx-auto drop-shadow-sm"><svg viewBox="0 0 48 48" class="w-full h-full" aria-hidden="true"><rect width="48" height="48" rx="13" fill="rgb(var(--brand-700))"/><circle cx="24" cy="24" r="15" fill="rgb(var(--brand-500))" opacity=".55"/><rect x="20.5" y="13" width="7" height="22" rx="2.4" fill="#fff"/><rect x="13" y="20.5" width="22" height="7" rx="2.4" fill="#fff"/></svg></div>
       <div>
         <h2 class="text-xl font-black text-rose-950">عيادة النسائية والتوليد</h2>
         <p class="text-xs text-slate-500 font-bold mt-1">الدكتورة هيام خضر</p>
@@ -140,9 +303,7 @@
       
       <!-- Brand & Title (Never cut off on 6-inch screens) -->
       <div class="flex items-center gap-2 min-w-0 flex-1">
-        <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-center text-base sm:text-xl shrink-0">
-          🩺
-        </div>
+        <div class="w-9 h-9 sm:w-10 sm:h-10 shrink-0"><svg viewBox="0 0 48 48" class="w-full h-full" aria-hidden="true"><rect width="48" height="48" rx="13" fill="rgb(var(--brand-700))"/><circle cx="24" cy="24" r="15" fill="rgb(var(--brand-500))" opacity=".55"/><rect x="20.5" y="13" width="7" height="22" rx="2.4" fill="#fff"/><rect x="13" y="20.5" width="22" height="7" rx="2.4" fill="#fff"/></svg></div>
         <div class="min-w-0">
           <h1 class="text-xs sm:text-sm md:text-base font-black truncate text-rose-950 leading-tight">عيادة د. هيام خضر</h1>
           <span id="syncStatus" onclick="syncAllToCloud()" title="المزامنة" class="cursor-pointer text-[10px] sm:text-[11px] font-bold text-slate-600 bg-slate-100 border border-slate-200 rounded-md px-1.5 py-0.5 mt-0.5 inline-block truncate max-w-[180px] sm:max-w-none">🟢 متصل</span>
@@ -198,6 +359,7 @@
           </div>
         </div>
 
+        <button type="button" onclick="clinicTheme.cycle()" class="theme-toggle btn-touch h-9 w-9 sm:h-10 sm:w-10 bg-slate-100 hover:bg-slate-200 rounded-xl text-sm border border-slate-200 flex items-center justify-center" title="الوضع">🖥️</button>
         <button onclick="lockApp()" title="قفل" class="btn-touch h-9 w-9 sm:h-10 sm:w-10 bg-slate-100 hover:bg-slate-200 rounded-xl text-sm border border-slate-200 flex items-center justify-center">
           🔒
         </button>
@@ -218,6 +380,7 @@
         <button onclick="manualInstantRefresh()" title="تحديث" class="btn-touch h-9 w-9 sm:h-10 sm:w-10 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl border border-slate-200 flex items-center justify-center text-sm">
           🔄
         </button>
+        <button type="button" onclick="clinicTheme.cycle()" class="theme-toggle btn-touch h-9 w-9 sm:h-10 sm:w-10 bg-slate-100 hover:bg-slate-200 rounded-xl text-sm border border-slate-200 flex items-center justify-center" title="الوضع">🖥️</button>
         <button onclick="lockApp()" title="قفل" class="btn-touch h-9 w-9 sm:h-10 sm:w-10 bg-slate-100 hover:bg-slate-200 rounded-xl text-sm border border-slate-200 flex items-center justify-center">
           🔒
         </button>

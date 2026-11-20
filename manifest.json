@@ -3,8 +3,8 @@
   "short_name": "العيادة",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#134d49",
-  "theme_color": "#134d49",
+  "background_color": "#0a5869",
+  "theme_color": "#0a5869",
   "dir": "rtl",
   "lang": "ar",
   "icons": [
