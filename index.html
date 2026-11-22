@@ -352,6 +352,50 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
     #lockScreen #loginBtn { border-radius: 999px !important; box-shadow: none !important; }
     #lockScreen #googleLoginBtn { border-radius: 999px !important; border-color: transparent !important; background: var(--oui-fill) !important; }
     @media (min-width: 768px) { #lockScreen { align-items: center; } }
+
+    /* ----- Motion and gestures (One UI 9) ----- */
+    :root { --oui-ease: cubic-bezier(.22,1,.36,1); }
+    #ouiTitle { transform-origin: right bottom; will-change: transform, opacity; }
+    #ouiBarTitle { display: none; font-size: 17px; font-weight: 700; color: rgb(var(--gray-900)); }
+    header#appBar.is-collapsed #ouiBarTitle { display: block; animation: ouiFade .22s var(--oui-ease); }
+    header#appBar.is-collapsed .oui-brand-name { display: none; }
+    @keyframes ouiFade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    /* Tab change: content slides in from the side the finger came from */
+    .oui-in-next #ouiTitle, .oui-in-next #patientList > *, .oui-in-next #nextPatientSpotlightContainer { animation: ouiInNext .34s var(--oui-ease) both; }
+    .oui-in-prev #ouiTitle, .oui-in-prev #patientList > *, .oui-in-prev #nextPatientSpotlightContainer { animation: ouiInPrev .34s var(--oui-ease) both; }
+    #patientList > *:nth-child(2) { animation-delay: .03s !important; } #patientList > *:nth-child(3) { animation-delay: .06s !important; }
+    #patientList > *:nth-child(4) { animation-delay: .09s !important; } #patientList > *:nth-child(n+5) { animation-delay: .12s !important; }
+    @keyframes ouiInNext { from { opacity: 0; transform: translateX(-28px); } to { opacity: 1; transform: none; } }
+    @keyframes ouiInPrev { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
+    /* Slides never widen the page; sideways swipes belong to the app, sideways lists still scroll */
+    html, body { overflow-x: clip; }
+    #mainArea { overflow-x: clip; touch-action: pan-y; }
+    #mainArea .overflow-x-auto, #mainArea .no-scrollbar, #mainArea [class*="overflow-x-"] { touch-action: pan-x pan-y; }
+    #patientList.oui-dragging, #ouiTitle.oui-dragging { transition: none !important; }
+    #patientList.oui-settle, #ouiTitle.oui-settle { transition: transform .3s var(--oui-ease), opacity .3s; }
+    /* Pull to refresh */
+    #ouiPull { position: fixed; top: calc(64px + env(safe-area-inset-top)); left: 50%; z-index: 35; width: 40px; height: 40px; margin-left: -20px; border-radius: 999px;
+      background: var(--surface); color: rgb(var(--brand-600)); display: grid; place-items: center; box-shadow: 0 4px 16px rgba(0,0,0,.14);
+      opacity: 0; transform: translateY(-50px); pointer-events: none; }
+    #ouiPull svg { width: 20px; height: 20px; }
+    #ouiPull.is-ready { background: rgb(var(--brand-600)); color: #fff; }
+    #ouiPull.is-spinning svg { animation: ouiSpin .7s linear infinite; }
+    @keyframes ouiSpin { to { transform: rotate(360deg); } }
+    /* Sheets: grab handle, drag to close */
+    .oui-handle { display: none; }
+    @media (max-width: 767px) {
+      .oui-sheet > .oui-handle { display: block; width: 40px; height: 5px; border-radius: 999px; background: rgb(var(--gray-300)); margin: -6px auto 6px; flex: none; }
+    }
+    .oui-sheet.oui-dragging { transition: none !important; animation: none !important; }
+    .oui-sheet.oui-settle { transition: transform .32s var(--oui-ease) !important; }
+    .oui-shake { animation: ouiShake .32s ease !important; }
+    @keyframes ouiShake { 20%,60% { transform: translateX(-7px); } 40%,80% { transform: translateX(7px); } }
+    /* Backdrop fades in */
+    .fixed.inset-0:not(#lockScreen):not(.hidden)[class*="bg-black"] { animation: ouiDim .25s ease; }
+    @keyframes ouiDim { from { background-color: rgba(0,0,0,0); } }
+    @media (prefers-reduced-motion: reduce) {
+      #ouiTitle, #patientList > *, #nextPatientSpotlightContainer, .oui-sheet, .fixed.inset-0 { animation: none !important; transition: none !important; }
+    }
   </style>
 </head>
 <body class="text-slate-800 antialiased selection:bg-rose-200 selection:text-rose-900 min-h-screen flex flex-col justify-between">
@@ -400,7 +444,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
       <div class="flex items-center gap-2 min-w-0 flex-1">
         <div class="w-9 h-9 sm:w-10 sm:h-10 shrink-0"><svg viewBox="0 0 48 48" class="w-full h-full" aria-hidden="true"><rect width="48" height="48" rx="13" fill="rgb(var(--brand-700))"/><circle cx="24" cy="24" r="15" fill="rgb(var(--brand-500))" opacity=".55"/><rect x="20.5" y="13" width="7" height="22" rx="2.4" fill="#fff"/><rect x="13" y="20.5" width="22" height="7" rx="2.4" fill="#fff"/></svg></div>
         <div class="min-w-0">
-          <h1 class="text-sm md:text-base font-black truncate text-rose-950 leading-tight">عيادة د. هيام خضر</h1>
+          <h1 class="oui-brand-name text-sm md:text-base font-black truncate text-rose-950 leading-tight">عيادة د. هيام خضر</h1><div id="ouiBarTitle" aria-hidden="true"></div>
           <span id="syncStatus" onclick="syncAllToCloud()" title="المزامنة" class="cursor-pointer text-[10px] sm:text-[11px] font-bold text-slate-600 bg-slate-100 border border-slate-200 rounded-md px-1.5 py-0.5 mt-0.5 inline-block truncate max-w-[180px] sm:max-w-none"> متصل</span>
           <span id="roleBadge" class="text-[9px] sm:text-[10px] bg-rose-950/90 text-rose-200 border border-rose-800/80 px-1.5 py-0.2 rounded font-bold inline-block mt-0.5 truncate max-w-[140px] sm:max-w-none"></span>
         </div>
@@ -6733,6 +6777,246 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
         navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW registration note:', err));
       });
     }
+  </script>
+
+  <!-- ==================== One UI 9 motion and gestures ==================== -->
+  <div id="ouiPull" aria-hidden="true"><i data-lucide="refresh-cw"></i></div>
+  <script>
+  (function () {
+    const reduce = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const buzz = (ms) => { try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {} };
+    const TAB_ORDER = ['today', 'all', 'dueMonth', 'surgeries', 'weekly'];
+    // Every dialog and the function that closes it properly.
+    const SHEETS = {
+      newVisitModal: 'closeNewVisitModal', doctorModal: 'closeDoctorModal', doctorNewPatientModal: 'closeDoctorNewPatientModal',
+      surgeryModal: 'closeSurgeryModal', pregnancyModal: 'closePregnancyModal', quickDeliveryModal: 'closeQuickDelivery',
+      drugsModal: 'closeDrugsModal', whatsappModal: 'closeWhatsAppModal', syncReportModal: 'closeSyncReportModal',
+      changePinModal: 'closeChangePinModal', deleteModal: 'closeDeleteModal', backdateModal: 'closeBackdateModal',
+      secretaryModal: 'closeSecretaryModal', imageLightbox: 'closeLightbox'
+    };
+    // Dialogs holding a form: closing by gesture is refused once something was typed, so nothing is lost by accident.
+    const FORMS = new Set(['doctorModal', 'newVisitModal', 'doctorNewPatientModal', 'surgeryModal', 'backdateModal', 'secretaryModal', 'pregnancyModal', 'quickDeliveryModal', 'changePinModal']);
+    const isOpen = (id) => { const m = document.getElementById(id); return m && !m.classList.contains('hidden'); };
+    const openStack = [];   // dialogs in the order they opened; the last is on top
+    const dirty = new Set();
+
+    function closeSheet(id, how) {
+      const fn = window[SHEETS[id]];
+      if (typeof fn !== 'function') return false;
+      if (FORMS.has(id) && dirty.has(id)) {
+        const panel = document.getElementById(id).firstElementChild;
+        if (panel) { panel.classList.remove('oui-shake'); void panel.offsetWidth; panel.classList.add('oui-shake'); }
+        buzz([12, 40, 12]);
+        if (typeof showRealtimeToast === 'function') showRealtimeToast('فيها بيانات لم تُحفظ: احفظي أو اضغطي × للإغلاق');
+        return false;
+      }
+      fn();
+      return true;
+    }
+
+    /* ---------- Large title that collapses into the app bar ---------- */
+    let ticking = false;
+    function onScroll() {
+      if (ticking) return; ticking = true;
+      requestAnimationFrame(() => {
+        ticking = false;
+        const t = document.getElementById('ouiTitle'), bar = document.getElementById('appBar');
+        if (!t || !bar) return;
+        const y = window.scrollY, h = t.offsetHeight || 1;
+        if (!reduce() && !t.classList.contains('oui-dragging')) {
+          const k = Math.min(1, Math.max(0, y / h));
+          t.style.opacity = String(1 - k * 1.2);
+          t.style.transform = `translateY(${y * 0.35}px) scale(${1 - k * 0.12})`;
+        }
+        bar.classList.toggle('is-collapsed', y > h * 0.75);
+        const bt = document.getElementById('ouiBarTitle'), tt = document.getElementById('ouiTitleText');
+        if (bt && tt && bt.textContent !== tt.textContent) bt.textContent = tt.textContent;
+      });
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    /* ---------- Tab changes slide in from the right side ---------- */
+    const baseSetActiveTab = window.setActiveTab;
+    window.setActiveTab = function (tab, dirHint) {
+      const from = TAB_ORDER.indexOf(activeTab);
+      const to = TAB_ORDER.indexOf(tab);
+      baseSetActiveTab(tab);
+      if (reduce()) return;
+      const main = document.getElementById('mainArea');
+      const dir = dirHint || (to >= 0 && from >= 0 && to < from ? 'prev' : 'next');
+      main.classList.remove('oui-in-next', 'oui-in-prev'); void main.offsetWidth;
+      main.classList.add(dir === 'prev' ? 'oui-in-prev' : 'oui-in-next');
+      clearTimeout(main._ouiT); main._ouiT = setTimeout(() => main.classList.remove('oui-in-next', 'oui-in-prev'), 600);
+      const t = document.getElementById('ouiTitle'); if (t) { t.style.opacity = ''; t.style.transform = ''; }
+      onScroll();
+    };
+
+    /* ---------- Phone gestures on the page: swipe between tabs, pull to refresh ---------- */
+    const coarse = () => window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+    let g = null;
+    function blockedTarget(el) {
+      for (let n = el; n && n !== document.body; n = n.parentElement) {
+        if (n.matches && n.matches('input, textarea, select, [contenteditable], #bottomNav, header')) return true;
+        if (n.scrollWidth > n.clientWidth + 4) { const ox = getComputedStyle(n).overflowX; if (ox === 'auto' || ox === 'scroll') return true; }
+      }
+      return false;
+    }
+    // A live update can redraw the list mid-swipe; the finger's element then leaves the page and its
+    // touch events stop reaching the document, so the handlers also listen on that element.
+    const once = (fn) => (e) => { if (e.__oui) return; e.__oui = true; fn(e); };
+    function bindTarget(el) {
+      el.addEventListener('touchmove', onMove, { passive: true });
+      el.addEventListener('touchend', onEnd, { passive: true });
+      el.addEventListener('touchcancel', onCancel, { passive: true });
+      setTimeout(() => { el.removeEventListener('touchmove', onMove); el.removeEventListener('touchend', onEnd); el.removeEventListener('touchcancel', onCancel); }, 8000);
+    }
+    document.addEventListener('touchstart', (e) => {
+      if (!coarse() || e.touches.length !== 1 || openStack.length) { g = null; return; }
+      if (document.getElementById('lockScreen') && !document.getElementById('lockScreen').classList.contains('hidden')) { g = null; return; }
+      if (!document.getElementById('mainArea').contains(e.target) || blockedTarget(e.target)) { g = null; return; }
+      const t = e.touches[0];
+      g = { x: t.clientX, y: t.clientY, t: Date.now(), mode: null, top: window.scrollY <= 0 };
+      bindTarget(e.target);
+    }, { passive: true });
+    const onMove = once((e) => {
+      if (!g) return;
+      const t = e.touches[0], dx = t.clientX - g.x, dy = t.clientY - g.y;
+      if (!g.mode) {
+        if (Math.abs(dx) > 14 && Math.abs(dx) > Math.abs(dy) * 1.4 && currentRole === 'doctor') g.mode = 'swipe';
+        else if (dy > 10 && g.top && Math.abs(dy) > Math.abs(dx)) g.mode = 'pull';
+        else if (Math.abs(dy) > 10) { g = null; return; }
+        else return;
+      }
+      if (reduce()) return;
+      if (g.mode === 'swipe') {
+        const list = document.getElementById('patientList'), title = document.getElementById('ouiTitle');
+        [list, title].forEach((n) => { if (!n) return; n.classList.add('oui-dragging'); n.classList.remove('oui-settle');
+          n.style.transform = `translateX(${dx * 0.35}px)`; n.style.opacity = String(1 - Math.min(0.5, Math.abs(dx) / 600)); });
+      } else if (g.mode === 'pull') {
+        const pull = document.getElementById('ouiPull'), d = Math.min(120, dy * 0.55);
+        pull.style.opacity = String(Math.min(1, d / 60));
+        pull.style.transform = `translateY(${d - 40}px) rotate(${d * 3}deg)`;
+        const ready = d >= 70;
+        if (ready && !pull.classList.contains('is-ready')) buzz(8);
+        pull.classList.toggle('is-ready', ready);
+      }
+    });
+    const onCancel = once(() => {
+      if (!g) return;
+      g = null;
+      ['patientList', 'ouiTitle'].forEach((id) => { const n = document.getElementById(id); if (n) { n.classList.remove('oui-dragging'); n.style.transform = ''; n.style.opacity = ''; } });
+      const pull = document.getElementById('ouiPull'); pull.classList.remove('is-ready'); pull.style.opacity = '0'; pull.style.transform = 'translateY(-50px)';
+    });
+    const onEnd = once((e) => {
+      if (!g || !g.mode) { g = null; return; }
+      const t = e.changedTouches[0], dx = t.clientX - g.x, dy = t.clientY - g.y, mode = g.mode;
+      g = null;
+      if (mode === 'swipe') {
+        const list = document.getElementById('patientList'), title = document.getElementById('ouiTitle');
+        [list, title].forEach((n) => { if (!n) return; n.classList.remove('oui-dragging'); n.classList.add('oui-settle'); n.style.transform = ''; n.style.opacity = ''; });
+        setTimeout(() => [list, title].forEach((n) => n && n.classList.remove('oui-settle')), 320);
+        if (Math.abs(dx) < 70) return;
+        const i = TAB_ORDER.indexOf(activeTab);
+        // Right-to-left layout: the next tab sits to the left, so a swipe to the left opens it.
+        const next = i < 0 ? 0 : i + (dx < 0 ? 1 : -1);
+        if (next < 0 || next >= TAB_ORDER.length) return;
+        buzz(10);
+        window.setActiveTab(TAB_ORDER[next], dx < 0 ? 'next' : 'prev');
+      } else if (mode === 'pull') {
+        const pull = document.getElementById('ouiPull');
+        const go = pull.classList.contains('is-ready');
+        pull.classList.remove('is-ready');
+        if (!go) { pull.style.opacity = '0'; pull.style.transform = 'translateY(-50px)'; return; }
+        pull.style.transform = 'translateY(26px)'; pull.classList.add('is-spinning');
+        Promise.resolve(typeof manualInstantRefresh === 'function' ? manualInstantRefresh() : null).catch(() => {}).finally(() => {
+          setTimeout(() => { pull.classList.remove('is-spinning'); pull.style.opacity = '0'; pull.style.transform = 'translateY(-50px)'; }, 350);
+        });
+      }
+    });
+    document.addEventListener('touchmove', onMove, { passive: true });
+    document.addEventListener('touchend', onEnd, { passive: true });
+    document.addEventListener('touchcancel', onCancel, { passive: true });
+
+    /* ---------- Dialogs: grab handle, swipe down to close, Back closes the top one ---------- */
+    // One history entry per open dialog, so the phone's Back gesture closes the top dialog
+    // instead of leaving the app.
+    let ignorePop = 0, pushed = 0;
+    function onSheetOpened(id) {
+      if (openStack.includes(id)) return;
+      openStack.push(id);
+      dirty.delete(id);
+      try { history.pushState({ ouiSheet: id }, ''); pushed++; } catch (e) {}
+    }
+    function onSheetClosed(id) {
+      const i = openStack.indexOf(id);
+      if (i < 0) return;   // already handled (closed by Back)
+      openStack.splice(i, 1);
+      dirty.delete(id);
+      // Closed with a button: drop its history entry quietly.
+      if (pushed > 0) { pushed--; ignorePop++; history.back(); }
+    }
+    window.addEventListener('popstate', () => {
+      if (ignorePop > 0) { ignorePop--; return; }
+      if (!openStack.length) return;
+      pushed = Math.max(0, pushed - 1);
+      const top = openStack.pop();
+      if (!closeSheet(top, 'back')) {
+        openStack.push(top);
+        try { history.pushState({ ouiSheet: top }, ''); pushed++; } catch (e) {}
+      }
+    });
+
+    function setupSheet(id) {
+      const modal = document.getElementById(id);
+      if (!modal) return;
+      const panel = modal.firstElementChild;
+      new MutationObserver(() => {
+        const open = !modal.classList.contains('hidden');
+        if (open) onSheetOpened(id); else onSheetClosed(id);
+      }).observe(modal, { attributes: true, attributeFilter: ['class'] });
+      modal.addEventListener('input', () => dirty.add(id));
+      modal.addEventListener('change', (e) => { if (e.target.matches('input, select, textarea')) dirty.add(id); });
+      modal.addEventListener('submit', () => dirty.delete(id), true);
+      if (!panel || id === 'imageLightbox') return;
+      panel.classList.add('oui-sheet');
+      if (!panel.querySelector(':scope > .oui-handle')) {
+        const h = document.createElement('div'); h.className = 'oui-handle'; h.setAttribute('aria-hidden', 'true');
+        panel.prepend(h);
+      }
+      let d = null;
+      panel.addEventListener('touchstart', (e) => {
+        if (e.touches.length !== 1 || panel.scrollTop > 0 || window.innerWidth > 767) { d = null; return; }
+        if (e.target.closest('input, textarea, select, [contenteditable]')) { d = null; return; }
+        const r = panel.getBoundingClientRect();
+        // Start only from the top of the sheet (handle and title), so scrolling the form never closes it.
+        if (e.touches[0].clientY - r.top > 90) { d = null; return; }
+        d = { y: e.touches[0].clientY, t: Date.now(), on: false };
+      }, { passive: true });
+      panel.addEventListener('touchmove', (e) => {
+        if (!d) return;
+        const dy = e.touches[0].clientY - d.y;
+        if (!d.on && dy > 8) { d.on = true; panel.classList.add('oui-dragging'); }
+        if (d.on) panel.style.transform = `translateY(${Math.max(0, dy)}px)`;
+      }, { passive: true });
+      panel.addEventListener('touchend', (e) => {
+        if (!d || !d.on) { d = null; return; }
+        const dy = e.changedTouches[0].clientY - d.y, fast = dy / Math.max(1, Date.now() - d.t) > 0.6;
+        d = null;
+        panel.classList.remove('oui-dragging'); panel.classList.add('oui-settle');
+        if ((dy > 120 || (fast && dy > 50)) && !(FORMS.has(id) && dirty.has(id))) {
+          panel.style.transform = 'translateY(110%)';
+          buzz(10);
+          setTimeout(() => { panel.classList.remove('oui-settle'); panel.style.transform = ''; closeSheet(id, 'swipe'); }, 220);
+        } else {
+          panel.style.transform = '';
+          if (dy > 120) closeSheet(id, 'swipe');   // refused: shakes and explains
+          setTimeout(() => panel.classList.remove('oui-settle'), 330);
+        }
+      }, { passive: true });
+    }
+    Object.keys(SHEETS).forEach(setupSheet);
+    if (window.lucide) lucide.createIcons();
+  })();
   </script>
 </body>
 </html>
