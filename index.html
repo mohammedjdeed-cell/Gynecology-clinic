@@ -2890,12 +2890,12 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
       const fallback = story ? '' : storyFallback(p);
       return `<div id="storyBox" class="rounded-2xl border border-rose-200 bg-rose-50 p-3">
         <div class="flex items-center justify-between gap-2 mb-1">
-          <span class="text-[11px] font-bold text-rose-800 inline-flex items-center gap-1">${ic('quote')} قصتها / الشكوى الرئيسية</span>
+          <span class="text-[11px] font-bold text-rose-800 inline-flex items-center gap-1">${ic('quote')} الشكوى الرئيسية</span>
           <button type="button" onclick="editStory()" class="inline-flex items-center gap-1 h-7 px-2 rounded-lg bg-white border border-rose-200 text-[11px] font-bold text-rose-800">${ic('pencil')} ${story ? 'تعديل' : 'كتابة'}</button>
         </div>
         ${story ? `<p class="text-[15px] font-bold text-slate-900 leading-relaxed whitespace-pre-line">${escapeHTML(story)}</p>`
           : (fallback ? `<p class="text-sm font-bold text-slate-600 leading-relaxed">${escapeHTML(fallback)} <span class="text-[11px] font-normal text-slate-400">(من آخر زيارة)</span></p>`
-          : `<p class="text-sm text-slate-400">اكتبي باختصار: من هي وما مشكلتها الأساسية؟</p>`)}
+          : `<p class="text-sm text-slate-400">اكتبي الشكوى الرئيسية باختصار</p>`)}
       </div>`;
     }
 
@@ -2905,7 +2905,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
       if (!p || !box) return;
       const current = (p.story || '').trim() || storyFallback(p);
       box.innerHTML = `
-        <label class="block text-[11px] font-bold text-rose-800 mb-1">قصتها / الشكوى الرئيسية</label>
+        <label class="block text-[11px] font-bold text-rose-800 mb-1">الشكوى الرئيسية</label>
         <textarea id="storyInput" rows="3" class="w-full p-2.5 border border-rose-200 rounded-xl bg-white text-sm font-bold text-slate-900" placeholder="مثال: تأخر حمل 3 سنوات، تكيس مبايض، تحريض إباضة">${escapeHTML(current)}</textarea>
         <div class="flex gap-2 mt-2">
           <button type="button" onclick="saveStory()" class="flex-1 h-9 rounded-xl bg-rose-800 hover:bg-rose-900 text-white font-bold text-xs inline-flex items-center justify-center gap-1">${ic('save')} حفظ</button>
