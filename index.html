@@ -287,7 +287,11 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
     header#appBar.is-scrolled { background: color-mix(in srgb, var(--bg-app) 82%, transparent) !important; backdrop-filter: blur(18px) saturate(1.4); -webkit-backdrop-filter: blur(18px) saturate(1.4); box-shadow: 0 1px 0 rgb(var(--gray-200)) !important; }
     header#appBar #doctorNav button:not([class*="bg-rose"]), header#appBar #secretaryNav button:not([class*="bg-rose"]) { background: transparent !important; border-color: transparent !important; }
     header#appBar #doctorNav button:not([class*="bg-rose"]):hover { background: rgb(var(--gray-200) / .6) !important; }
-    #syncStatus, #roleBadge { border-color: transparent !important; border-radius: 999px !important; }
+    /* Status chips under the clinic name: one row, same height, same type */
+    .oui-chips { display: flex; align-items: center; gap: 6px; margin-top: 3px; min-width: 0; }
+    #syncStatus, #roleBadge { display: inline-flex !important; align-items: center; height: 22px; margin: 0 !important; padding: 0 9px !important;
+      font-size: 11px !important; line-height: 1 !important; border: 0 !important; border-radius: 999px !important; white-space: nowrap; }
+    #roleBadge:empty { display: none !important; }
 
     /* Cards: flat, no outline, generous corners */
     main [class~="bg-white"][class*="rounded-"], [id$="Modal"] [class~="bg-white"][class*="rounded-2xl"], #statsBar {
@@ -339,9 +343,9 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
     .fixed.inset-0:not(#lockScreen)[class*="bg-black"] { background-color: rgba(0,0,0,.42) !important; backdrop-filter: none !important; }
     @media (max-width: 767px) {
       .fixed.inset-0.items-center:not(#lockScreen) { align-items: flex-end !important; padding: 8px 8px calc(8px + env(safe-area-inset-bottom)) !important; }
-      .fixed.inset-0:not(#lockScreen):not(.hidden) > div { animation: ouiRise .28s cubic-bezier(.2,.9,.25,1); }
+      .fixed.inset-0:not(#lockScreen):not(.hidden) > div { animation: ouiRise .2s cubic-bezier(.2,.9,.25,1); }
     }
-    @keyframes ouiRise { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+    @keyframes ouiRise { from { transform: translateY(28px); opacity: 0; } to { transform: none; opacity: 1; } }
     @media (prefers-reduced-motion: reduce) { .fixed.inset-0 > div { animation: none !important; } }
 
     /* Sign-in: plain ground, large title, flat card */
@@ -361,18 +365,18 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
     header#appBar.is-collapsed .oui-brand-name { display: none; }
     @keyframes ouiFade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
     /* Tab change: content slides in from the side the finger came from */
-    .oui-in-next #ouiTitle, .oui-in-next #patientList > *, .oui-in-next #nextPatientSpotlightContainer { animation: ouiInNext .34s var(--oui-ease) both; }
-    .oui-in-prev #ouiTitle, .oui-in-prev #patientList > *, .oui-in-prev #nextPatientSpotlightContainer { animation: ouiInPrev .34s var(--oui-ease) both; }
-    #patientList > *:nth-child(2) { animation-delay: .03s !important; } #patientList > *:nth-child(3) { animation-delay: .06s !important; }
-    #patientList > *:nth-child(4) { animation-delay: .09s !important; } #patientList > *:nth-child(n+5) { animation-delay: .12s !important; }
-    @keyframes ouiInNext { from { opacity: 0; transform: translateX(-28px); } to { opacity: 1; transform: none; } }
-    @keyframes ouiInPrev { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
+    .oui-in-next #ouiTitle, .oui-in-next #patientList > *, .oui-in-next #nextPatientSpotlightContainer { animation: ouiInNext .2s var(--oui-ease) both; }
+    .oui-in-prev #ouiTitle, .oui-in-prev #patientList > *, .oui-in-prev #nextPatientSpotlightContainer { animation: ouiInPrev .2s var(--oui-ease) both; }
+    .oui-in-next #patientList > *:nth-child(n+2), .oui-in-prev #patientList > *:nth-child(n+2) { animation-delay: .025s; }
+    /* RTL: the next tab lies to the left, so it enters from the left edge; the previous one from the right */
+    @keyframes ouiInNext { from { opacity: 0; transform: translateX(-18px); } to { opacity: 1; transform: none; } }
+    @keyframes ouiInPrev { from { opacity: 0; transform: translateX(18px); } to { opacity: 1; transform: none; } }
     /* Slides never widen the page; sideways swipes belong to the app, sideways lists still scroll */
     html, body { overflow-x: clip; }
     #mainArea { overflow-x: clip; touch-action: pan-y; }
     #mainArea .overflow-x-auto, #mainArea .no-scrollbar, #mainArea [class*="overflow-x-"] { touch-action: pan-x pan-y; }
     #patientList.oui-dragging, #ouiTitle.oui-dragging { transition: none !important; }
-    #patientList.oui-settle, #ouiTitle.oui-settle { transition: transform .3s var(--oui-ease), opacity .3s; }
+    #patientList.oui-settle, #ouiTitle.oui-settle { transition: transform .18s var(--oui-ease), opacity .18s; }
     /* Pull to refresh */
     #ouiPull { position: fixed; top: calc(64px + env(safe-area-inset-top)); left: 50%; z-index: 35; width: 40px; height: 40px; margin-left: -20px; border-radius: 999px;
       background: var(--surface); color: rgb(var(--brand-600)); display: grid; place-items: center; box-shadow: 0 4px 16px rgba(0,0,0,.14);
@@ -387,11 +391,11 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
       .oui-sheet > .oui-handle { display: block; width: 40px; height: 5px; border-radius: 999px; background: rgb(var(--gray-300)); margin: -6px auto 6px; flex: none; }
     }
     .oui-sheet.oui-dragging { transition: none !important; animation: none !important; }
-    .oui-sheet.oui-settle { transition: transform .32s var(--oui-ease) !important; }
+    .oui-sheet.oui-settle { transition: transform .2s var(--oui-ease) !important; }
     .oui-shake { animation: ouiShake .32s ease !important; }
     @keyframes ouiShake { 20%,60% { transform: translateX(-7px); } 40%,80% { transform: translateX(7px); } }
     /* Backdrop fades in */
-    .fixed.inset-0:not(#lockScreen):not(.hidden)[class*="bg-black"] { animation: ouiDim .25s ease; }
+    .fixed.inset-0:not(#lockScreen):not(.hidden)[class*="bg-black"] { animation: ouiDim .16s ease; }
     @keyframes ouiDim { from { background-color: rgba(0,0,0,0); } }
     @media (prefers-reduced-motion: reduce) {
       #ouiTitle, #patientList > *, #nextPatientSpotlightContainer, .oui-sheet, .fixed.inset-0 { animation: none !important; transition: none !important; }
@@ -445,8 +449,10 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
         <div class="w-9 h-9 sm:w-10 sm:h-10 shrink-0"><svg viewBox="0 0 48 48" class="w-full h-full" aria-hidden="true"><rect width="48" height="48" rx="13" fill="rgb(var(--brand-700))"/><circle cx="24" cy="24" r="15" fill="rgb(var(--brand-500))" opacity=".55"/><rect x="20.5" y="13" width="7" height="22" rx="2.4" fill="#fff"/><rect x="13" y="20.5" width="22" height="7" rx="2.4" fill="#fff"/></svg></div>
         <div class="min-w-0">
           <h1 class="oui-brand-name text-sm md:text-base font-black truncate text-rose-950 leading-tight">عيادة د. هيام خضر</h1><div id="ouiBarTitle" aria-hidden="true"></div>
+          <div class="oui-chips">
           <span id="syncStatus" onclick="syncAllToCloud()" title="المزامنة" class="cursor-pointer text-[10px] sm:text-[11px] font-bold text-slate-600 bg-slate-100 border border-slate-200 rounded-md px-1.5 py-0.5 mt-0.5 inline-block truncate max-w-[180px] sm:max-w-none"> متصل</span>
           <span id="roleBadge" class="text-[9px] sm:text-[10px] bg-rose-950/90 text-rose-200 border border-rose-800/80 px-1.5 py-0.2 rounded font-bold inline-block mt-0.5 truncate max-w-[140px] sm:max-w-none"></span>
+          </div>
         </div>
       </div>
       
@@ -6431,7 +6437,7 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
 
       if (currentRole === 'doctor') {
         roleBadge.innerText = '👑 الطبيبة';
-        roleBadge.className = 'text-[9px] sm:text-[10px] bg-rose-50 text-rose-800 border border-rose-200 px-1.5 py-0.5 rounded font-bold inline-block mr-1';
+        roleBadge.className = 'bg-rose-50 text-rose-800 font-bold';
         document.getElementById('bottomNav').classList.remove('hidden');
         paintNav();
         docNav.classList.remove('hidden');
@@ -6441,7 +6447,7 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
         financialTally.classList.remove('hidden');
       } else {
         roleBadge.innerText = '📋 الاستقبال';
-        roleBadge.className = 'text-[9px] sm:text-[10px] bg-slate-100 text-slate-700 border border-slate-200 px-1.5 py-0.5 rounded font-bold inline-block mr-1';
+        roleBadge.className = 'bg-slate-100 text-slate-700 font-bold';
         document.getElementById('bottomNav').classList.add('hidden');
         docNav.classList.add('hidden');
         secNav.classList.remove('hidden');
@@ -6846,7 +6852,7 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
       const dir = dirHint || (to >= 0 && from >= 0 && to < from ? 'prev' : 'next');
       main.classList.remove('oui-in-next', 'oui-in-prev'); void main.offsetWidth;
       main.classList.add(dir === 'prev' ? 'oui-in-prev' : 'oui-in-next');
-      clearTimeout(main._ouiT); main._ouiT = setTimeout(() => main.classList.remove('oui-in-next', 'oui-in-prev'), 600);
+      clearTimeout(main._ouiT); main._ouiT = setTimeout(() => main.classList.remove('oui-in-next', 'oui-in-prev'), 320);
       const t = document.getElementById('ouiTitle'); if (t) { t.style.opacity = ''; t.style.transform = ''; }
       onScroll();
     };
@@ -6882,7 +6888,7 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
       if (!g) return;
       const t = e.touches[0], dx = t.clientX - g.x, dy = t.clientY - g.y;
       if (!g.mode) {
-        if (Math.abs(dx) > 14 && Math.abs(dx) > Math.abs(dy) * 1.4 && currentRole === 'doctor') g.mode = 'swipe';
+        if (Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy) * 1.3 && currentRole === 'doctor') g.mode = 'swipe';
         else if (dy > 10 && g.top && Math.abs(dy) > Math.abs(dx)) g.mode = 'pull';
         else if (Math.abs(dy) > 10) { g = null; return; }
         else return;
@@ -6891,12 +6897,12 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
       if (g.mode === 'swipe') {
         const list = document.getElementById('patientList'), title = document.getElementById('ouiTitle');
         [list, title].forEach((n) => { if (!n) return; n.classList.add('oui-dragging'); n.classList.remove('oui-settle');
-          n.style.transform = `translateX(${dx * 0.35}px)`; n.style.opacity = String(1 - Math.min(0.5, Math.abs(dx) / 600)); });
+          n.style.transform = `translateX(${dx * 0.6}px)`; n.style.opacity = String(1 - Math.min(0.4, Math.abs(dx) / 700)); });
       } else if (g.mode === 'pull') {
-        const pull = document.getElementById('ouiPull'), d = Math.min(120, dy * 0.55);
+        const pull = document.getElementById('ouiPull'), d = Math.min(110, dy * 0.6);
         pull.style.opacity = String(Math.min(1, d / 60));
         pull.style.transform = `translateY(${d - 40}px) rotate(${d * 3}deg)`;
-        const ready = d >= 70;
+        const ready = d >= 56;
         if (ready && !pull.classList.contains('is-ready')) buzz(8);
         pull.classList.toggle('is-ready', ready);
       }
@@ -6909,19 +6915,22 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
     });
     const onEnd = once((e) => {
       if (!g || !g.mode) { g = null; return; }
-      const t = e.changedTouches[0], dx = t.clientX - g.x, dy = t.clientY - g.y, mode = g.mode;
+      const t = e.changedTouches[0], dx = t.clientX - g.x, dy = t.clientY - g.y, mode = g.mode, t0 = g.t;
       g = null;
       if (mode === 'swipe') {
         const list = document.getElementById('patientList'), title = document.getElementById('ouiTitle');
         [list, title].forEach((n) => { if (!n) return; n.classList.remove('oui-dragging'); n.classList.add('oui-settle'); n.style.transform = ''; n.style.opacity = ''; });
-        setTimeout(() => [list, title].forEach((n) => n && n.classList.remove('oui-settle')), 320);
-        if (Math.abs(dx) < 70) return;
+        setTimeout(() => [list, title].forEach((n) => n && n.classList.remove('oui-settle')), 200);
+        // A long drag, or a short quick flick, changes tab.
+        const flick = Math.abs(dx) / Math.max(1, Date.now() - t0) > 0.35 && Math.abs(dx) > 30;
+        if (Math.abs(dx) < 55 && !flick) return;
         const i = TAB_ORDER.indexOf(activeTab);
-        // Right-to-left layout: the next tab sits to the left, so a swipe to the left opens it.
-        const next = i < 0 ? 0 : i + (dx < 0 ? 1 : -1);
+        // Right-to-left: the tabs run from right (اليوم) to left (المالية), as in the bottom bar.
+        // Dragging the page to the right brings in the tab on its left, i.e. the next one.
+        const next = i < 0 ? 0 : i + (dx > 0 ? 1 : -1);
         if (next < 0 || next >= TAB_ORDER.length) return;
         buzz(10);
-        window.setActiveTab(TAB_ORDER[next], dx < 0 ? 'next' : 'prev');
+        window.setActiveTab(TAB_ORDER[next], dx > 0 ? 'next' : 'prev');
       } else if (mode === 'pull') {
         const pull = document.getElementById('ouiPull');
         const go = pull.classList.contains('is-ready');
@@ -7003,14 +7012,14 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
         const dy = e.changedTouches[0].clientY - d.y, fast = dy / Math.max(1, Date.now() - d.t) > 0.6;
         d = null;
         panel.classList.remove('oui-dragging'); panel.classList.add('oui-settle');
-        if ((dy > 120 || (fast && dy > 50)) && !(FORMS.has(id) && dirty.has(id))) {
+        if ((dy > 100 || (fast && dy > 40)) && !(FORMS.has(id) && dirty.has(id))) {
           panel.style.transform = 'translateY(110%)';
           buzz(10);
-          setTimeout(() => { panel.classList.remove('oui-settle'); panel.style.transform = ''; closeSheet(id, 'swipe'); }, 220);
+          setTimeout(() => { panel.classList.remove('oui-settle'); panel.style.transform = ''; closeSheet(id, 'swipe'); }, 160);
         } else {
           panel.style.transform = '';
-          if (dy > 120) closeSheet(id, 'swipe');   // refused: shakes and explains
-          setTimeout(() => panel.classList.remove('oui-settle'), 330);
+          if (dy > 100) closeSheet(id, 'swipe');   // refused: shakes and explains
+          setTimeout(() => panel.classList.remove('oui-settle'), 210);
         }
       }, { passive: true });
     }
