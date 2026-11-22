@@ -697,10 +697,10 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
             <div class="bg-rose-50/60 p-2.5 rounded-xl border border-rose-200">
               <span class="block font-bold text-rose-950 mb-1">السوابق التوليدية (GPA):</span>
               <div class="grid grid-cols-4 gap-1.5 text-center mb-1.5">
-                <div><label class="block text-[10px] font-bold text-rose-900">G</label><input type="number" id="pG" value="0" min="0" class="w-full p-1 border border-rose-200 rounded-lg text-center font-bold bg-white"></div>
-                <div><label class="block text-[10px] font-bold text-rose-900">VD</label><input type="number" id="pVD" value="0" min="0" class="w-full p-1 border border-rose-200 rounded-lg text-center font-bold bg-white"></div>
-                <div><label class="block text-[10px] font-bold text-rose-900">CS</label><input type="number" id="pCS" value="0" min="0" class="w-full p-1 border border-rose-200 rounded-lg text-center font-bold bg-white"></div>
-                <div><label class="block text-[10px] font-bold text-rose-900">A</label><input type="number" id="pA" value="0" min="0" class="w-full p-1 border border-rose-200 rounded-lg text-center font-bold bg-white"></div>
+                <div><label class="block text-[10px] font-bold text-rose-900">G</label><input type="text" inputmode="numeric" autocomplete="off" id="pG" value="" placeholder="0" class="w-full p-1 border border-rose-200 rounded-lg text-center font-bold bg-white"></div>
+                <div><label class="block text-[10px] font-bold text-rose-900">VD</label><input type="text" inputmode="numeric" autocomplete="off" id="pVD" value="" placeholder="0" class="w-full p-1 border border-rose-200 rounded-lg text-center font-bold bg-white"></div>
+                <div><label class="block text-[10px] font-bold text-rose-900">CS</label><input type="text" inputmode="numeric" autocomplete="off" id="pCS" value="" placeholder="0" class="w-full p-1 border border-rose-200 rounded-lg text-center font-bold bg-white"></div>
+                <div><label class="block text-[10px] font-bold text-rose-900">A</label><input type="text" inputmode="numeric" autocomplete="off" id="pA" value="" placeholder="0" class="w-full p-1 border border-rose-200 rounded-lg text-center font-bold bg-white"></div>
               </div>
               <input type="text" id="pObsNotes" placeholder="ملاحظات الولادات السابقة..." class="w-full p-1.5 border border-rose-200 rounded-lg text-xs bg-white">
             </div>
@@ -1053,10 +1053,10 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
             <div class="bg-white p-2.5 rounded-xl border border-rose-200 space-y-1.5">
               <span class="block font-bold text-rose-900 text-[11px]">السوابق التوليدية (GPA):</span>
               <div class="grid grid-cols-4 gap-1.5 text-center">
-                <div><label class="block text-[10px] font-bold text-rose-900">G (حمول)</label><input type="number" id="dnpG" value="0" min="0" class="w-full p-1 border border-rose-200 rounded-lg text-center font-bold bg-slate-50"></div>
-                <div><label class="block text-[10px] font-bold text-rose-900">VD (طبيعي)</label><input type="number" id="dnpVD" value="0" min="0" class="w-full p-1 border border-rose-200 rounded-lg text-center font-bold bg-slate-50"></div>
-                <div><label class="block text-[10px] font-bold text-rose-900">CS (قيصري)</label><input type="number" id="dnpCS" value="0" min="0" class="w-full p-1 border border-rose-200 rounded-lg text-center font-bold bg-slate-50"></div>
-                <div><label class="block text-[10px] font-bold text-rose-900">A (إجهاض)</label><input type="number" id="dnpA" value="0" min="0" class="w-full p-1 border border-rose-200 rounded-lg text-center font-bold bg-slate-50"></div>
+                <div><label class="block text-[10px] font-bold text-rose-900">G (حمول)</label><input type="text" inputmode="numeric" autocomplete="off" id="dnpG" value="" placeholder="0" class="w-full p-1 border border-rose-200 rounded-lg text-center font-bold bg-slate-50"></div>
+                <div><label class="block text-[10px] font-bold text-rose-900">VD (طبيعي)</label><input type="text" inputmode="numeric" autocomplete="off" id="dnpVD" value="" placeholder="0" class="w-full p-1 border border-rose-200 rounded-lg text-center font-bold bg-slate-50"></div>
+                <div><label class="block text-[10px] font-bold text-rose-900">CS (قيصري)</label><input type="text" inputmode="numeric" autocomplete="off" id="dnpCS" value="" placeholder="0" class="w-full p-1 border border-rose-200 rounded-lg text-center font-bold bg-slate-50"></div>
+                <div><label class="block text-[10px] font-bold text-rose-900">A (إجهاض)</label><input type="text" inputmode="numeric" autocomplete="off" id="dnpA" value="" placeholder="0" class="w-full p-1 border border-rose-200 rounded-lg text-center font-bold bg-slate-50"></div>
               </div>
               <input type="text" id="dnpObsNotes" placeholder="ملاحظات الولادات السابقة..." class="w-full p-1.5 border border-rose-200 rounded-lg text-xs bg-slate-50">
             </div>
@@ -1509,6 +1509,11 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
     const SYNCED_PHOTOS_KEY = "clinic_synced_photo_sets_v1";
     const PRIMARY_DB_KEY = "syria_obgyn_permanent_records_v15";
     const DELETED_IDS_KEY = "clinic_deleted_tombstones_v15";
+    document.addEventListener('focusin', (e) => {
+      const el = e.target;
+      if (el && el.tagName === 'INPUT' && /^\s*[0٠]\s*$/.test(el.value || '')) setTimeout(() => { try { el.select(); } catch (err) {} }, 0);
+    });
+
     // --- ICONS: <i data-lucide="..."> placeholders become crisp line icons ---
     const ic = (name, cls = '') => `<i data-lucide="${name}" class="${cls}"></i>`;
     (function () {
@@ -2559,10 +2564,10 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
       toggleHighRiskReason();
 
       document.getElementById('pBlood').value = p.blood || 'غير محدد';
-      document.getElementById('pG').value = p.g || '0';
-      document.getElementById('pVD').value = p.vd || '0';
-      document.getElementById('pCS').value = p.cs || '0';
-      document.getElementById('pA').value = p.a || '0';
+      document.getElementById('pG').value = (p.g && String(p.g) !== '0') ? p.g : '';
+      document.getElementById('pVD').value = (p.vd && String(p.vd) !== '0') ? p.vd : '';
+      document.getElementById('pCS').value = (p.cs && String(p.cs) !== '0') ? p.cs : '';
+      document.getElementById('pA').value = (p.a && String(p.a) !== '0') ? p.a : '';
       document.getElementById('pObsNotes').value = p.obsNotes || '';
       document.getElementById('pLMP').value = p.lmp || '';
       document.getElementById('pMedicalHistory').value = p.medHistory || '';
@@ -2873,6 +2878,53 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
       return html;
     }
 
+    // --- HER STORY: the main complaint that defines the patient ("who is she to us") ---
+    function storyFallback(p) {
+      const v = (p.visits || []).find((x) => (x.complaint && x.complaint !== 'فحص ومتابعة' && x.complaint !== 'فحص أولي وفتح ملف') || x.diagnosis);
+      if (!v) return '';
+      return [v.complaint && v.complaint !== 'فحص ومتابعة' && v.complaint !== 'فحص أولي وفتح ملف' ? v.complaint : '', v.diagnosis].filter(Boolean).join(' • ');
+    }
+
+    function storyBoxHTML(p) {
+      const story = (p.story || '').trim();
+      const fallback = story ? '' : storyFallback(p);
+      return `<div id="storyBox" class="rounded-2xl border border-rose-200 bg-rose-50 p-3">
+        <div class="flex items-center justify-between gap-2 mb-1">
+          <span class="text-[11px] font-bold text-rose-800 inline-flex items-center gap-1">${ic('quote')} قصتها / الشكوى الرئيسية</span>
+          <button type="button" onclick="editStory()" class="inline-flex items-center gap-1 h-7 px-2 rounded-lg bg-white border border-rose-200 text-[11px] font-bold text-rose-800">${ic('pencil')} ${story ? 'تعديل' : 'كتابة'}</button>
+        </div>
+        ${story ? `<p class="text-[15px] font-bold text-slate-900 leading-relaxed whitespace-pre-line">${escapeHTML(story)}</p>`
+          : (fallback ? `<p class="text-sm font-bold text-slate-600 leading-relaxed">${escapeHTML(fallback)} <span class="text-[11px] font-normal text-slate-400">(من آخر زيارة)</span></p>`
+          : `<p class="text-sm text-slate-400">اكتبي باختصار: من هي وما مشكلتها الأساسية؟</p>`)}
+      </div>`;
+    }
+
+    function editStory() {
+      const p = activeArchivePatient;
+      const box = document.getElementById('storyBox');
+      if (!p || !box) return;
+      const current = (p.story || '').trim() || storyFallback(p);
+      box.innerHTML = `
+        <label class="block text-[11px] font-bold text-rose-800 mb-1">قصتها / الشكوى الرئيسية</label>
+        <textarea id="storyInput" rows="3" class="w-full p-2.5 border border-rose-200 rounded-xl bg-white text-sm font-bold text-slate-900" placeholder="مثال: تأخر حمل 3 سنوات، تكيس مبايض، تحريض إباضة">${escapeHTML(current)}</textarea>
+        <div class="flex gap-2 mt-2">
+          <button type="button" onclick="saveStory()" class="flex-1 h-9 rounded-xl bg-rose-800 hover:bg-rose-900 text-white font-bold text-xs inline-flex items-center justify-center gap-1">${ic('save')} حفظ</button>
+          <button type="button" onclick="openDoctorModal(activeArchivePatient.id)" class="h-9 px-4 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-xs">إلغاء</button>
+        </div>`;
+      const t = document.getElementById('storyInput');
+      t.focus();
+      t.setSelectionRange(t.value.length, t.value.length);
+    }
+
+    async function saveStory() {
+      const p = activeArchivePatient;
+      if (!p) return;
+      p.story = document.getElementById('storyInput').value.trim();
+      notifyDataChanged();
+      await syncPatientToCloud(p);
+      openDoctorModal(p.id);
+    }
+
    function patientAge(p) {
       const y = parseInt(convertArabicNumerals(p.birthYear || ''), 10);
       const now = new Date().getFullYear();
@@ -2896,7 +2948,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
         chips.push(`<a href="tel:${escapeHTML(tel2)}" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-100 text-slate-800 font-bold" dir="ltr">${ic('phone-forwarded')} ${escapeHTML(p.phone2)}</a>`);
       }
       if (p.motherName) chips.push(`<span class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-100 text-slate-700 font-bold">${ic('heart', 'text-slate-400')} الأم: ${escapeHTML(p.motherName)}</span>`);
-      let html = `<div class="flex flex-wrap gap-1.5 text-xs">${chips.join('')}</div>`;
+      let html = storyBoxHTML(p) + `<div class="flex flex-wrap gap-1.5 text-xs">${chips.join('')}</div>`;
 
       const warnings = [];
       if (p.allergies && p.allergies.trim()) warnings.push(`${ic('triangle-alert')} تحسس: ${escapeHTML(p.allergies)}`);
@@ -3520,6 +3572,11 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
       if (latest.nextVisitDate !== undefined) patient.nextVisitDate = latest.nextVisitDate;
       delete patient.photos;
 
+      if (!(patient.story || '').trim()) {
+        const auto = [visit.complaint, visit.diagnosis].filter(Boolean).join(' • ');
+        if (auto) patient.story = auto;
+      }
+
       notifyDataChanged();
       await syncPatientToCloud(patient);
 
@@ -3811,6 +3868,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
         phone: phone,
         birthYear: birthYear,
         address: address,
+        story: (document.getElementById('dnpComplaint').value.trim()),
         motherName: document.getElementById('dnpMotherName').value.trim(),
         phone2: convertArabicNumerals(document.getElementById('dnpPhone2').value.trim()),
         husbandPhone: convertArabicNumerals(document.getElementById('dnpHusbandPhone').value.trim()),
@@ -4091,7 +4149,8 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
                  safeIncludes(p.phone, q) ||
                  safeIncludes(p.phone2, q) ||
                  safeIncludes(p.husbandPhone, q) ||
-                 normalizeArabic(p.motherName).includes(q);
+                 normalizeArabic(p.motherName).includes(q) ||
+                 normalizeArabic(p.story).includes(q);
         });
 
         searchAlertText.innerText = `نتائج البحث الشامل في كامل أرشيف العيادة عن "${rawSearch}" (وجدت ${displayList.length} مريضة):`;
@@ -4327,6 +4386,9 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
           </button>
           <div class="min-w-0 flex-1">
             <h3 class="text-[15px] font-black text-slate-900 leading-snug ${isDoctor ? 'cursor-pointer hover:text-rose-800' : ''}" ${isDoctor ? `onclick="openDoctorModal(${jsArg(p.id)})"` : ''}>${escapeHTML(p.name)}</h3>
+            ${(() => { const st = (p.story || '').trim(); const fb = st ? '' : storyFallback(p);
+              return st ? `<p class="text-[13px] font-bold text-rose-900 leading-snug mt-0.5 line-clamp-2">${escapeHTML(st)}</p>`
+                : (fb ? `<p class="text-[13px] font-semibold text-slate-600 leading-snug mt-0.5 line-clamp-2">${escapeHTML(fb)}</p>` : ''); })()}
             <div class="flex items-center gap-1 flex-wrap mt-1">
               ${p.isHighRisk ? `<span class="inline-flex items-center gap-1 bg-red-600 text-white text-[10px] px-1.5 py-0.5 rounded-md font-bold">${ic('siren')} خطورة عالية</span>` : ''}
               ${p.allergies && p.allergies.trim() ? `<span class="inline-flex items-center gap-1 bg-red-50 text-red-700 border border-red-200 text-[10px] px-1.5 py-0.5 rounded-md font-bold">${ic('triangle-alert')} تحسس</span>` : ''}
