@@ -355,11 +355,12 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
               </button>
             </div>
             <div class="py-1">
-              <button onclick="exportData(false); closeAdminMenu();" class="w-full text-right px-3.5 py-2.5 hover:bg-rose-50 flex items-center gap-2.5 font-bold text-slate-700">
-                <span class="w-6 text-center"><i data-lucide="save"></i></span> <span>تصدير نسخة احتياطية (JSON)</span>
+              <button onclick="saveBackup(); closeAdminMenu();" class="w-full text-right px-3.5 py-2.5 hover:bg-rose-50 flex items-center gap-2.5 font-bold text-slate-700">
+                <span class="w-6 text-center"><i data-lucide="shield-check"></i></span>
+                <span class="flex flex-col items-start leading-tight"><span>حفظ نسخة احتياطية الآن</span><span id="lastBackupLabel" class="text-[10px] font-normal text-slate-500"></span></span>
               </button>
               <button onclick="triggerImport(); closeAdminMenu();" class="w-full text-right px-3.5 py-2.5 hover:bg-rose-50 flex items-center gap-2.5 font-bold text-slate-700">
-                <span class="w-6 text-center"><i data-lucide="download"></i></span> <span>استيراد نسخة احتياطية</span>
+                <span class="w-6 text-center"><i data-lucide="archive-restore"></i></span> <span>استرجاع من نسخة احتياطية</span>
               </button>
               <button onclick="openChangePinModal(); closeAdminMenu();" class="w-full text-right px-3.5 py-2.5 hover:bg-rose-50 flex items-center gap-2.5 font-bold text-slate-700">
                 <span class="w-6 text-center"><i data-lucide="key-round"></i></span> <span>الحساب وكلمة المرور والتصفير</span>
@@ -1862,6 +1863,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
     });
 
     function toggleAdminMenu() {
+      updateBackupLabel();
       const dropdown = document.getElementById('adminDropdownMenu');
       if (dropdown) dropdown.classList.toggle('hidden');
     }
@@ -4279,6 +4281,11 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
             </div>`).join('')}
         </div>`;
       list.appendChild(head);
+      if (currentRole === 'doctor' && isPhone() && backupDue()) {
+        const bc = document.createElement('div');
+        bc.innerHTML = backupCardHTML();
+        list.appendChild(bc.firstElementChild);
+      }
       const overdueAll = overduePatients();
       if (overdueAll.length) {
         const al = document.createElement('button');
@@ -6358,26 +6365,157 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
     }
 
     // --- 26. EXPORT, IMPORT & NON-INTRUSIVE BACKUP ---
-    function exportData(isWeeklyAuto = false) {
-      if (patients.length === 0 && !isWeeklyAuto) {
-        alert('لا توجد سجلات لتصديرها.');
-        return;
-      }
-      const todayStr = getTodayDateString();
-      const fileName = isWeeklyAuto ? `نسخة_أسبوعية_${todayStr}.json` : `سجل_عيادة_د_هيام_${todayStr}.json`;
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(patients, null, 2));
+    // --- BACKUP: weekly copy the doctor keeps (laptop: Downloads folder; phone: Google Drive via share) ---
+    const BACKUP_EVERY_DAYS = 7;
+
+    function lastBackupTime() {
+      try { return parseInt(localStorage.getItem(LAST_BACKUP_KEY) || '0', 10) || 0; } catch (e) { return 0; }
+    }
+
+    function backupDue() {
+      const last = lastBackupTime();
+      return patients.length > 0 && (!last || Date.now() - last >= BACKUP_EVERY_DAYS * 86400000);
+    }
+
+    function updateBackupLabel() {
+      const el = document.getElementById('lastBackupLabel');
+      if (!el) return;
+      const last = lastBackupTime();
+      el.textContent = last ? 'آخر نسخة على هذا الجهاز: ' + new Date(last).toLocaleDateString('ar-SY', { day: 'numeric', month: 'long', year: 'numeric' }) : 'لم تُحفظ نسخة على هذا الجهاز بعد';
+    }
+
+    // Photos are left out: they stay in the cloud and would make the file very large.
+    function buildBackupFile() {
+      const deletedIds = getDeletedIds();
+      const data = {
+        app: 'obgyn-clinic-backup',
+        version: 2,
+        createdAt: new Date().toISOString(),
+        patients: patients.filter((p) => p && p.id && !deletedIds.has(p.id)).map((p) => {
+          const copy = JSON.parse(JSON.stringify(p));
+          delete copy.photos;
+          (copy.visits || []).forEach((v) => {
+            const n = (Array.isArray(v.photos) ? v.photos.length : 0) || v.photoCount || 0;
+            delete v.photos;
+            if (n) v.photoCount = n;
+          });
+          return copy;
+        }),
+        drugs
+      };
+      const name = `نسخة_العيادة_${getTodayDateString()}.json`;
+      const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+      return { blob, name, count: data.patients.length };
+    }
+
+    function downloadBlob(blob, name) {
+      const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = dataStr;
-      a.download = fileName;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
+      a.href = url; a.download = name;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+    }
 
-      localStorage.setItem(LAST_BACKUP_KEY, Date.now().toString());
+    function canShareFiles(file) {
+      try { return !!(navigator.canShare && navigator.canShare({ files: [file] })); } catch (e) { return false; }
+    }
 
-      if (!isWeeklyAuto) {
-        alert(`✅ تم تصدير النسخة الاحتياطية بنجاح: ${fileName}`);
+    function isPhone() {
+      return window.matchMedia ? window.matchMedia('(pointer: coarse)').matches : false;
+    }
+
+    // Saves a backup now. On phones it opens the share sheet (choose Google Drive); elsewhere it downloads.
+    async function saveBackup({ auto = false } = {}) {
+      if (!patients.length) { if (!auto) alert('لا توجد سجلات لحفظها.'); return false; }
+      const { blob, name, count } = buildBackupFile();
+      const file = (typeof File === 'function') ? new File([blob], name, { type: 'application/json' }) : null;
+      try {
+        if (!auto && file && isPhone() && canShareFiles(file)) {
+          await navigator.share({ files: [file], title: name, text: 'نسخة احتياطية من سجلات العيادة' });
+        } else {
+          downloadBlob(blob, name);
+        }
+      } catch (err) {
+        if (err && err.name === 'AbortError') return false;   // she closed the share sheet
+        downloadBlob(blob, name);
       }
+      try { localStorage.setItem(LAST_BACKUP_KEY, Date.now().toString()); } catch (e) {}
+      updateBackupLabel();
+      showRealtimeToast(auto ? `🛡️ حُفظت النسخة الأسبوعية (${count} مريضة) في مجلد التنزيلات` : `✅ تم حفظ نسخة احتياطية (${count} مريضة)`);
+      if (activeTab === 'today') renderApp();
+      return true;
+    }
+
+    // Kept for older buttons.
+    function exportData() { return saveBackup(); }
+
+    function snoozeBackup() {
+      // Ask again tomorrow.
+      try { localStorage.setItem(LAST_BACKUP_KEY, String(Date.now() - (BACKUP_EVERY_DAYS - 1) * 86400000)); } catch (e) {}
+      renderApp();
+    }
+
+    function backupCardHTML() {
+      const last = lastBackupTime();
+      const since = last ? Math.floor((Date.now() - last) / 86400000) : null;
+      return `<div class="flex items-center gap-3 bg-white border border-rose-200 rounded-2xl p-3 shadow-2xs">
+        <span class="icon-tile w-10 h-10 rounded-xl bg-rose-50 text-rose-700 flex items-center justify-center shrink-0">${ic('shield-check')}</span>
+        <div class="min-w-0 flex-1">
+          <div class="text-sm font-bold text-slate-900">النسخة الاحتياطية الأسبوعية</div>
+          <div class="text-[11px] text-slate-500">${since === null ? 'لم تُحفظ نسخة على هذا الجهاز بعد' : `آخر نسخة قبل ${since} يوم`} • اختاري Google Drive للحفظ</div>
+        </div>
+        <div class="flex flex-col gap-1 shrink-0">
+          <button type="button" onclick="saveBackup()" class="h-9 px-3 rounded-xl bg-rose-800 hover:bg-rose-900 text-white text-xs font-bold inline-flex items-center gap-1">${ic('save')} حفظ الآن</button>
+          <button type="button" onclick="snoozeBackup()" class="h-7 px-2 rounded-lg text-[11px] font-bold text-slate-500 hover:bg-slate-100">لاحقاً</button>
+        </div>
+      </div>`;
+    }
+
+    function checkWeeklyAutoBackup() {
+      updateBackupLabel();
+      // Wait for the records to load, then: laptops save silently, phones get the card on the Today screen.
+      setTimeout(() => {
+        if (currentRole !== 'doctor' || !backupDue()) return;
+        if (!isPhone()) saveBackup({ auto: true });
+        else if (activeTab === 'today') renderApp();
+      }, 15000);
+    }
+
+    // Restore only ADDS what is missing (patients, visits, operations, pregnancies); nothing is deleted or overwritten.
+    async function restoreFromBackup(imported) {
+      const list = Array.isArray(imported) ? imported : (imported && Array.isArray(imported.patients) ? imported.patients : null);
+      if (!list) { alert('❌ هذا ليس ملف نسخة احتياطية صالحاً.'); return; }
+      if (!confirm(`في الملف ${list.length} مريضة.\n\nسيتم استرجاع المريضات والزيارات والعمليات الناقصة فقط، ولن يُحذف أو يُستبدل أي شيء موجود. متابعة؟`)) return;
+      const deletedIds = getDeletedIds();
+      const touched = [];
+      let addedPatients = 0, addedRecords = 0;
+      list.forEach((raw) => {
+        if (!raw || !raw.id || deletedIds.has(raw.id)) return;
+        const imp = normalizePatientObject(JSON.parse(JSON.stringify(raw)));
+        const existing = patients.find((x) => x.id === imp.id);
+        if (!existing) { patients.push(imp); touched.push(imp); addedPatients++; return; }
+        let changed = false;
+        ['visits', 'surgeries', 'pregnancies'].forEach((kind) => {
+          const have = new Set((existing[kind] || []).map((r) => r && r.id));
+          (imp[kind] || []).forEach((r) => {
+            if (r && r.id && !have.has(r.id)) { existing[kind] = existing[kind] || []; existing[kind].push(r); addedRecords++; changed = true; }
+          });
+        });
+        Object.keys(imp).forEach((k) => {
+          if (['visits', 'surgeries', 'pregnancies', 'photos', 'id'].includes(k)) return;
+          if ((existing[k] === undefined || existing[k] === '') && imp[k] !== undefined && imp[k] !== '') { existing[k] = imp[k]; changed = true; }
+        });
+        if (changed) { normalizePatientObject(existing); touched.push(existing); }
+      });
+      if (imported && Array.isArray(imported.drugs) && currentRole === 'doctor') {
+        const have = new Set(drugs.map((d) => d.id));
+        const extra = normalizeDrugList(imported.drugs).filter((d) => !have.has(d.id));
+        if (extra.length) { drugs = drugs.concat(extra); await syncDrugsToCloud(); }
+      }
+      notifyDataChanged();
+      showRealtimeToast(`جاري رفع ${touched.length} ملف...`);
+      for (const p of touched) await syncPatientToCloud(p, { silent: true });
+      alert(`✅ تم الاسترجاع: ${addedPatients} مريضة جديدة و${addedRecords} زيارة/عملية/حمل ناقصة.`);
     }
 
     function triggerImport() { document.getElementById('importFileInput').click(); }
@@ -6388,35 +6526,11 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
       const reader = new FileReader();
       reader.onload = async function(e) {
         try {
-          const imported = JSON.parse(e.target.result);
-          if (!Array.isArray(imported)) { alert('❌ ملف غير صالح.'); return; }
-          if (confirm(`تم العثور على ${imported.length} سجل.\n\nهل ترغبين باستبدال السجلات بالكامل (OK) أم دمجها (Cancel)؟`)) {
-            patients = imported.map(normalizePatientObject);
-          } else {
-            const existingIds = new Set(patients.map(p => p.id || p.name));
-            imported.forEach(imp => { if (!existingIds.has(imp.id || imp.name)) patients.push(normalizePatientObject(imp)); });
-          }
-          notifyDataChanged();
-          alert(`🎉 تم استيراد السجلات بنجاح! الإجمالي: ${patients.length}`);
-        } catch (err) { alert('❌ خطأ في قراءة الملف.'); }
+          await restoreFromBackup(JSON.parse(e.target.result));
+        } catch (err) { console.warn('Restore error:', err); alert('❌ خطأ في قراءة الملف.'); }
         event.target.value = '';
       };
       reader.readAsText(file);
-    }
-
-    function checkWeeklyAutoBackup() {
-      const lastBackup = localStorage.getItem(LAST_BACKUP_KEY);
-      const now = Date.now();
-      const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
-
-      if (!lastBackup) {
-        localStorage.setItem(LAST_BACKUP_KEY, now.toString());
-        return;
-      }
-
-      if (patients.length > 0 && (now - parseInt(lastBackup, 10)) >= SEVEN_DAYS_MS) {
-        showRealtimeToast('💡 تذكير: مضى أسبوع على آخر نسخة احتياطية. يمكنكِ الضغط على 💾 لحفظ نسخة.');
-      }
     }
 
     // --- 27. DATE & PHOTO ENGINE ---
