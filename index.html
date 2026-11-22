@@ -268,7 +268,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
     ::-webkit-scrollbar-track { background: #f1f5f9; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; }
 
-    /* ===== One UI layer =====
+    /* ===== One UI 9 layer =====
        Samsung-style layout: a large page title at the top (viewing area), controls within thumb reach,
        flat rounded cards on a soft grey ground, pill buttons, filled inputs, a floating bottom bar and
        dialogs that rise from the bottom on phones. Colours still come from the clinic tokens above. */
@@ -305,6 +305,10 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
     button[class~="bg-white"] { background: var(--oui-fill) !important; }
     .btn-touch:active, button:active { transform: scale(.97) !important; filter: none; }
 
+    /* One UI 9 (Android 17): thicker, separated controls with no outlines */
+    main button[class*="h-9"], main button[class*="h-10"], [id$="Modal"] button[class*="py-2"], [id$="Modal"] button[class*="py-2.5"] { min-height: 44px; }
+    input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=range]), select { min-height: 46px; }
+    [id$="Modal"] button[class*="border"]:not([class*="border-red"]):not([class*="border-dashed"]) { border-color: transparent !important; }
     /* Inputs: filled, no outline until focused */
     input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=range]), select, textarea {
       background-color: var(--oui-fill) !important; border-color: transparent !important; border-radius: 16px !important; box-shadow: none !important; }
