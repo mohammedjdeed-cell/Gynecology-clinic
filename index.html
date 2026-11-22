@@ -1339,6 +1339,40 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
     </div>
   </div>
 
+  <!-- ==================== QUICK DELIVERY CARD ==================== -->
+  <div id="quickDeliveryModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-xs flex items-center justify-center p-3 z-50">
+    <div class="bg-white rounded-3xl max-w-md w-full p-5 shadow-2xl space-y-3 text-xs border-2 border-pink-300">
+      <div class="flex justify-between items-start gap-2 border-b border-slate-100 pb-2">
+        <div>
+          <h2 class="text-base font-black text-slate-900">تسجيل الولادة بسرعة</h2>
+          <p id="qdPatientName" class="text-xs font-bold text-pink-700 mt-0.5"></p>
+        </div>
+        <button type="button" onclick="closeQuickDelivery()" class="text-gray-400 hover:text-rose-600 text-2xl font-bold p-1">&times;</button>
+      </div>
+      <input type="hidden" id="qdPatientId"><input type="hidden" id="qdType">
+      <div>
+        <label class="block font-bold text-slate-800 mb-1.5">ماذا حدث؟</label>
+        <div id="qdTypeButtons" class="grid grid-cols-1 gap-1.5"></div>
+      </div>
+      <div>
+        <label class="block font-bold text-slate-800 mb-1">تاريخ الولادة / العملية *</label>
+        <input type="date" id="qdDate" class="w-full p-2.5 border border-slate-300 rounded-xl font-bold bg-white">
+      </div>
+      <div id="qdHospitalBox">
+        <label class="block font-bold text-slate-800 mb-1">المشفى (اختياري)</label>
+        <div class="flex gap-1.5">
+          <button type="button" onclick="qdPickHospital(this)" class="qd-hosp h-9 px-3 rounded-lg border border-slate-300 text-xs font-bold bg-white text-slate-700">مشفى الكندي</button>
+          <button type="button" onclick="qdPickHospital(this)" class="qd-hosp h-9 px-3 rounded-lg border border-slate-300 text-xs font-bold bg-white text-slate-700">مشفى الرازي</button>
+        </div>
+      </div>
+      <p class="text-[11px] text-slate-500">يُغلق الحمل وتُحدَّث السوابق (G/P/A) تلقائياً. يمكنك إكمال تفاصيل العملية لاحقاً من ملفها.</p>
+      <div class="flex gap-2">
+        <button type="button" onclick="saveQuickDelivery()" class="flex-1 h-10 rounded-xl bg-rose-800 hover:bg-rose-900 text-white font-bold inline-flex items-center justify-center gap-1.5"><i data-lucide="save"></i> حفظ</button>
+        <button type="button" onclick="closeQuickDelivery()" class="h-10 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold">إلغاء</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ==================== 7. DRUG MANAGEMENT MODAL ==================== -->
   <div id="drugsModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 z-50">
     <div class="bg-white rounded-3xl max-w-lg w-full p-5 shadow-2xl space-y-3.5 text-xs max-h-[90vh] overflow-y-auto border border-rose-100">
@@ -2853,7 +2887,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
             <div class="bg-white rounded-xl p-2 text-center border border-pink-100"><div class="text-[10px] text-slate-500 font-bold">زيارات الحمل</div><div class="font-black text-pink-900 text-base">${visits.length}</div></div>
             <div class="bg-white rounded-xl p-2 text-center border border-pink-100"><div class="text-[10px] text-slate-500 font-bold">آخر ضغط / وزن</div><div class="font-black text-slate-800" dir="ltr">${escapeHTML((last && last.bp) || '—')} / ${escapeHTML((last && last.weight) || '—')}</div></div>
           </div>
-          ${weeks >= 40 ? `<button type="button" onclick="openPregnancyModal('end', 'elsewhere')" class="w-full h-9 rounded-xl bg-pink-600 hover:bg-pink-700 text-white font-bold text-xs inline-flex items-center justify-center gap-1.5">${ic('hospital')} تجاوزت موعد الولادة: هل ولدت في مكان آخر؟</button>` : ''}
+          ${weeks >= 40 ? `<button type="button" onclick="openQuickDelivery(activeArchivePatient.id)" class="w-full h-10 rounded-xl bg-pink-600 hover:bg-pink-700 text-white font-bold text-xs inline-flex items-center justify-center gap-1.5">${ic('clipboard-check')} تجاوزت الموعد: تسجيل الولادة</button>` : ''}
         </div>`;
       } else {
         html += `<button type="button" onclick="openPregnancyModal('start')" class="w-full py-2 rounded-2xl border-2 border-dashed border-pink-300 text-pink-800 font-bold text-xs hover:bg-pink-50">🤰 تسجيل حمل جديد</button>`;
@@ -3023,6 +3057,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
           item.innerHTML = `
             <div class="flex justify-between items-center gap-2 flex-wrap">
               <span class="font-black text-amber-950 inline-flex items-center gap-1.5">${ic('scissors')} ${escapeHTML(s.type)}</span>
+              ${s.quick && !s.report ? `<span class="w-full text-[11px] font-bold text-amber-800 bg-white border border-amber-200 rounded-lg px-2 py-1">سُجّلت سريعاً: أكملي التفاصيل من «تعديل»</span>` : ''}
               <span class="flex items-center gap-1">
                 <span class="text-amber-800 font-bold">📅 ${escapeHTML(s.date)}</span>
                 <button type="button" onclick="openSurgeryModal(${jsArg(patient.id)}, ${jsArg(s.id)})" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-white hover:bg-amber-100 border border-amber-200 font-bold text-amber-900">${ic('pencil')} تعديل</button>
@@ -4005,6 +4040,185 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
     }
 
     // --- 17. MAIN RENDER ENGINE & COMPACT LAYOUTS ---
+    // --- OVERDUE PREGNANCIES ---
+    // Past the due date and not closed: includes very old LMPs (probably delivered, never recorded).
+    function overdueInfo(p) {
+      const active = activePregnancy(p);
+      const lmp = (active && active.lmp) || p.lmp;
+      if (!lmp) return null;
+      const days = daysBetween(lmp, getTodayDateString());
+      if (days === null || days < 280) return null;
+      if (getPregnancies(p).some((x) => x.status === 'ended' && x.endDate && x.endDate >= lmp)) return null;
+      return { lmp, days, weeks: Math.floor(days / 7), daysPast: days - 280, edd: addDaysIso(lmp, 280) };
+    }
+
+    function overduePatients() {
+      const deletedIds = getDeletedIds();
+      return patients.filter((p) => p && p.id && !deletedIds.has(p.id))
+        .map((p) => ({ p, info: overdueInfo(p) })).filter((x) => x.info)
+        .sort((a, b) => b.info.days - a.info.days);
+    }
+
+    const QD_TYPES = [
+      { key: 'cs', label: 'أجريتُ لها قيصرية', icon: 'scissors', type: 'عملية قيصرية (Cesarean Section)' },
+      { key: 'vd', label: 'ولادة طبيعية (عندي)', icon: 'heart-handshake', type: 'ولادة طبيعية بمستشفى (Normal Delivery)' },
+      { key: 'elsewhere', label: 'ولدت في مكان آخر', icon: 'hospital', type: '' }
+    ];
+
+    function openQuickDelivery(patientId) {
+      const p = patients.find((x) => x.id === patientId);
+      if (!p) return;
+      const info = overdueInfo(p);
+      document.getElementById('qdPatientId').value = p.id;
+      document.getElementById('qdPatientName').textContent = p.name + (info ? ` • تجاوزت الموعد بـ ${info.daysPast} يوم` : '');
+      document.getElementById('qdType').value = 'cs';
+      document.getElementById('qdDate').value = '';
+      document.querySelectorAll('.qd-hosp').forEach((b) => b.dataset.on = '');
+      paintQuickDelivery();
+      document.getElementById('quickDeliveryModal').classList.remove('hidden');
+    }
+
+    function paintQuickDelivery() {
+      const cur = document.getElementById('qdType').value;
+      const box = document.getElementById('qdTypeButtons');
+      box.innerHTML = '';
+      QD_TYPES.forEach((t) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        const on = t.key === cur;
+        b.className = 'h-11 px-3 rounded-xl border-2 font-bold text-sm inline-flex items-center gap-2 transition ' +
+          (on ? 'bg-pink-600 text-white border-pink-600' : 'bg-white text-slate-700 border-slate-200 hover:border-slate-400');
+        b.innerHTML = `${ic(t.icon)} ${t.label}`;
+        b.onclick = () => { document.getElementById('qdType').value = t.key; paintQuickDelivery(); };
+        box.appendChild(b);
+      });
+      document.getElementById('qdHospitalBox').classList.toggle('hidden', cur === 'elsewhere');
+      document.querySelectorAll('.qd-hosp').forEach((b) => {
+        const on = b.dataset.on === '1';
+        b.className = 'qd-hosp h-9 px-3 rounded-lg border text-xs font-bold ' + (on ? 'bg-rose-800 text-white border-rose-800' : 'bg-white text-slate-700 border-slate-300');
+      });
+    }
+
+    function qdPickHospital(btn) {
+      const was = btn.dataset.on === '1';
+      document.querySelectorAll('.qd-hosp').forEach((b) => b.dataset.on = '');
+      btn.dataset.on = was ? '' : '1';
+      paintQuickDelivery();
+    }
+
+    function closeQuickDelivery() { document.getElementById('quickDeliveryModal').classList.add('hidden'); }
+
+    async function saveQuickDelivery() {
+      const p = patients.find((x) => x.id === document.getElementById('qdPatientId').value);
+      if (!p) return;
+      const kind = document.getElementById('qdType').value;
+      const date = document.getElementById('qdDate').value;
+      if (!date) { alert('أدخلي تاريخ الولادة أو العملية'); return; }
+      if (kind === 'elsewhere') {
+        endPregnancy(p, { outcome: 'elsewhere', date, notes: 'سُجّلت سريعاً' }, true);
+        addExternalCare(p, date, 'ولدت لدى طبيب أو مشفى آخر');
+      } else {
+        const t = QD_TYPES.find((x) => x.key === kind);
+        const hospBtn = [...document.querySelectorAll('.qd-hosp')].find((b) => b.dataset.on === '1');
+        const rec = {
+          id: 'surg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+          type: t.type, date, hospital: hospBtn ? hospBtn.textContent.trim() : '', anesthesia: '', surgeon: 'د. هيام خضر',
+          report: '', notes: '', quick: true, babyGender: null, babyWeight: null, babyStatus: null,
+          timestamp: Date.now(), updatedAt: Date.now()
+        };
+        p.surgeries = Array.isArray(p.surgeries) ? p.surgeries : [];
+        p.surgeries.unshift(rec);
+        endPregnancy(p, { outcome: kind, date, surgeryId: rec.id }, true);
+      }
+      closeQuickDelivery();
+      notifyDataChanged();
+      await syncPatientToCloud(p);
+      showRealtimeToast('✅ تم تسجيل الولادة وإغلاق الحمل');
+      if (!document.getElementById('doctorModal').classList.contains('hidden') && activeArchivePatient && activeArchivePatient.id === p.id) openDoctorModal(p.id);
+    }
+
+    // --- DELIVERIES TAB: due soon / overdue ---
+    let dueFilter = 'soon';
+    function setDueFilter(f) { dueFilter = f; if (activeTab !== 'dueMonth') setActiveTab('dueMonth'); else renderApp(); }
+
+    function renderDueView(list, dueSoonList) {
+      const overdue = overduePatients();
+      const bar = document.createElement('div');
+      bar.className = 'flex gap-1.5 p-1 bg-slate-100 rounded-2xl';
+      bar.innerHTML = [
+        ['soon', 'calendar-clock', `قريبات من الولادة (${dueSoonList.length})`],
+        ['overdue', 'triangle-alert', `متأخرات (${overdue.length})`]
+      ].map(([k, i, t]) => `<button type="button" onclick="setDueFilter('${k}')" class="ctab ${dueFilter === k ? 'is-on' : ''}" style="height:38px">${ic(i)} ${t}</button>`).join('');
+      list.appendChild(bar);
+      const grid = cardGrid(list);
+      if (dueFilter === 'overdue') {
+        document.getElementById('queueStats').innerText = `حوامل تجاوزن موعد الولادة: ${overdue.length}`;
+        if (!overdue.length) grid.innerHTML = `<div class="bg-white rounded-2xl p-8 text-center text-slate-400 font-bold border border-slate-200">لا توجد حوامل متأخرات.</div>`;
+        overdue.forEach((x, i) => grid.appendChild(createPatientCardElement(x.p, i, {
+          note: x.info.weeks > 44 ? `آخر دورة قبل ${x.info.weeks} أسبوع` : `تجاوزت الموعد بـ ${x.info.daysPast} يوم`, overdue: true })));
+      } else {
+        document.getElementById('queueStats').innerText = `قريبات من الولادة: ${dueSoonList.length}`;
+        if (!dueSoonList.length) grid.innerHTML = `<div class="bg-white rounded-2xl p-8 text-center text-slate-400 font-bold border border-slate-200">لا توجد ولادات قريبة.</div>`;
+        dueSoonList.forEach((p, i) => grid.appendChild(createPatientCardElement(p, i, { overdue: !!overdueInfo(p) })));
+      }
+    }
+
+    // --- ALL PATIENTS: sort + filter ---
+    const ALL_SORTS = [
+      ['name', 'الاسم (أ - ي)'], ['recent', 'آخر زيارة: الأحدث'], ['oldest', 'آخر زيارة: الأقدم'], ['added', 'الأحدث إضافة']
+    ];
+    const ALL_FILTERS = [
+      ['all', 'الكل', 'users'], ['pregnant', 'حوامل', 'baby'], ['risk', 'خطورة عالية', 'siren'], ['next', 'لها موعد قادم', 'calendar-clock'],
+      ['gyn', 'نسائية', 'stethoscope'], ['infertility', 'عقم', 'sprout'], ['postpartum', 'نفاس', 'heart-handshake'], ['new', 'بلا زيارات', 'sparkles']
+    ];
+    const readPref = (k, d) => { try { return localStorage.getItem(k) || d; } catch (e) { return d; } };
+    const writePref = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+    let allSort = readPref('clinic_all_sort', 'name');
+    let allFilter = readPref('clinic_all_filter', 'all');
+    function setAllSort(v) { allSort = v; writePref('clinic_all_sort', v); renderApp(); }
+    function setAllFilter(v) { allFilter = v; writePref('clinic_all_filter', v); renderApp(); }
+
+    function lastVisitDate(p) { return ((p.visits || [])[0] || {}).date || ''; }
+
+    function renderAllPatientsView(list) {
+      const deletedIds = getDeletedIds();
+      const today = getTodayDateString();
+      const match = {
+        all: () => true,
+        pregnant: (p) => !!activePregnancy(p),
+        risk: (p) => !!p.isHighRisk,
+        next: (p) => latestNextVisit(p) >= today,
+        gyn: (p) => ((p.visits || [])[0] || {}).kind === 'gyn',
+        infertility: (p) => ((p.visits || [])[0] || {}).kind === 'infertility',
+        postpartum: (p) => ((p.visits || [])[0] || {}).kind === 'postpartum',
+        new: (p) => !(p.visits || []).length
+      }[allFilter] || (() => true);
+      let shown = patients.filter((p) => p && p.id && !deletedIds.has(p.id) && match(p));
+      const byName = (a, b) => (a.name || '').localeCompare(b.name || '', 'ar', { sensitivity: 'base' });
+      if (allSort === 'recent') shown.sort((a, b) => lastVisitDate(b).localeCompare(lastVisitDate(a)) || byName(a, b));
+      else if (allSort === 'oldest') shown.sort((a, b) => (lastVisitDate(a) || '9999').localeCompare(lastVisitDate(b) || '9999') || byName(a, b));
+      else if (allSort === 'added') shown.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+      else shown.sort(byName);
+
+      document.getElementById('queueStats').innerText = `المريضات: ${shown.length}${allFilter !== 'all' ? ` من ${patients.length}` : ''}`;
+      const bar = document.createElement('div');
+      bar.className = 'bg-white rounded-2xl border border-slate-200 p-2.5 space-y-2';
+      bar.innerHTML = `
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-bold text-slate-600 inline-flex items-center gap-1 shrink-0">${ic('arrow-down-up')} الترتيب</span>
+          <select onchange="setAllSort(this.value)" class="flex-1 min-w-0 h-9 px-2 border border-slate-300 rounded-xl bg-slate-50 text-xs font-bold">
+            ${ALL_SORTS.map(([v, t]) => `<option value="${v}" ${v === allSort ? 'selected' : ''}>${t}</option>`).join('')}
+          </select>
+        </div>
+        <div class="flex flex-wrap gap-1.5">
+          ${ALL_FILTERS.map(([v, t, i]) => `<button type="button" onclick="setAllFilter('${v}')" class="h-8 px-2.5 rounded-lg text-[11px] font-bold border inline-flex items-center gap-1 ${v === allFilter ? 'bg-rose-800 text-white border-rose-800' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'}">${ic(i)} ${t}</button>`).join('')}
+        </div>`;
+      list.appendChild(bar);
+      const grid = cardGrid(list);
+      if (!shown.length) grid.innerHTML = `<div class="bg-white rounded-2xl p-8 text-center text-slate-400 font-bold border border-slate-200">لا توجد مريضات بهذا الفلتر.</div>`;
+      shown.forEach((p, i) => grid.appendChild(createPatientCardElement(p, i)));
+    }
+
     // --- TODAY SCREEN ---
     function latestNextVisit(p) {
       const v = (p.visits || []).find((x) => x.nextVisitDate);
@@ -4065,6 +4279,15 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
             </div>`).join('')}
         </div>`;
       list.appendChild(head);
+      const overdueAll = overduePatients();
+      if (overdueAll.length) {
+        const al = document.createElement('button');
+        al.type = 'button';
+        al.onclick = () => setDueFilter('overdue');
+        al.className = 'w-full flex items-center justify-between gap-2 bg-pink-50 border border-pink-200 rounded-2xl px-3 py-2.5 text-pink-800 font-bold text-sm hover:bg-pink-100';
+        al.innerHTML = `<span class="inline-flex items-center gap-2">${ic('triangle-alert')} ${overdueAll.length} حوامل تجاوزن موعد الولادة</span><span class="inline-flex items-center gap-1 text-xs">عرض ${ic('chevron-left')}</span>`;
+        list.appendChild(al);
+      }
 
       const section = (title, items, note, empty) => {
         if (!items.length && !empty) return;
@@ -4112,6 +4335,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
         const preg = calculatePregnancy(p.lmp);
         return preg && !preg.isFuture && (preg.isDueWithinMonth || preg.isDueInCurrentMonth || preg.isOverdue);
       });
+      const overdueCount = overduePatients().length;
       const dueBadge = document.getElementById('dueThisMonthCount');
       if (dueMonthPatients.length > 0) {
         dueBadge.innerText = dueMonthPatients.length;
@@ -4134,6 +4358,16 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
       }
       if (activeTab === 'daily' || isSec) renderNextPatientSpotlight();
       else document.getElementById('nextPatientSpotlightContainer').innerHTML = '';
+      if (!isSec && !q && activeTab === 'all') { searchBanner.classList.add('hidden'); renderAllPatientsView(list); return; }
+      if (!isSec && !q && activeTab === 'dueMonth') {
+        searchBanner.classList.add('hidden');
+        const soon = [...dueMonthPatients].filter((p) => !overdueInfo(p)).sort((a, b) => {
+          const pa = calculatePregnancy(a.lmp), pb = calculatePregnancy(b.lmp);
+          return (pa?.daysUntilDelivery || 999) - (pb?.daysUntilDelivery || 999);
+        });
+        renderDueView(list, soon);
+        return;
+      }
 
       let displayList = [];
 
@@ -4380,9 +4614,9 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
 
       card.innerHTML = `
         <div class="flex items-start gap-2.5">
-          <button type="button" ${isDoctor ? `onclick="openDoctorModal(${jsArg(p.id)})"` : ''} class="w-12 h-12 rounded-2xl shrink-0 flex flex-col items-center justify-center leading-none ${tone}">
-            <span class="text-lg font-black font-mono">${big === null ? ic('sparkles') : escapeHTML(String(big))}</span>
-            <span class="text-[9px] font-bold mt-0.5 opacity-80">${small}</span>
+          <button type="button" ${isDoctor ? `onclick="openDoctorModal(${jsArg(p.id)})"` : ''} class="min-w-[3.4rem] min-h-[3.4rem] px-1.5 py-1.5 rounded-2xl shrink-0 flex flex-col items-center justify-center gap-1 ${tone}">
+            <span class="text-lg font-black font-mono leading-none">${big === null ? ic('sparkles') : escapeHTML(String(big))}</span>
+            <span class="text-[10px] font-bold leading-tight opacity-90 whitespace-nowrap">${small}</span>
           </button>
           <div class="min-w-0 flex-1">
             <h3 class="text-[15px] font-black text-slate-900 leading-snug ${isDoctor ? 'cursor-pointer hover:text-rose-800' : ''}" ${isDoctor ? `onclick="openDoctorModal(${jsArg(p.id)})"` : ''}>${escapeHTML(p.name)}</h3>
@@ -4435,7 +4669,7 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
             <button onclick="openNewVisitModal(${jsArg(p.id)})" class="h-10 bg-rose-800 hover:bg-rose-900 text-white rounded-xl font-bold text-xs inline-flex items-center justify-center gap-1.5 active:scale-95 transition">${ic('plus')} زيارة جديدة</button>
             <button onclick="openDoctorModal(${jsArg(p.id)})" class="h-10 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-bold text-xs border border-slate-200 inline-flex items-center justify-center gap-1.5">${ic('folder-open')} الملف</button>
           </div>
-          ${opts.overdue ? `<button onclick="quickDeliveredElsewhere(${jsArg(p.id)})" class="w-full h-9 rounded-xl border border-dashed border-pink-300 text-pink-700 font-bold text-xs inline-flex items-center justify-center gap-1.5 hover:bg-pink-50">${ic('hospital')} ولدت في مكان آخر؟</button>` : ''}
+          ${opts.overdue ? `<button onclick="openQuickDelivery(${jsArg(p.id)})" class="w-full h-10 rounded-xl bg-pink-600 hover:bg-pink-700 text-white font-bold text-xs inline-flex items-center justify-center gap-1.5">${ic('clipboard-check')} تسجيل الولادة (قيصرية / طبيعية / مكان آخر)</button>` : ''}
         ` : ''}
       `;
       return card;
