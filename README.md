@@ -77,3 +77,5 @@ visits/surgeries rules is published, the app keeps saving the old way and retrie
 has been opened online. A device that has signed in stays signed in offline, and changes sync
 when the connection returns. The first sign-in on a device needs internet.
 Change `CACHE_NAME` in `sw.js` on every release so installed copies update.
+
+

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#0a5869">
+  <meta name="theme-color" content="#f3f5f6">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>عيادة النسائية والتوليد وجراحتها - د. هيام خضر</title>
@@ -41,7 +41,7 @@
         var dark = mode === 'dark' || (mode === 'system' && mq && mq.matches);
         document.documentElement.classList.toggle('dark', dark);
         var meta = document.querySelector('meta[name="theme-color"]');
-        if (meta) meta.setAttribute('content', dark ? '#0b1215' : '#0a5869');
+        if (meta) meta.setAttribute('content', dark ? '#000000' : '#f3f5f6');
         document.querySelectorAll('.theme-toggle').forEach(function (b) {
           b.innerHTML = '<i data-lucide="' + (mode === 'dark' ? 'moon' : (mode === 'light' ? 'sun' : 'monitor')) + '"></i>';
           if (window.lucide) window.lucide.createIcons();
@@ -267,6 +267,87 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
     ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-track { background: #f1f5f9; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; }
+
+    /* ===== One UI layer =====
+       Samsung-style layout: a large page title at the top (viewing area), controls within thumb reach,
+       flat rounded cards on a soft grey ground, pill buttons, filled inputs, a floating bottom bar and
+       dialogs that rise from the bottom on phones. Colours still come from the clinic tokens above. */
+    :root { --bg-app: #f3f5f6; --surface: #ffffff; --oui-fill: rgb(var(--gray-100)); --oui-r: 26px; --oui-bar: rgba(255,255,255,.78); }
+    html.dark { --bg-app: #000000; --surface: #17191b; --oui-fill: #222527; --oui-bar: rgba(30,33,35,.78); }
+    html.dark { --gray-50: 24 27 29; --gray-100: 30 33 35; --gray-200: 44 48 51; --gray-300: 62 67 71; }
+
+    /* Large title (viewing area) */
+    #ouiTitle { padding: 26px 6px 10px; }
+    #ouiTitle h2 { font-size: 34px; line-height: 1.25; font-weight: 700; color: rgb(var(--gray-900)); letter-spacing: 0; }
+    #ouiTitle p { font-size: 14px; color: rgb(var(--gray-500)); font-weight: 500; margin-top: 4px; }
+    @media (max-width: 767px) { #ouiTitle { padding: 9vh 8px 14px; } #ouiTitle h2 { font-size: 36px; } }
+
+    /* App bar: same ground as the page; gains a soft blur once the page scrolls */
+    header#appBar { background: var(--bg-app) !important; border-color: transparent !important; box-shadow: none !important; transition: background-color .2s, box-shadow .2s; }
+    header#appBar.is-scrolled { background: color-mix(in srgb, var(--bg-app) 82%, transparent) !important; backdrop-filter: blur(18px) saturate(1.4); -webkit-backdrop-filter: blur(18px) saturate(1.4); box-shadow: 0 1px 0 rgb(var(--gray-200)) !important; }
+    header#appBar #doctorNav button:not([class*="bg-rose"]), header#appBar #secretaryNav button:not([class*="bg-rose"]) { background: transparent !important; border-color: transparent !important; }
+    header#appBar #doctorNav button:not([class*="bg-rose"]):hover { background: rgb(var(--gray-200) / .6) !important; }
+    #syncStatus, #roleBadge { border-color: transparent !important; border-radius: 999px !important; }
+
+    /* Cards: flat, no outline, generous corners */
+    main [class~="bg-white"][class*="rounded-"], [id$="Modal"] [class~="bg-white"][class*="rounded-2xl"], #statsBar {
+      border-radius: var(--oui-r) !important; box-shadow: none !important; }
+    main [class~="bg-white"][class~="border-slate-200"], main [class~="bg-white"][class~="border-slate-100"], main [class~="bg-white"][class~="border-rose-100"],
+    main [class~="border-slate-200"][class~="rounded-2xl"]:not(button), #statsBar { border-color: transparent !important; }
+    main [class*="shadow-"] { box-shadow: none !important; }
+    /* Tinted boxes inside cards and dialogs: colour only, no outline */
+    main div[class*="-50"][class*="border"], main section[class*="-50"][class*="border"], [id$="Modal"] div[class*="-50"][class*="border"] { border-color: transparent !important; }
+    main section > h3, main h3.text-sm { color: rgb(var(--gray-500)); font-size: 13px; padding-inline: 10px; }
+
+    /* Buttons: pills, quiet fills, gentle press */
+    button[class*="rounded-xl"], button[class*="rounded-2xl"], button[class*="rounded-lg"], a[class*="rounded-xl"], label[class*="rounded-xl"], .tab-btn { border-radius: 999px !important; }
+    button[class~="bg-slate-100"], button[class~="bg-white"], button[class~="bg-rose-50"] { border-color: transparent !important; }
+    button[class~="bg-white"] { background: var(--oui-fill) !important; }
+    .btn-touch:active, button:active { transform: scale(.97) !important; filter: none; }
+
+    /* Inputs: filled, no outline until focused */
+    input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=range]), select, textarea {
+      background-color: var(--oui-fill) !important; border-color: transparent !important; border-radius: 16px !important; box-shadow: none !important; }
+    input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus { box-shadow: 0 0 0 2px rgb(var(--brand-500)) !important; }
+    #searchInput { height: 48px !important; border-radius: 999px !important; font-size: 14px !important; padding-inline: 44px 18px !important;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='none' stroke='%237b8c94' stroke-width='2' stroke-linecap='round' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") !important;
+      background-repeat: no-repeat !important; background-position: right 16px center !important; }
+    main > div:has(> div > div > #searchInput) { background: transparent !important; padding: 0 !important; }
+
+    /* Laptop tabs: one segmented pill */
+    #tabsContainer { background: var(--surface); border-radius: 999px; padding: 5px; gap: 2px; width: fit-content; max-width: 100%; }
+    .tab-btn, html.dark .tab-btn { background: transparent; border-color: transparent; color: rgb(var(--gray-600)); height: 38px; font-weight: 700; }
+    .tab-btn:hover, html.dark .tab-btn:hover { background: rgb(var(--gray-100)); }
+    .tab-btn.is-active, html.dark .tab-btn.is-active { background: rgb(var(--brand-100)); color: rgb(var(--brand-800)); border-color: transparent; box-shadow: none; }
+    html.dark .tab-btn.is-active { background: rgb(var(--brand-200)); color: #bff0f7; }
+
+    /* Phone: floating bottom bar */
+    #bottomNav { left: 12px !important; right: 12px !important; bottom: calc(10px + env(safe-area-inset-bottom)) !important; padding: 6px !important;
+      border: 0 !important; border-radius: 30px; background: var(--oui-bar) !important; backdrop-filter: blur(22px) saturate(1.6); -webkit-backdrop-filter: blur(22px) saturate(1.6);
+      box-shadow: 0 8px 28px rgba(0,0,0,.12), 0 0 0 1px rgb(var(--gray-200) / .7) !important; }
+    .bn-btn, html.dark .bn-btn { border-radius: 24px; padding: 7px 0 6px; font-weight: 700; color: rgb(var(--gray-500)); }
+    .bn-btn.is-active, html.dark .bn-btn.is-active { background: rgb(var(--brand-100)); color: rgb(var(--brand-800)); }
+    html.dark .bn-btn.is-active { background: rgb(var(--brand-200)); color: #bff0f7; }
+    @media (max-width: 767px) { #mainArea { padding-bottom: calc(110px + env(safe-area-inset-bottom)) !important; } #realtimeToast { bottom: calc(96px + env(safe-area-inset-bottom)) !important; } }
+
+    /* Dialogs: flat panels; on phones they rise from the bottom within thumb reach */
+    .fixed.inset-0:not(#lockScreen) > div { border-radius: 28px !important; border-color: transparent !important; }
+    .fixed.inset-0:not(#lockScreen)[class*="bg-black"] { background-color: rgba(0,0,0,.42) !important; backdrop-filter: none !important; }
+    @media (max-width: 767px) {
+      .fixed.inset-0.items-center:not(#lockScreen) { align-items: flex-end !important; padding: 8px 8px calc(8px + env(safe-area-inset-bottom)) !important; }
+      .fixed.inset-0:not(#lockScreen):not(.hidden) > div { animation: ouiRise .28s cubic-bezier(.2,.9,.25,1); }
+    }
+    @keyframes ouiRise { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+    @media (prefers-reduced-motion: reduce) { .fixed.inset-0 > div { animation: none !important; } }
+
+    /* Sign-in: plain ground, large title, flat card */
+    #lockScreen { background: var(--bg-app) !important; align-items: flex-end; }
+    html.dark #lockScreen { background: var(--bg-app) !important; }
+    #lockScreen > div { box-shadow: none !important; border-color: transparent !important; border-radius: 28px !important; margin-bottom: 4vh; }
+    #lockScreen .theme-toggle { background: var(--oui-fill) !important; border-color: transparent !important; border-radius: 999px !important; color: rgb(var(--gray-700)); }
+    #lockScreen #loginBtn { border-radius: 999px !important; box-shadow: none !important; }
+    #lockScreen #googleLoginBtn { border-radius: 999px !important; border-color: transparent !important; background: var(--oui-fill) !important; }
+    @media (min-width: 768px) { #lockScreen { align-items: center; } }
   </style>
 </head>
 <body class="text-slate-800 antialiased selection:bg-rose-200 selection:text-rose-900 min-h-screen flex flex-col justify-between">
@@ -308,7 +389,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
 
  <!-- ==================== 2. SMART MOBILE/DESKTOP HEADER ==================== -->
 <!-- ==================== 2. SMART MOBILE/DESKTOP HEADER ==================== -->
-  <header class="bg-white/95 backdrop-blur text-slate-800 shadow-xs sticky top-0 z-30 border-b border-slate-200">
+  <header id="appBar" class="bg-white/95 backdrop-blur text-slate-800 shadow-xs sticky top-0 z-30 border-b border-slate-200">
     <div class="max-w-5xl mx-auto px-2.5 sm:px-4 py-2 flex justify-between items-center gap-1.5 sm:gap-2">
       
       <!-- Brand & Title (Never cut off on 6-inch screens) -->
@@ -397,6 +478,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
   <!-- ==================== 3. MAIN DASHBOARD ==================== -->
 <!-- ==================== 3. MAIN DASHBOARD ==================== -->
   <main id="mainArea" class="max-w-5xl mx-auto p-3 md:p-4 space-y-3 flex-1 w-full pb-24 md:pb-6">
+    <div id="ouiTitle"><h2 id="ouiTitleText">اليوم</h2><p id="ouiTitleSub"></p></div>
     
     <!-- Doctor Tabs Navigation (Touch Padded) -->
     <!-- Doctor Tabs Navigation (With Operations Database Tab) -->
@@ -4256,7 +4338,7 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
       head.className = 'space-y-2.5';
       head.innerHTML = `
         <div class="flex justify-between items-center gap-2 flex-wrap">
-          <h2 class="text-lg font-black text-slate-900">${escapeHTML(arabicDayTitle(today))}</h2>
+          <span></span>
           <div class="flex gap-1.5">
             <button onclick="setActiveTab('daily')" class="h-9 px-3 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50 inline-flex items-center gap-1.5">${ic('calendar-days')} يوم آخر</button>
             <button onclick="openDoctorNewPatientModal()" class="h-9 px-3 rounded-xl bg-rose-800 hover:bg-rose-900 text-white text-xs font-bold shadow-xs inline-flex items-center gap-1.5">${ic('user-plus')} مريضة جديدة</button>
@@ -4315,7 +4397,25 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
       section(['calendar-x', 'مواعيد فائتة (آخر أسبوعين)'], missed, (p) => `كان موعدها ${latestNextVisit(p)}`, '');
     }
 
+    const OUI_TITLES = { today: 'اليوم', all: 'المريضات', dueMonth: 'الولادات', surgeries: 'العمليات', weekly: 'المالية', daily: 'سجل يوم' };
+    function updateLargeTitle() {
+      const t = document.getElementById('ouiTitleText'), sub = document.getElementById('ouiTitleSub');
+      if (!t) return;
+      const today = getTodayDateString();
+      if (currentRole === 'secretary') { t.innerText = 'دور اليوم'; sub.innerText = arabicDayTitle(today); return; }
+      t.innerText = OUI_TITLES[activeTab] || 'العيادة';
+      if (activeTab === 'today') sub.innerText = arabicDayTitle(today);
+      else if (activeTab === 'all') sub.innerText = patients.length + ' مريضة';
+      else if (activeTab === 'daily') sub.innerText = arabicDayTitle(document.getElementById('dateFilterInput').value || today);
+      else sub.innerText = '';
+    }
+    window.addEventListener('scroll', () => {
+      const bar = document.getElementById('appBar');
+      if (bar) bar.classList.toggle('is-scrolled', window.scrollY > 8);
+    }, { passive: true });
+
     function renderApp() {
+      updateLargeTitle();
       const selectedDate = document.getElementById('dateFilterInput').value || getTodayDateString();
       const rawSearch = document.getElementById('searchInput').value.trim();
       const q = normalizeArabic(rawSearch);
