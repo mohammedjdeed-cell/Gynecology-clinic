@@ -55,7 +55,8 @@ devices editing the same patient cannot overwrite each other.
   from their operations and visits the first time they are opened. Pregnancy visits carry `pregnancyId`.
 - `patients/{id}/visits/{visitId}`: one visit (`photoCount` only; the photos are separate).
 - `patients/{id}/surgeries/{surgeryId}`: one operation / delivery.
-- `patients/{id}/photos/{visitId}`: the photos of one visit (`list` of JPEG data URLs).
+- `patients/{id}/photos/{visitId}`: the photos of one visit (`list` of JPEG data URLs). Adding new
+  photos was removed to keep the app light; visits that already have photos still show them.
 
 Older versions kept `visits` / `surgeries` as arrays inside the patient document. The doctor's
 device moves them into the documents above automatically, one patient at a time, and keeps a
