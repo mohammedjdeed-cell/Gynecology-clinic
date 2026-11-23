@@ -78,4 +78,23 @@ has been opened online. A device that has signed in stays signed in offline, and
 when the connection returns. The first sign-in on a device needs internet.
 Change `CACHE_NAME` in `sw.js` on every release so installed copies update.
 
+## Design
 
+The look follows Samsung One UI 9: a large page title at the top, flat rounded cards on a soft grey
+ground (black in dark mode), pill buttons, filled inputs without outlines, a floating bottom bar on
+phones and dialogs that rise from the bottom. Icons are Lucide line icons (`ic('name')` in code), never
+emoji. It is the "One UI 9 layer" CSS at the end of the first `<style>` in `index.html`, on top of the
+existing colour tokens.
+
+Motion and gestures live in the last `<script>` of `index.html` (phones; off when the device asks for
+reduced motion). The app is right-to-left, so the tabs run from اليوم (right) to المالية (left):
+
+- Drag the page to the right for the next tab, to the left for the previous one; a quick flick works too.
+- Pull down at the top of a screen to reload the records.
+- The large title shrinks on scroll and moves into the top bar.
+- Dialogs have a grab handle: drag down from the top of a dialog to close it.
+- The phone's Back button/gesture never leaves the app. In order it closes the open dialog, closes the
+  settings menu, clears the search, returns to اليوم from another tab, scrolls to the top, and on Today
+  only shows a hint (to exit, use the phone's Home button).
+- A dialog with something typed in it refuses to close by gesture or Back (it shakes and says so);
+  the × button still closes it.

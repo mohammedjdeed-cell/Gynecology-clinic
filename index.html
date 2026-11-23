@@ -6970,9 +6970,31 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
     document.addEventListener('touchcancel', onCancel, { passive: true });
 
     /* ---------- Dialogs: grab handle, swipe down to close, Back closes the top one ---------- */
-    // One history entry per open dialog, so the phone's Back gesture closes the top dialog
-    // instead of leaving the app.
-    let ignorePop = 0, pushed = 0;
+    // The phone's Back button/gesture never leaves the app. A "guard" history entry always sits
+    // under the page; one more entry sits on top for each open dialog. Back first closes the top
+    // dialog, then steps back inside the app (menu, search, tab, scroll), and re-arms the guard.
+    // Browsers skip history entries added without a tap, so the guard is (re)armed on a touch.
+    let ignorePop = 0, pushed = 0, guard = 'none';   // guard: 'none' | 'weak' (no tap yet) | 'ok'
+    function armGuard() {
+      if (guard === 'ok') return;
+      try { history.pushState({ ouiGuard: 1 }, ''); guard = 'ok'; } catch (e) {}
+    }
+    ['pointerdown', 'keydown'].forEach((ev) => document.addEventListener(ev, armGuard, { capture: true, passive: true }));
+    let lastHint = 0;
+    function backInsideApp() {
+      const lock = document.getElementById('lockScreen');
+      if (lock && !lock.classList.contains('hidden')) return;
+      const menu = document.getElementById('adminDropdownMenu');
+      if (menu && !menu.classList.contains('hidden')) { closeAdminMenu(); return; }
+      const search = document.getElementById('searchInput');
+      if (search && search.value.trim()) { search.blur(); clearSearchInput(); return; }
+      if (currentRole === 'doctor' && activeTab !== 'today') { window.setActiveTab('today', 'prev'); return; }
+      if (window.scrollY > 40) { window.scrollTo({ top: 0, behavior: reduce() ? 'auto' : 'smooth' }); return; }
+      if (Date.now() - lastHint > 4000) {
+        lastHint = Date.now();
+        if (typeof showRealtimeToast === 'function') showRealtimeToast('أنتِ في الشاشة الرئيسية. للخروج استخدمي زر الشاشة الرئيسية في الهاتف');
+      }
+    }
     function onSheetOpened(id) {
       if (openStack.includes(id)) return;
       openStack.push(id);
@@ -6989,7 +7011,13 @@ const totalSurgCount = patients.reduce((acc, p) => acc + (p.surgeries?.length ||
     }
     window.addEventListener('popstate', () => {
       if (ignorePop > 0) { ignorePop--; return; }
-      if (!openStack.length) return;
+      if (!openStack.length) {
+        // The guard was used up: act inside the app and put a new guard in its place.
+        backInsideApp();
+        guard = 'none';
+        try { history.pushState({ ouiGuard: 1 }, ''); guard = 'weak'; } catch (e) {}
+        return;
+      }
       pushed = Math.max(0, pushed - 1);
       const top = openStack.pop();
       if (!closeSheet(top, 'back')) {
