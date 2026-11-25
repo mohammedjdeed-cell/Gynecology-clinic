@@ -2,6 +2,7 @@
 <html lang="ar" dir="rtl" spellcheck="false">
 <head>
   <meta charset="UTF-8">
+  <meta name="color-scheme" content="light dark">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#f3f5f6">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -47,17 +48,31 @@
           if (window.lucide) window.lucide.createIcons();
           b.title = mode === 'dark' ? 'الوضع: داكن' : (mode === 'light' ? 'الوضع: فاتح' : 'الوضع: حسب الجهاز');
         });
+        document.querySelectorAll('[data-theme-opt]').forEach(function (b) {
+          var on = b.getAttribute('data-theme-opt') === mode;
+          b.classList.toggle('is-on', on);
+          b.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+      }
+      var NAMES = { system: 'المظهر: تلقائي حسب الهاتف', light: 'المظهر: فاتح', dark: 'المظهر: داكن' };
+      function set(mode) {
+        if (!NAMES[mode]) mode = 'system';
+        try { localStorage.setItem(KEY, mode); } catch (e) {}
+        apply();
+        if (typeof showRealtimeToast === 'function') showRealtimeToast(NAMES[mode]);
+        return mode;
       }
       window.clinicTheme = {
         apply: apply,
-        cycle: function () {
-          var next = { system: 'light', light: 'dark', dark: 'system' }[pref()] || 'system';
-          try { localStorage.setItem(KEY, next); } catch (e) {}
-          apply();
-          return next;
-        }
+        mode: pref,
+        set: set,
+        cycle: function () { return set({ system: 'light', light: 'dark', dark: 'system' }[pref()] || 'system'); }
       };
       if (mq && mq.addEventListener) mq.addEventListener('change', apply);
+      else if (mq && mq.addListener) mq.addListener(apply);
+      // An installed app can miss the phone's light/dark switch while it sits in the background.
+      document.addEventListener('visibilitychange', function () { if (!document.hidden) apply(); });
+      window.addEventListener('pageshow', apply);
       apply();
       document.addEventListener('DOMContentLoaded', apply);
     })();
@@ -401,6 +416,14 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
       #ouiTitle, #patientList > *, #nextPatientSpotlightContainer, .oui-sheet, .fixed.inset-0 { animation: none !important; transition: none !important; }
     }
 
+    /* ----- Theme: both schemes declared, so phone browsers never force their own dark mode ----- */
+    :root:not(.dark) { color-scheme: light; }
+    html.dark { color-scheme: dark; }
+    .oui-seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; padding: 3px; border-radius: 999px; background: var(--oui-fill); }
+    .oui-seg button { height: 34px !important; min-height: 0 !important; border-radius: 999px !important; display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+      font-size: 11.5px; font-weight: 700; color: rgb(var(--gray-600)); background: transparent !important; border: 0 !important; }
+    .oui-seg button.is-on { background: var(--surface) !important; color: rgb(var(--brand-700)); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+    html.dark .oui-seg button.is-on { background: rgb(var(--gray-300)) !important; color: #bff0f7; }
     /* ----- Icons and chips everywhere ----- */
     .oui-fav { fill: currentColor; color: #f59e0b; }
     #roleBadge svg.lucide, #syncStatus svg.lucide { width: 13px; height: 13px; margin-inline-end: 4px; }
@@ -490,6 +513,14 @@ html.dark [class~='text-teal-600'] { color: #2dd4bf !important; }
           </button>
 
           <div id="adminDropdownMenu" class="hidden absolute left-0 mt-2 w-60 bg-white rounded-2xl shadow-2xl border border-slate-200 py-1.5 z-40 text-slate-800 text-xs divide-y divide-slate-100">
+            <div class="px-3 pt-1.5 pb-2.5">
+              <div class="font-bold text-slate-500 text-[11px] mb-1.5 flex items-center gap-1.5"><i data-lucide="sun-moon"></i> المظهر</div>
+              <div class="oui-seg" role="group" aria-label="المظهر">
+                <button type="button" data-theme-opt="system" onclick="clinicTheme.set('system')"><i data-lucide="smartphone"></i> تلقائي</button>
+                <button type="button" data-theme-opt="light" onclick="clinicTheme.set('light')"><i data-lucide="sun"></i> فاتح</button>
+                <button type="button" data-theme-opt="dark" onclick="clinicTheme.set('dark')"><i data-lucide="moon"></i> داكن</button>
+              </div>
+            </div>
             <div class="py-1">
               <button onclick="syncAllToCloud(); closeAdminMenu();" class="w-full text-right px-3.5 py-2.5 hover:bg-rose-50 flex items-center gap-2.5 font-bold text-slate-700">
                 <span class="w-6 text-center"><i data-lucide="cloud"></i></span> <span>مزامنة الآن مع السحابة</span>

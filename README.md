@@ -86,6 +86,10 @@ phones and dialogs that rise from the bottom. Icons are Lucide line icons (`ic('
 emoji. It is the "One UI 9 layer" CSS at the end of the first `<style>` in `index.html`, on top of the
 existing colour tokens.
 
+Appearance is chosen at the top of the settings menu (تلقائي / فاتح / داكن; the header button cycles
+the same three). The page declares `color-scheme: light dark`, so Samsung Internet's and Chrome's own
+forced dark mode leave it alone; تلقائي follows the phone, also after the app returns from the background.
+
 Motion and gestures live in the last `<script>` of `index.html` (phones; off when the device asks for
 reduced motion). The app is right-to-left, so the tabs run from اليوم (right) to المالية (left):
 
